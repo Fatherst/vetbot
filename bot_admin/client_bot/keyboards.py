@@ -59,10 +59,3 @@ def get_new_appointment():
     b3 = KeyboardButton("Назад 🔙", callback_data="back")
     inline_markup.add(b1).add(b2).add(b4).add(b5).add(b6).add(b3)
     return inline_markup
-
-
-def get_admin_code():
-    inline_markup = InlineKeyboardMarkup(row_width=1)
-    b1 = KeyboardButton("Получить код", callback_data="admin_email")
-    inline_markup.add(b1)
-    return inline_markup

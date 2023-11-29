@@ -1,16 +1,14 @@
 from django.contrib import admin
-from .models import Client
+from .models import Admin
 
 
-@admin.register(Client)
-class ClientAdmin(admin.ModelAdmin):
+@admin.register(Admin)
+class AdminAdmin(admin.ModelAdmin):
     list_display = (
-        "clientEnoteId",
-        "firstName",
-        "middleName",
-        "middleName",
-        "lastName",
+        "code",
+        "first_name",
+        "middle_name",
+        "last_name",
         "email",
-        "phoneNumber",
-        "clientTelegramId",
+        "admin_telegram_id",
     )

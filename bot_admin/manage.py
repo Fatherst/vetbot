@@ -7,17 +7,23 @@ import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "bot_admin.settings")
 django.setup()
+sys.path.append(".")
 from aiogram.utils import executor
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from multiprocessing import Process
-from admin_dialog import views
-from admin_dialog.create_bot import bot, dp
+from admin_dialog import handlers
+from client_bot.handlers import register_handlers_client
+from bot_admin.create_bot import bot, dp
 import threading
 
 
-views.register_handlers_client(dp)
+handlers.register_handlers_admin(dp)
+register_handlers_client(dp)
 
+"""Админ и авторизация админа
+
+Докерфайл"""
 
 async def on_startup(_):
     print("Бот в онлайне")
@@ -42,9 +48,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """Костыль: пытается вызвать несколько экземпляров бота
-    Решение:"""
-    p2 = multiprocessing.Process(target=launch_bot)
-    p2.start()
-    p1 = multiprocessing.Process(target=main)
-    p1.start()
+    main()

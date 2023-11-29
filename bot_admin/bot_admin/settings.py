@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "client_bot.apps.ClientBotConfig",
     "admin_dialog.apps.AdminDialogConfig",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -103,6 +104,8 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
+
+AUTH_USER_MODEL = "admin_dialog.Admin"
 
 
 # Internationalization
