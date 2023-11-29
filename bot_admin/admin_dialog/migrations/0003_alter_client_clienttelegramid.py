@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('admin_dialog', '0002_alter_client_phonenumber'),
+        ("admin_dialog", "0002_alter_client_phonenumber"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='client',
-            name='clientTelegramid',
+            model_name="client",
+            name="clientTelegramid",
             field=models.IntegerField(null=True),
         ),
     ]
