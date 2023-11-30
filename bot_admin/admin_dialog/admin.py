@@ -5,6 +5,10 @@ from .models import Admin
 @admin.register(Admin)
 class AdminAdmin(admin.ModelAdmin):
     list_display = (
+        "username",
+        "is_staff",
+        "is_active",
+        "date_joined",
         "code",
         "first_name",
         "middle_name",

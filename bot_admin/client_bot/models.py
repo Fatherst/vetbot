@@ -2,6 +2,9 @@ from django.db import models
 
 
 class Client(models.Model):
+    class Meta:
+        verbose_name = 'Клиент'
+        verbose_name_plural = 'Клиенты'
     clientEnoteId = models.IntegerField(primary_key=True)
     firstName = models.CharField(max_length=100, default="")
     middleName = models.CharField(max_length=100, default="")
