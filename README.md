@@ -1,4 +1,5 @@
 Для запуска локально необходимо перейти в директорию vetbot2 и создать и активировать виртуальное окружение:
+
 `python3 -m venv .venv` 
 `source venv/bin/activate`
 `pip install -r requirements.txt`
