@@ -29,7 +29,7 @@ async def command_start(message: types.Message):
     async for client in Client.objects.filter(clientTelegramId=user_id):
         if client:
             user = client
-    if user is "admin":
+    if user == "admin":
         await bot.send_message(
             message.from_user.id, text="Вы успешно вошли в админ-панель бота"
         )
