@@ -1,12 +1,22 @@
-version: '3'
+version: '3.9'
 
 services:
+  postgres:
+    image: 'postgres:9.6'
+    environment:
+      - POSTGRES_PASSWORD=6581
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
   web:
     restart: always
     build: ./bot_admin
     command: python manage.py runserver 0.0.0.0:8080
     ports:
       - 8080:8080
+    depends_on:
+      - postgres
   bot:
     restart: always
     build: ./bot_admin
