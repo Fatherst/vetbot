@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
-import multiprocessing
 import os
 import sys
 import django
@@ -8,11 +7,7 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "bot_admin.settings")
 django.setup()
 sys.path.append(".")
-from aiogram import Bot, Dispatcher
-from multiprocessing import Process
-from admin_auth import handlers
-from bot_admin.create_bot import bot, dp
-import threading
+
 
 
 
