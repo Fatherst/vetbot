@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
                     "clientEnoteId",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="client_bot.client",
+                        to="client_auth.client",
                     ),
                 ),
             ],
@@ -83,7 +83,7 @@ class Migration(migrations.Migration):
                     "kindEnoteId",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="client_bot.kind",
+                        to="client_auth.kind",
                     ),
                 ),
             ],
@@ -108,28 +108,28 @@ class Migration(migrations.Migration):
                     "clientEnoteId",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="client_bot.client",
+                        to="client_auth.client",
                     ),
                 ),
                 (
                     "doctorEnoteId",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="client_bot.doctor",
+                        to="client_auth.doctor",
                     ),
                 ),
                 (
                     "patientEnoteId",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="client_bot.patient",
+                        to="client_auth.patient",
                     ),
                 ),
                 (
                     "visitKindId",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        to="client_bot.visitkind",
+                        to="client_auth.visitkind",
                     ),
                 ),
             ],

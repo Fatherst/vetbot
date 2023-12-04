@@ -9,7 +9,6 @@ class AdminAdmin(admin.ModelAdmin):
         "is_staff",
         "is_active",
         "date_joined",
-        "code",
         "first_name",
         "middle_name",
         "last_name",

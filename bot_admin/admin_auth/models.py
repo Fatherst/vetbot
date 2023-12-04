@@ -7,7 +7,6 @@ class Admin(AbstractUser):
     class Meta:
         verbose_name = 'Администратор'
         verbose_name_plural = 'Администраторы'
-    code = models.IntegerField(null=True, blank=True)
     middle_name = models.CharField(max_length=150, default='',blank=True)
     admin_telegram_id = models.IntegerField(null=True)
 

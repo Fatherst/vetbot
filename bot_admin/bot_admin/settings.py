@@ -32,8 +32,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "client_bot.apps.ClientBotConfig",
-    "admin_dialog.apps.AdminDialogConfig",
+    "client_auth.apps.ClientBotConfig",
+    "admin_auth.apps.AdminDialogConfig",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -78,12 +78,12 @@ WSGI_APPLICATION = "bot_admin.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.getenv("DB_ENGINE",default="django.db.backends.sqlite3"),
-        "NAME": os.getenv("DB_NAME", default=BASE_DIR / "db.sqlite3"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PSWD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": os.getenv("POSTGRES_DB", default=BASE_DIR / "db.sqlite3"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("POSTGRES_HOST"),
+        "PORT": os.getenv("POSTGRES_PORT"),
     }
 }
 
@@ -106,7 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = "admin_dialog.Admin"
+AUTH_USER_MODEL = "admin_auth.Admin"
 
 
 # Internationalization

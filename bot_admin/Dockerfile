@@ -1,13 +1,14 @@
-FROM python:3.9.6
+FROM python:3.9
 
-RUN apt-get update && apt-get install python3-pip -y && pip install --upgrade pip && pip install pipenv
+ENV PYTHONDONTWRITEBYTECODE=1
 
-WORKDIR /usr/src/bot_admin
+ENV PYTHONUNBUFFERED=1
 
-COPY . /usr/src/bot_admin
+WORKDIR /app
 
-COPY ./requirements.txt .
+COPY . .
+
+RUN pip install --upgrade pip
 
 RUN pip install -r requirements.txt
 
-COPY . .
