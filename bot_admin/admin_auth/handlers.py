@@ -1,21 +1,15 @@
-import sys
-
-sys.path.append(".")
 from bot_admin.create_bot import bot, dp
-from aiogram import types, Dispatcher
+from aiogram import types
 from .keyboards import get_admin_code, admin_menu
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-import re
 import random
 from .models import Admin
-import smtplib
 from django.core.mail import send_mail
 from django.conf import settings
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.filters.callback_data import CallbackData
-from aiogram.filters import MagicData
+
 
 
 admin_router = Router()

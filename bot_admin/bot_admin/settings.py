@@ -76,7 +76,7 @@ WSGI_APPLICATION = "bot_admin.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+#host.docker.internal
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",

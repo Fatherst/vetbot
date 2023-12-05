@@ -1,6 +1,3 @@
-import sys
-
-sys.path.append(".")
 from aiogram import types, Dispatcher
 from .keyboards import (
     get_identification,

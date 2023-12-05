@@ -1,1 +1,4 @@
 bot_admin/.env
+.venv/
+__pycache__/
+.idea/
