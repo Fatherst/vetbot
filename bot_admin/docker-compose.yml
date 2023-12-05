@@ -6,11 +6,8 @@ services:
     volumes:
       - db:/var/lib/postgresql/data
     user: postgres
-    environment:
-      - POSTGRES_USER:"postgres"
-      - POSTGRES_PASSWORD:"postgres"
-      - POSTGRES_DB:"enotedb"
-      - PGUSER:"postgres"
+    env_file:
+      - ./.env
     restart: on-failure
     ports:
       - 5432:5432
