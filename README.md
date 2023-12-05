@@ -1,6 +1,8 @@
 ## Как запустить локально
 1. Для запуска локально необходимо перейти в директорию проекта и создать и активировать виртуальное окружение:
 
+`cd bot_admin`
+
 `python3 -m venv .venv` 
 
 `source venv/bin/activate`
@@ -9,7 +11,7 @@
 
 ```
 pip3 install --upgrade pip
-pip3 install -r app/requirements.txt
+pip3 install -r requirements.txt
 ```
 
 3. Создайте файл `.env` и заполните его по аналогии с `.env.example`
