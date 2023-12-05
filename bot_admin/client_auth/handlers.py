@@ -1,8 +1,8 @@
 import sys
+
 sys.path.append(".")
 from aiogram import types, Dispatcher
 from .keyboards import (
-    get_startinline_client,
     get_identification,
     get_contact,
     get_user_received_from_db,
@@ -12,7 +12,7 @@ from .keyboards import (
 from .models import Client
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from bot_admin.create_bot import bot,dp
+from bot_admin.create_bot import bot, dp
 from aiogram import Router, F
 from aiogram.filters import Command
 import re
@@ -32,13 +32,13 @@ async def command_start(message: types.Message):
     user_id = message.from_user.id
     user = ""
     """async надо делать, потому что по-другому ORM не работает(потому что она синхронная по умолчанию)"""
-    async for client in Client.objects.filter(clientTelegramId=user_id):
+    async for client in Client.objects.filter(client_telegram_id=user_id):
         if client:
             user = client
     if user:
         await bot.send_message(
             message.from_user.id,
-            text=f"*{user.firstName}*, приветствую!\n\nВыберите, что вас интересует ⤵",
+            text=f"*{user.first_name}*, приветствую!\n\nВыберите, что вас интересует ⤵",
             reply_markup=get_user_received_from_db(),
             parse_mode="Markdown",
         )
@@ -46,10 +46,11 @@ async def command_start(message: types.Message):
         await bot.send_message(
             message.from_user.id,
             text="Добро пожаловать в бота ветеринарного центра *Друзья* 🐈\nДля начала мне нужно Вас идентифицировать в качестве клиента нашей клиники. Для этого,пожалуйста, выберите, хотите"
-                 "ли вы отправить свой номер телефона, указанный в Telegram или написать его вручную.",
+            "ли вы отправить свой номер телефона, указанный в Telegram или написать его вручную.",
             reply_markup=get_identification(),
             parse_mode="Markdown",
         )
+
 
 # @client_router.callback_query(F.data=='1')
 # async def identification(callback: types.CallbackQuery):
@@ -60,8 +61,8 @@ async def command_start(message: types.Message):
 #     )
 
 
-@client_router.callback_query(F.data=='write')
-async def fsm_number(callback: types.CallbackQuery, state:FSMContext):
+@client_router.callback_query(F.data == "write")
+async def fsm_number(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
         text="Пожалуйста, напишите свой телефон в формате: +7XXXXXXXXX"
     )
@@ -79,17 +80,17 @@ async def fsm_number_get(message: types.Message, state: FSMContext):
         phone = message.text
         data["phone"] = phone
         """Функция дублирует такую же в number_received"""
-        async for client in Client.objects.filter(phoneNumber=phone):
+        async for client in Client.objects.filter(phone_number=phone):
             if client:
                 user = client
-                client.clientTelegramId = user_telegram_id
+                client.client_telegram_id = user_telegram_id
                 await client.asave()
         await state.clear()
         black_list = []
         if user and user not in black_list:
             await bot.send_message(
                 message.from_user.id,
-                text=f"*{user.firstName}*, приветствую!\n\nВыберите, что вас интересует ⤵️",
+                text=f"*{user.first_name}*, приветствую!\n\nВыберите, что вас интересует ⤵️",
                 parse_mode="Markdown",
                 reply_markup=get_user_received_from_db(),
             )
@@ -108,13 +109,14 @@ async def fsm_number_get(message: types.Message, state: FSMContext):
             )
     elif message.text.lower() == "отмена":
         await state.clear()
-        await bot.send_message(message.from_user.id,text="Возврат в меню")
+        await bot.send_message(message.from_user.id, text="Возврат в меню")
     else:
         await message.reply(
             text='Номер должен быть в формате +7XXXXXXXXXX\nПопробуй ещё раз или напиши "Отмена"'
         )
 
-@client_router.callback_query(F.data=='share')
+
+@client_router.callback_query(F.data == "share")
 async def send_number(callback: types.CallbackQuery):
     """Предоставление юзеру клавиатуры для отправки номера"""
     await bot.send_message(
@@ -123,7 +125,8 @@ async def send_number(callback: types.CallbackQuery):
         reply_markup=get_contact(),
     )
 
-@client_router.message(F.content_type.in_({'contact'}))
+
+@client_router.message(F.content_type.in_({"contact"}))
 async def number_received(message: types.Message):
     """Получение из базы данных пользователя по номеру телефона
     Проверка на то, не в чёрном списке ли он и существует ли он вообще в БД
@@ -135,11 +138,11 @@ async def number_received(message: types.Message):
         message.from_user.id, text="Спасибо! Проверяем вас в базе данных"
     )
     user = ""
-    async for client in Client.objects.filter(phoneNumber=user_phone_number):
+    async for client in Client.objects.filter(phone_number=user_phone_number):
         print(client)
         if client:
             user = client
-            client.clientTelegramId = user_telegram_id
+            client.client_telegram_id = user_telegram_id
             await client.asave()
     black_list = []
     if user and user not in black_list:

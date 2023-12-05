@@ -9,7 +9,6 @@ import sys
 logging.basicConfig(level=logging.INFO)
 storage = MemoryStorage()
 load_dotenv()
-API_TOKEN = os.getenv("API_TOKEN")
-bot = Bot(API_TOKEN)
+BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
+bot = Bot(BOT_API_TOKEN)
 dp = Dispatcher(storage=storage)
-

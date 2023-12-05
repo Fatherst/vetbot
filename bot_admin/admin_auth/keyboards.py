@@ -6,13 +6,10 @@ from aiogram.types import (
 )
 
 
-
-
-
 def get_admin_code():
     buttons = [
         [
-        InlineKeyboardButton(text="Получить код", callback_data="email"),
+            InlineKeyboardButton(text="Получить код", callback_data="email"),
         ]
     ]
     inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -22,7 +19,7 @@ def get_admin_code():
 def admin_menu():
     buttons = [
         [
-        InlineKeyboardButton(text="Админский интерфейс", callback_data="test"),
+            InlineKeyboardButton(text="Админский интерфейс", callback_data="test"),
         ]
     ]
     inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
