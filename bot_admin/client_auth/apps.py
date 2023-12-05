@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class AdminDialogConfig(AppConfig):
+class ClientBotConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "admin_dialog"
+    name = "client_auth"
