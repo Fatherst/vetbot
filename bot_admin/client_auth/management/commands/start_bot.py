@@ -1,44 +1,42 @@
-import sys
-
-sys.path.append(".")
 from bot_admin.create_bot import bot, dp
 from django.core.management.base import BaseCommand
-from admin_auth import handlers as clr
-from client_auth import handlers as adr
-from dialogue import handlers as dlr
+from admin_auth.handlers import admin_router
+from client_auth.handlers import client_router
+
 import asyncio
 from aiogram import Bot
 from aiohttp import web
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from dotenv import load_dotenv
 import os
 
 
-WEB_SERVER_HOST = "0.0.0.0"
-WEB_SERVER_PORT = 8080
-WEBHOOK_PATH = "/6936825219:AAGPrV2WXZvMbz_bYQjzcqv9ylfj2kI3IoE"
-BASE_WEBHOOK_URL = "https://4f94-2a00-a041-f49f-ffa8-8cff-3595-4971-b9df.ngrok-free.app"
-WEBHOOK_SECRET = "my-secret"
+load_dotenv()
+
+BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
+WEB_SERVER_HOST = os.getenv("WEB_SERVER_HOST")
+WEB_SERVER_PORT = os.getenv("WEB_SERVER_PORT")
+WEBHOOK_PATH = f"/{BOT_API_TOKEN}"
+BASE_WEBHOOK_URL = os.getenv("BASE_WEBHOOK_URL")
+
 
 
 async def on_startup(bot: Bot) -> None:
     print("Бот в онлайне")
-    dp.include_router(clr.admin_router)
-    dp.include_router(adr.client_router)
-    dp.include_router(dlr.dialogue_router)
-    await dp.start_polling(bot)
-    # await bot.set_webhook(f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}")#, secret_token=WEBHOOK_SECRET)
+    dp.include_router(admin_router)
+    dp.include_router(client_router)
+    await bot.set_webhook(f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}")
 
 
-# def launch_bot():
-# app = web.Application()
-# webhook_requests_handler = SimpleRequestHandler(
-#    dispatcher=dp,
-#    bot=bot)
-#    secret_token=WEBHOOK_SECRET,
-# )
-# webhook_requests_handler.register(app, path=WEBHOOK_PATH)
-# setup_application(app, dp, bot=bot)
-# web.run_app(app, host=WEB_SERVER_HOST,port=WEB_SERVER_PORT)
+def launch_bot():
+    dp.startup.register(on_startup)
+    app = web.Application()
+    webhook_requests_handler = SimpleRequestHandler(
+       dispatcher=dp,
+       bot=bot)
+    webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+    setup_application(app, dp, bot=bot)
+    web.run_app(app, host=WEB_SERVER_HOST,port=WEB_SERVER_PORT)
 
 
 class Command(BaseCommand):
@@ -50,5 +48,4 @@ class Command(BaseCommand):
     help = "Bot start"
 
     def handle(self, *args, **options):
-        # launch_bot()
-        asyncio.run(on_startup(bot))
+        launch_bot()

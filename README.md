@@ -14,7 +14,7 @@ pip3 install --upgrade pip
 pip3 install -r requirements.txt
 ```
 
-3. Создайте файл `.env` и заполните его по аналогии с `.env.example`
+3. Создайте файл `.env` и заполните его по аналогии с `.env.template`
 
 4. Сделайте миграции и примените их:
 
