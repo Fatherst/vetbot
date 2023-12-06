@@ -33,6 +33,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "endpoints.apps.EndpointsConfig",
+    "dialogue.apps.DialogueConfig",
     "client_auth.apps.ClientBotConfig",
     "admin_auth.apps.AdminDialogConfig",
     "django.contrib.admin",
@@ -80,7 +82,7 @@ WSGI_APPLICATION = "bot_admin.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": os.getenv("POSTGRES_DB", default=BASE_DIR / "db.sqlite3"),
+        "NAME": os.getenv("POSTGRES_NAME"),
         "USER": os.getenv("POSTGRES_USER"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
         "HOST": os.getenv("POSTGRES_HOST"),

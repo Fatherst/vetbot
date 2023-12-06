@@ -5,8 +5,7 @@ class Client(models.Model):
     class Meta:
         verbose_name = "Клиент"
         verbose_name_plural = "Клиенты"
-
-    client_enote_id = models.IntegerField(primary_key=True)
+    client_enote_id = models.CharField(max_length=150,primary_key=True)
     first_name = models.CharField(max_length=100, default="")
     middle_name = models.CharField(max_length=100, default="")
     last_name = models.CharField(max_length=100, default="")
