@@ -6,10 +6,10 @@ from .keyboards import (
     get_user_not_in_db,
     get_new_appointment,
 )
+from aiogram import Bot
 from .models import Client
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from bot_admin.create_bot import bot, dp
 from aiogram import Router, F
 from aiogram.filters import Command
 import re
@@ -23,7 +23,7 @@ class FSMPhone(StatesGroup):
 
 
 @client_router.message(Command("start"))
-async def command_start(message: types.Message):
+async def command_start(message: types.Message,bot:Bot):
     """Проверка, является ли пользователь администратором, надо реализовать админку
     Проверка на то, зарегистрирован ли пользователь уже"""
     user_id = message.from_user.id
@@ -67,7 +67,7 @@ async def fsm_number(callback: types.CallbackQuery, state: FSMContext):
 
 
 @client_router.message(FSMPhone.phone)
-async def fsm_number_get(message: types.Message, state: FSMContext):
+async def fsm_number_get(message: types.Message, state: FSMContext,bot:Bot):
     if message.content_type == "text" and re.match(
         "[+]+?[7](\s*\d{3}\s*\d{3}\s*\d{2}\s*\d{2})", f"{message.text}"
     ):
@@ -114,7 +114,7 @@ async def fsm_number_get(message: types.Message, state: FSMContext):
 
 
 @client_router.callback_query(F.data == "share")
-async def send_number(callback: types.CallbackQuery):
+async def send_number(callback: types.CallbackQuery,bot:Bot):
     """Предоставление юзеру клавиатуры для отправки номера"""
     await bot.send_message(
         callback.from_user.id,
@@ -124,7 +124,7 @@ async def send_number(callback: types.CallbackQuery):
 
 
 @client_router.message(F.content_type.in_({"contact"}))
-async def number_received(message: types.Message):
+async def number_received(message: types.Message,bot:Bot):
     """Получение из базы данных пользователя по номеру телефона
     Проверка на то, не в чёрном списке ли он и существует ли он вообще в БД
     Происходит получение его телеграм айди для добавления в бд
