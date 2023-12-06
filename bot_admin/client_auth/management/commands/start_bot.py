@@ -1,10 +1,11 @@
-from bot_admin.create_bot import bot, dp
+#from bot_admin.create_bot import bot, dp
 from django.core.management.base import BaseCommand
 from admin_auth.handlers import admin_router
 from client_auth.handlers import client_router
-
+from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
+import logging
 import asyncio
-from aiogram import Bot
 from aiohttp import web
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from dotenv import load_dotenv
@@ -12,6 +13,13 @@ import os
 
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+storage = MemoryStorage()
+load_dotenv()
+BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
+bot = Bot(BOT_API_TOKEN)
+dp = Dispatcher(storage=storage)
 
 BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
 WEB_SERVER_HOST = os.getenv("WEB_SERVER_HOST")

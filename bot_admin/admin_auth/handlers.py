@@ -1,4 +1,3 @@
-from bot_admin.create_bot import bot, dp
 from aiogram import types
 from .keyboards import get_admin_code, admin_menu
 from aiogram.fsm.context import FSMContext
@@ -9,6 +8,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from aiogram import Router, F
 from aiogram.filters import Command
+from aiogram import Bot
 
 
 
@@ -25,7 +25,7 @@ class FSMadminauth(StatesGroup):
 
 
 @admin_router.message(Command("admin"))
-async def admin_command(message: types.Message, state: FSMContext):
+async def admin_command(message: types.Message, state: FSMContext,bot:Bot):
     admin = ""
     async for adm in Admin.objects.filter(admin_telegram_id=message.from_user.id):
         if adm:
@@ -46,7 +46,7 @@ async def admin_command(message: types.Message, state: FSMContext):
 
 
 @admin_router.message(FSMadminauth.email)
-async def fsm_admin_email(message: types.Message, state: FSMContext):
+async def fsm_admin_email(message: types.Message, state: FSMContext,bot:Bot):
     if message.content_type == "text":
         admin = ""
         email = message.text
@@ -102,7 +102,7 @@ async def receive_code(callback: types.CallbackQuery, state: FSMContext):
 
 
 @admin_router.message(FSMadminauth.code)
-async def fsm_admin_code(message: types.Message, state: FSMContext):
+async def fsm_admin_code(message: types.Message, state: FSMContext,bot:Bot):
     """
     Админу присваивается телеграм айди при успешной проверке правильности введённого кода через FSM
     """
