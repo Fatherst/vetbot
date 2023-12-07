@@ -27,14 +27,6 @@ def get_contact():
     )
     return contact_markup
 
-def get_code():
-    buttons = [
-        [
-            InlineKeyboardButton(text="Получить код", callback_data="code"),
-        ]
-    ]
-    identification_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return identification_markup
 
 def get_user_received_from_db():
     buttons = [
@@ -58,20 +50,6 @@ def get_user_received_from_db():
         [
             InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
         ],
-    ]
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return inline_markup
-
-
-def get_user_not_in_db():
-    buttons = [
-        [
-            InlineKeyboardButton(text="О клинике  🛈", callback_data="about"),
-            InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
-            InlineKeyboardButton(
-                text="Программа лояльности 🐱", callback_data="loyalty"
-            ),
-        ]
     ]
     inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
     return inline_markup

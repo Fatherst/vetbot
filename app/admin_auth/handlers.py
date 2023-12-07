@@ -1,5 +1,5 @@
 from aiogram import types
-from .keyboards import get_admin_code, admin_menu
+from .keyboards import admin_menu
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 import random
@@ -11,7 +11,6 @@ from aiogram.filters import Command
 from aiogram import Bot
 
 
-
 admin_router = Router()
 
 
@@ -20,16 +19,9 @@ class FSMadminauth(StatesGroup):
     code = State()
 
 
-# class FSMadmincode(StatesGroup):
-#     code = State()
-
-
 @admin_router.message(Command("admin"))
-async def admin_command(message: types.Message, state: FSMContext,bot:Bot):
-    admin = ""
-    async for adm in Admin.objects.filter(admin_telegram_id=message.from_user.id):
-        if adm:
-            admin = adm
+async def admin_command(message: types.Message, state: FSMContext, bot: Bot):
+    admin = await Admin.objects.filter(tg_chat_id=message.from_user.id).afirst()
     if admin:
         await bot.send_message(
             message.from_user.id,
@@ -46,97 +38,54 @@ async def admin_command(message: types.Message, state: FSMContext,bot:Bot):
 
 
 @admin_router.message(FSMadminauth.email)
-async def fsm_admin_email(message: types.Message, state: FSMContext,bot:Bot):
+async def fsm_admin_email(message: types.Message, state: FSMContext, bot: Bot):
     if message.content_type == "text":
-        admin = ""
         email = message.text
         await state.update_data(email=email)
-        async for adm in Admin.objects.filter(email=email):
-            if adm:
-                admin = adm
+        admin = await Admin.objects.filter(email=email).afirst()
         if admin:
+            code = random.randrange(1001, 9999)
             await bot.send_message(
                 message.from_user.id,
                 text="Вы найдены в базе данных администраторов\n"
-                "После нажатия кнопки на вашу почту придёт код,"
-                "который надо будет написать после нажатия кнопки",
-                reply_markup=get_admin_code(),
+                "На вашу почту отправлен код,"
+                " напишите его здесь",
             )
+            await state.set_state(FSMadminauth.code)
+            await state.update_data(code=code)
+            data = await state.get_data()
+            print(data)
         else:
             await bot.send_message(
                 message.from_user.id, text="Вы не найдены в базе администраторов"
             )
-
-
-@admin_router.callback_query(F.data == "email")
-async def receive_code(callback: types.CallbackQuery, state: FSMContext):
-    """Генерация рандомного кода и заведение его в БД"""
-    code = random.randrange(1001, 9999)
-    admin = ""
-    admin_email = ""
-    data = await state.get_data()
-    async for adm in Admin.objects.filter(email=data["email"]):
-        if adm:
-            admin = adm
-            admin.code = code
-            await admin.asave()
-            admin_email = adm.email
-    if admin:
-        send_mail(
-            "Код",
-            f"Твой код {code}",
-            settings.EMAIL_HOST_USER,
-            [admin_email],
-            fail_silently=False,
-        )
-        await callback.message.edit_text(
-            text="Напишите код из 4-х цифр, отправленнный на вашу почту"
-        )
-        await state.set_state(FSMadminauth.code)
-        data = await state.get_data()
-        await state.update_data(eee=code)
-        print(data.values())
     else:
-        await callback.message.edit_text(text="Ты не админ")
+        await bot.send_message(
+            message.from_user.id,
+            text="Пожалуйста, пришли свою электронную почту текстом",
+        )
 
 
 @admin_router.message(FSMadminauth.code)
-async def fsm_admin_code(message: types.Message, state: FSMContext,bot:Bot):
+async def fsm_admin_code(message: types.Message, state: FSMContext, bot: Bot):
     """
     Админу присваивается телеграм айди при успешной проверке правильности введённого кода через FSM
     """
     if message.content_type == "text":
-        code_status = False
         data = await state.get_data()
-        data["eee"] = str(data["eee"])
-        data["code"] = message.text
-        if data["eee"] == message.text:
-            async for adm in Admin.objects.filter(email=data["email"]):
-                if adm:
-                    adm.admin_telegram_id = message.from_user.id
-                    await adm.asave()
-                    code_status = True
-                await state.clear()
-        if code_status == True:
+        data["code"] = str(data["code"])
+        if data["code"] == message.text:
+            admin = await Admin.objects.filter(email=data["email"]).afirst()
+            admin.tg_chat_id = message.from_user.id
+            await admin.asave()
+            await state.clear()
             await bot.send_message(
                 message.from_user.id,
                 text="Вы успешно авторизовались в админской части бота",
                 reply_markup=admin_menu(),
             )
-        elif code_status == False:
+        else:
             await bot.send_message(
                 message.from_user.id,
-                text="Код неправильный, начните сначала",
-                reply_markup=get_admin_code(),
+                text="Код неправильный, попробуйте ещё раз или нажмите /admin, чтобы начать сначала",
             )
-            await state.set_state(FSMadminauth.code)
-
-
-###LEGACY
-# def register_handlers_admin(dp:Dispatcher):
-#     dp.register_callback_query_handler(receive_code, text='email')
-#     #dp.register_message_handler(admin_command, commands=["admin"])
-#     dp.register_message_handler(
-#         fsm_admin_email, content_types=["text"], state=FSMadminemail
-#     )
-#     dp.register_message_handler(fsm_admin_code, content_types=['text'],state=FSMadmincode)

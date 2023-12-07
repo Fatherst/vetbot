@@ -10,7 +10,6 @@ from django.core.management.base import BaseCommand
 
 
 async def launch_bot():
-
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     bot = Bot(settings.BOT_API_TOKEN)

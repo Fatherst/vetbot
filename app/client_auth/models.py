@@ -2,14 +2,26 @@ from django.db import models
 
 
 class Client(models.Model):
-    enote_id = models.CharField(max_length=150, verbose_name="ID в еноте", db_index=True)
-    id = models.AutoField(primary_key=True, verbose_name="Id")
-    first_name = models.CharField(max_length=100, null=True,blank=True, verbose_name="Имя")
-    middle_name = models.CharField(max_length=100, null=True,blank=True, verbose_name="Отчество")
-    last_name = models.CharField(max_length=100, null=True,blank=True, verbose_name="Фамилия")
+    enote_id = models.CharField(
+        max_length=150, verbose_name="ID в еноте", db_index=True, unique=True
+    )
+    first_name = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name="Имя"
+    )
+    middle_name = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name="Отчество"
+    )
+    last_name = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name="Фамилия"
+    )
     email = models.EmailField(verbose_name="E-mail")
-    phone_number = models.CharField(max_length=12, null=True,blank=True, verbose_name="Телефон")
-    tg_chat_id = models.IntegerField(null=True,blank=True, verbose_name="Telegram Id")
+    phone_number = models.CharField(
+        max_length=12, null=True, blank=True, verbose_name="Телефон"
+    )
+    tg_chat_id = models.IntegerField(
+        null=True, blank=True, verbose_name="Telegram Id", unique=True
+    )
+
     class Meta:
         verbose_name = "Клиент"
         verbose_name_plural = "Клиенты"
