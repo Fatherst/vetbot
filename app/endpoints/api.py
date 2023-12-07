@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from ninja import NinjaAPI
-from .schema import ClientSchema, PatientSchema,KindSchema, AppointmentSchema
-from .models import Appointment,Kind,Doctor,VisitKind, Patient,Specialization,Breed
+from .schema import ClientSchema, PatientSchema,KindSchema
+from .models import Kind, Patient,Breed
 from client_auth.models import Client
 
 api = NinjaAPI()
@@ -34,7 +34,7 @@ def create_patient(request, patient: KindSchema):
     patient = Kind.objects.create(**patient.dict())
     return patient
 
-@api.post("v1/integration/appointments", response={201: AppointmentSchema})
-def create_appointment(request, appointment: AppointmentSchema):
-    appointment = Appointment.objects.create(**appointment.dict())
-    return appointment
+# @api.post("v1/integration/appointments", response={201: AppointmentSchema})
+# def create_appointment(request, appointment: AppointmentSchema):
+#     appointment = Appointment.objects.create(**appointment.dict())
+#     return appointment

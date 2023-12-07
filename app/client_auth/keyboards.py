@@ -23,11 +23,18 @@ def get_contact():
         keyboard=buttons,
         resize_keyboard=True,
         one_time_keyboard=True,
-        input_field_placeholder="Нажмите на кнопку, чтобы поделиться своим номером"
-        " телефона",
+        input_field_placeholder="Напишите здесь свой номер телефона",
     )
     return contact_markup
 
+def get_code():
+    buttons = [
+        [
+            InlineKeyboardButton(text="Получить код", callback_data="code"),
+        ]
+    ]
+    identification_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return identification_markup
 
 def get_user_received_from_db():
     buttons = [

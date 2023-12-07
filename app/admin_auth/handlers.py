@@ -75,7 +75,6 @@ async def receive_code(callback: types.CallbackQuery, state: FSMContext):
     admin = ""
     admin_email = ""
     data = await state.get_data()
-    print(data.values())
     async for adm in Admin.objects.filter(email=data["email"]):
         if adm:
             admin = adm
@@ -124,6 +123,13 @@ async def fsm_admin_code(message: types.Message, state: FSMContext,bot:Bot):
                 text="Вы успешно авторизовались в админской части бота",
                 reply_markup=admin_menu(),
             )
+        elif code_status == False:
+            await bot.send_message(
+                message.from_user.id,
+                text="Код неправильный, начните сначала",
+                reply_markup=get_admin_code(),
+            )
+            await state.set_state(FSMadminauth.code)
 
 
 ###LEGACY

@@ -13,5 +13,5 @@ class AdminAdmin(admin.ModelAdmin):
         "middle_name",
         "last_name",
         "email",
-        "admin_telegram_id",
+        "tg_chat_id",
     )
