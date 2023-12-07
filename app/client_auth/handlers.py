@@ -77,40 +77,36 @@ async def fsm_number_get(message: types.Message, state: FSMContext,bot:Bot):
     user = ''
     code = 1
     #code = random.randrange(1001, 9999)
+    black_list = []
+    user_phone_number = ''
     await bot.send_message(
         message.from_user.id, text="Спасибо! Проверяем вас в базе данных", reply_markup=types.ReplyKeyboardRemove()
     )
     if message.content_type == "contact":
         user_phone_number = message.contact.phone_number
-        user_telegram_id = message.from_user.id
-        async for client in Client.objects.filter(phone_number=user_phone_number):
-            if client:
-                user = client
-                #client.tg_chat_id = user_telegram_id
-                await client.asave()
+        await state.update_data(phone_number=user_phone_number)
+
     elif message.content_type == "text" and re.match(
         "[+]+?[7](\s*\d{3}\s*\d{3}\s*\d{2}\s*\d{2})", f"{message.text}"
     ):
-        user_telegram_id = message.from_user.id
-        user = ""
-        data = await state.get_data()
-        phone = message.text
-        data["phone"] = phone
-        async for client in Client.objects.filter(phone_number=phone):
-            if client:
-                user = client
-                #client.tg_chat_id = user_telegram_id
-                await client.asave()
-    black_list = []
+        user_phone_number = message.text
+        await state.update_data(phone_number=user_phone_number)
+    client = await Client.objects.filter(phone_number=user_phone_number).afirst()
+    if client:
+        user = client
+        await client.asave()
+    else:
+        client = await Client.objects.acreate(phone_number=user_phone_number, first_name=message.from_user.first_name)
+        user = client
+        await client.asave()
     if user and user not in black_list:
         await state.update_data(code=code)
-        await state.update_data(phone_number = user_phone_number)
+        await state.update_data(phone_number=user_phone_number)
         await bot.send_message(
             message.from_user.id,
             text=f"*{user.first_name}*, приветствую!\n\nПосле нажатия на кнопку на ваш номер телефона придёт код"
                  f", который необходимо будет ввести для авторизации️",
             parse_mode="Markdown",reply_markup=get_code()
-            #reply_markup=get_user_received_from_db(),
         )
     elif user and user in black_list:
         await bot.send_message(
@@ -135,12 +131,11 @@ async def fsm_number_get(message: types.Message, state: FSMContext,bot:Bot):
 
 @client_router.callback_query(F.data == 'code')
 async def send_code(callback: types.CallbackQuery, bot: Bot, state: FSMContext):
-    data = await state.get_data()
-    print(data)
-    client = ""
-    async for client in Client.objects.filter(phone_number=data["code"]):
-        if client:
-            client = client
+    #data = await state.get_data()
+    # client = ""
+    # async for client in Client.objects.filter(phone_number=data["phone_number"]):
+    #     if client:
+    #         client = client
     "send_code_to_phone_number"
     await callback.message.edit_text(
         text="Напишите код из 4-х цифр, отправленнный на ваш номер телефона"

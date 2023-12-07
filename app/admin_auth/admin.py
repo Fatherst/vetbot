@@ -10,7 +10,6 @@ class AdminAdmin(admin.ModelAdmin):
         "is_active",
         "date_joined",
         "first_name",
-        "middle_name",
         "last_name",
         "email",
         "tg_chat_id",
