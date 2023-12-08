@@ -8,7 +8,7 @@ from .models import Client
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F
-from aiogram.filters import Command, and_f
+from aiogram.filters import Command, and_f, Filter
 import re
 import random
 
@@ -16,13 +16,24 @@ import random
 client_router = Router()
 
 
-class FSMPhone(StatesGroup):
+class PhoneFilter(Filter):
+    def __init__(self, mask: str) -> None:
+        self.mask = mask
+
+    async def __call__(self, message: types.Message) -> bool:
+        row_phone_number = message.text
+        phone_number = re.sub(r"\D", "", row_phone_number)
+        phone_mask = re.compile(self.mask)
+        return re.fullmatch(phone_mask, phone_number)
+
+
+class PhoneStates(StatesGroup):
     phone = State()
     code = State()
 
 
 @client_router.message(Command("start"))
-async def command_start(message: types.Message, bot: Bot, state: FSMContext):
+async def user_greet(message: types.Message, bot: Bot, state: FSMContext):
     """
     Проверка на то, зарегистрирован ли пользователь уже
     """
@@ -30,18 +41,18 @@ async def command_start(message: types.Message, bot: Bot, state: FSMContext):
     user_id = message.from_user.id
     client = await Client.objects.filter(tg_chat_id=user_id).afirst()
     if client:
-        name = "Новый пользователь"
         if client.first_name is not None:
-            name = client.first_name
+            greeting = f"{client.first_name}, приветствую"
+        else:
+            greeting = "Приветствую"
         await bot.send_message(
             message.from_user.id,
-            text=f"*{name}*, приветствую!\n\nВыберите, что вас интересует ⤵",
+            text=f"<b>{greeting}</b>\n\nВыберите, что вас интересует ⤵",
             reply_markup=get_user_main_menu(),
-            parse_mode="Markdown",
         )
     else:
         greeting = (
-            "Добро пожаловать в бота ветеринарного центра *Друзья* 🐈\n"
+            "Добро пожаловать в бота ветеринарного центра <b>Друзья</b> 🐈\n"
             "Для начала мне нужно Вас идентифицировать в качестве клиента нашей клиники. "
             "Для этого, пожалуйста,нажмите на кнопку чтобы отправить свой номер телефона,"
             " указанный в Telegram, или напишите его вручную"
@@ -50,123 +61,81 @@ async def command_start(message: types.Message, bot: Bot, state: FSMContext):
             message.from_user.id,
             text=greeting,
             reply_markup=get_contact(),
-            parse_mode="Markdown",
         )
-        await state.set_state(FSMPhone.phone)
+        await state.set_state(PhoneStates.phone)
 
 
-async def client_get_or_create(
-    state: FSMContext, code, user_phone_number, message: types.Message
+async def client_state_update(
+    state: FSMContext, user_phone_number, message: types.Message
 ):
-    await state.update_data(code=code)
-    await state.update_data(phone_number=user_phone_number)
-    await message.answer(
-        text="Приветствую!\n\n"
-        "Напишите код из 4-х цифр, который придёт на ваш телефон",
-        reply_markup=types.ReplyKeyboardRemove(),
-    )
-    await state.set_state(FSMPhone.code)
-
-
-@client_router.message(FSMPhone.phone, and_f(F.text))
-async def fsm_number_get(message: types.Message, state: FSMContext, bot: Bot):
-    code = 1
-    # code = random.randrange(1001, 9999)
+    """Проверку на то, есть ли пользователь я вообще убрал, теперь только проверка на черный список"""
     black_list = []
-    if re.match("[+]+?[7](\s*\d{3}\s*\d{3}\s*\d{2}\s*\d{2})", f"{message.text}"):
-        await bot.send_message(
-            message.from_user.id,
-            text="Спасибо! Проверяем вас в базе данных",
+    client = await Client.objects.filter(phone_number=user_phone_number).afirst()
+    if client not in black_list:
+        # code = random.randrange(1001, 9999)
+        code = 1
+        await state.update_data(code=code)
+        await state.update_data(phone_number=user_phone_number)
+        await message.answer(
+            text="Приветствую!\n\n"
+            "Напишите код из 4-х цифр, который придёт на ваш телефон",
             reply_markup=types.ReplyKeyboardRemove(),
         )
-        user_phone_number = message.text
-        client = await Client.objects.filter(phone_number=user_phone_number).afirst()
-        if client and client not in black_list:
-            await client_get_or_create(
-                state=state,
-                code=code,
-                user_phone_number=user_phone_number,
-                message=message,
-            )
-        elif client in black_list:
-            await bot.send_message(
-                message.from_user.id,
-                text="Здравствуйте! Благодарим за обращение. На данный момент услуга недоступна.",
-            )
-        else:
-            await client_get_or_create(
-                state=state,
-                code=code,
-                user_phone_number=user_phone_number,
-                message=message,
-            )
-    elif message.text.lower() == "отмена":
-        await state.clear()
-        await bot.send_message(message.from_user.id, text="Возврат в меню")
-    elif not re.match("[+]+?[7](\s*\d{3}\s*\d{3}\s*\d{2}\s*\d{2})", f"{message.text}"):
-        await message.reply(
-            text='Номер должен быть в формате +7XXXXXXXXXX\nПопробуй ещё раз или напиши "Отмена", либо /start'
-        )
-
-
-@client_router.message(FSMPhone.phone, and_f(F.content_type.in_({"contact"})))
-async def recieve_contact(message: types.Message, bot: Bot, state: FSMContext):
-    code = 1
-    black_list = []
-    phone_number = message.contact.phone_number
-    client = await Client.objects.filter(phone_number=phone_number).afirst()
-    if client and client not in black_list:
-        await client_get_or_create(
-            state=state,
-            code=code,
-            user_phone_number=phone_number,
-            message=message,
-        )
-    elif client in black_list:
-        await bot.send_message(
-            message.from_user.id,
+        await state.set_state(PhoneStates.code)
+    else:
+        await message.answer(
             text="Здравствуйте! Благодарим за обращение. На данный момент услуга недоступна.",
         )
-    else:
-        await client_get_or_create(
-            state=state,
-            code=code,
-            user_phone_number=phone_number,
-            message=message,
+        await state.clear()
+
+
+@client_router.message(PhoneStates.phone, F.text, PhoneFilter(mask=r"(7[0-9]{10})"))
+async def recieve_text_number_true(message: types.Message, state: FSMContext):
+    phone_number = re.sub(r"\D", "", message.text)
+    await client_state_update(
+        state=state,
+        user_phone_number=phone_number,
+        message=message,
+    )
+
+
+@client_router.message(
+    PhoneStates.phone, F.text, lambda x: x != PhoneFilter(mask=r"(7[0-9]{10})")
+)
+async def recieve_text_number_false(message: types.Message):
+    await message.reply(
+        text="Пришли,пожалуйста, российский номер\nПопробуй ещё раз или напиши /start"
+    )
+
+
+@client_router.message(PhoneStates.phone, F.content_type.in_({"contact"}))
+async def recieve_contact(message: types.Message, state: FSMContext):
+    phone_number = message.contact.phone_number
+    phone_number = re.sub(r"\D", "", phone_number)
+    await client_state_update(
+        state=state,
+        user_phone_number=phone_number,
+        message=message,
+    )
+
+
+@client_router.message(PhoneStates.code, F.text)
+async def recieve_code_confirmation(
+    message: types.Message, state: FSMContext, bot: Bot
+):
+    data = await state.get_data()
+    if str(data["code"]) == message.text:
+        await Client.objects.aupdate_or_create(
+            phone_number=data["phone_number"], tg_chat_id=message.from_user.id
         )
-
-
-@client_router.message(FSMPhone.code)
-async def fsm_receive_code(message: types.Message, state: FSMContext, bot: Bot):
-    if message.content_type == "text":
-        data = await state.get_data()
-        data["code"] = str(data["code"])
-        if data["code"] == message.text:
-            client = await Client.objects.filter(
-                phone_number=data["phone_number"]
-            ).afirst()
-            if not client:
-                client = await Client.objects.acreate(phone_number=data["phone_number"])
-                await client.asave()
-            client.tg_chat_id = message.from_user.id
-            await client.asave()
-            await state.clear()
-            await bot.send_message(
-                message.from_user.id,
-                text="Вы успешно авторизовались в клиентской части бота",
-                reply_markup=get_user_main_menu(),
-            )
-        elif message.text.lower() == "отмена":
-            await bot.send_message(
-                message.from_user.id, text="Нажмите /start, чтобы начать сначала"
-            )
-            await state.clear()
-        elif data["code"] != message.text:
-            await bot.send_message(
-                message.from_user.id,
-                text="Код неправильный, попробуй ввести ещё раз, либо напиши 'Отмена' или /start, чтобы начать сначала",
-            )
+        await state.clear()
+        await bot.send_message(
+            message.from_user.id,
+            text="Вы успешно авторизовались в клиентской части бота",
+            reply_markup=get_user_main_menu(),
+        )
     else:
         await bot.send_message(
-            message.from_user.id, text="Пожалуйста, пришлите код текстом"
+            message.from_user.id,
+            text="Код неправильный, попробуй ввести ещё раз, либо напиши /start, чтобы начать сначала",
         )

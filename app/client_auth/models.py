@@ -19,7 +19,7 @@ class Client(models.Model):
     last_name = models.CharField(
         max_length=100, null=True, blank=True, verbose_name="Фамилия"
     )
-    email = models.EmailField(verbose_name="E-mail")
+    email = models.EmailField(verbose_name="E-mail", null=True, blank=True)
     phone_number = models.CharField(
         max_length=12, null=True, blank=True, verbose_name="Телефон"
     )

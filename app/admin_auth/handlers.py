@@ -14,7 +14,7 @@ from aiogram import Bot
 admin_router = Router()
 
 
-class FSMadminauth(StatesGroup):
+class AdminAuthStates(StatesGroup):
     email = State()
     code = State()
 
@@ -35,58 +35,50 @@ async def admin_command(message: types.Message, state: FSMContext, bot: Bot):
             text="Пожалуйста, введи свою электронную почту, на которую"
             " тебя зарегистрировали в качестве администратора",
         )
-        await state.set_state(FSMadminauth.email)
+        await state.set_state(AdminAuthStates.email)
 
 
-@admin_router.message(FSMadminauth.email)
-async def fsm_admin_email(message: types.Message, state: FSMContext, bot: Bot):
-    if message.content_type == "text":
-        email = message.text
-        await state.update_data(email=email)
-        admin = await Admin.objects.filter(email=email).afirst()
-        if admin:
-            code = random.randrange(1001, 9999)
-            await bot.send_message(
-                message.from_user.id,
-                text="Вы найдены в базе данных администраторов\n"
-                "На вашу почту отправлен код,"
-                " напишите его здесь",
-            )
-            await state.set_state(FSMadminauth.code)
-            await state.update_data(code=code)
-            data = await state.get_data()
-            print(data)
-        else:
-            await bot.send_message(
-                message.from_user.id, text="Вы не найдены в базе администраторов"
-            )
-    else:
+@admin_router.message(AdminAuthStates.email)
+async def recieve_admin_email(message: types.Message, state: FSMContext, bot: Bot):
+    """Тут и в клиентской части код пока что просто 1"""
+    email = message.text
+    await state.update_data(email=email)
+    admin = await Admin.objects.filter(email=email).afirst()
+    if admin:
+        # code = random.randrange(1001, 9999)
+        code = 1
         await bot.send_message(
             message.from_user.id,
-            text="Пожалуйста, пришли свою электронную почту текстом",
+            text="Вы найдены в базе данных администраторов\n"
+            "На вашу почту отправлен код,"
+            " напишите его здесь",
+        )
+        await state.set_state(AdminAuthStates.code)
+        await state.update_data(code=code)
+    else:
+        await bot.send_message(
+            message.from_user.id, text="Вы не найдены в базе администраторов"
         )
 
 
-@admin_router.message(FSMadminauth.code)
-async def fsm_admin_code(message: types.Message, state: FSMContext, bot: Bot):
+@admin_router.message(AdminAuthStates.code)
+async def recieve_admin_email_code(message: types.Message, state: FSMContext, bot: Bot):
     """
     Админу присваивается телеграм айди при успешной проверке правильности введённого кода через FSM
     """
-    if message.content_type == "text":
-        data = await state.get_data()
-        data["code"] = str(data["code"])
-        if data["code"] == message.text:
-            admin = await Admin.objects.filter(email=data["email"]).afirst()
-            admin.tg_chat_id = message.from_user.id
-            await admin.asave()
-            await state.clear()
-            await bot.send_message(
-                message.from_user.id,
-                text="Вы успешно авторизовались в админской части бота",
-                reply_markup=admin_menu(),
-            )
-        else:
-            await bot.send_message(
-                message.from_user.id,
-                text="Код неправильный, попробуйте ещё раз или нажмите /admin, чтобы начать сначала",
-            )
+    data = await state.get_data()
+    if str(data["code"]) == message.text:
+        await Admin.objects.filter(email=data["email"]).aupdate(
+            tg_chat_id=message.from_user.id
+        )
+        await state.clear()
+        await bot.send_message(
+            message.from_user.id,
+            text="Вы успешно авторизовались в админской части бота",
+            reply_markup=admin_menu(),
+        )
+    else:
+        await bot.send_message(
+            message.from_user.id,
+            text="Код неправильный, попробуйте ещё раз или нажмите /admin, чтобы начать сначала",
+        )

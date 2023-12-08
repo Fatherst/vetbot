@@ -5,8 +5,8 @@ from django.utils.html import format_html
 
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
-    empty_value_display = "Поле не задано"
     list_display = (
+        "id",
         "enote_id",
         "first_name",
         "middle_name",
