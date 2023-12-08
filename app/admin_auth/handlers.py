@@ -21,6 +21,7 @@ class FSMadminauth(StatesGroup):
 
 @admin_router.message(Command("admin"))
 async def admin_command(message: types.Message, state: FSMContext, bot: Bot):
+    await state.clear()
     admin = await Admin.objects.filter(tg_chat_id=message.from_user.id).afirst()
     if admin:
         await bot.send_message(

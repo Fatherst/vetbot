@@ -6,17 +6,6 @@ from aiogram.types import (
 )
 
 
-def get_identification():
-    buttons = [
-        [
-            InlineKeyboardButton(text="Поделиться 🔗", callback_data="share"),
-            InlineKeyboardButton(text="Написать", callback_data="write"),
-        ]
-    ]
-    identification_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return identification_markup
-
-
 def get_contact():
     buttons = [[KeyboardButton(text="Поделиться своим номером", request_contact=True)]]
     contact_markup = ReplyKeyboardMarkup(
@@ -28,7 +17,7 @@ def get_contact():
     return contact_markup
 
 
-def get_user_received_from_db():
+def get_user_main_menu():
     buttons = [
         [
             InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
