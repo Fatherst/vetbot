@@ -1,6 +1,5 @@
 from django.contrib import admin
 from .models import Client
-from django.utils.html import format_html
 
 
 @admin.register(Client)
