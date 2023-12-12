@@ -30,3 +30,39 @@ class Client(models.Model):
     class Meta:
         verbose_name = "Клиент"
         verbose_name_plural = "Клиенты"
+
+
+class AnimalKind(models.Model):
+    enote_id = models.CharField(
+        max_length=150,
+        verbose_name="ID в еноте",
+        db_index=True,
+        unique=True,
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Имя")
+
+
+class Patient(models.Model):
+    enote_id = models.CharField(
+        max_length=150,
+        verbose_name="ID в еноте",
+        db_index=True,
+        unique=True,
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Имя")
+    birth_date = models.DateField(null=True, blank=True, verbose_name="Дата рождения")
+    time_of_death = models.DateTimeField(
+        null=True, blank=True, verbose_name="Время смерти"
+    )
+    weight = models.FloatField(null=True, blank=True, verbose_name="Вес")
+    deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
+    kind_id = models.ForeignKey(
+        AnimalKind, on_delete=models.PROTECT, verbose_name="Вид"
+    )
+    client_id = models.ForeignKey(
+        Client, on_delete=models.PROTECT, verbose_name="ID клиента"
+    )

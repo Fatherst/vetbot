@@ -1,45 +1,80 @@
-from django.shortcuts import render
 from ninja import NinjaAPI
-from .schema import ClientSchema, PatientSchema, KindSchema
-from .models import Kind, Patient, Breed
+from .schema import ClientSchema, ClientResponseSchema
 from client_auth.models import Client
+from ninja.security import HttpBasicAuth
+from django.conf import settings
 
-api = NinjaAPI()
 
 
-@api.get("v1/integration/clients/{client_enote_id}", response={200: ClientSchema})
-def client(request, client_enote_id: str):
+class BasicAuth(HttpBasicAuth):
+    async def authenticate(self, request, username, password):
+        if username == settings.API_USERNAME and password == settings.API_PASSWORD:
+            return username
+
+
+api = NinjaAPI(auth=BasicAuth())
+
+
+async def create_client_with_contact_info(client, **kwargs):
+    client_data = {
+        "first_name": client.first_name,
+        "middle_name": client.middle_name,
+        "last_name": client.last_name,
+        "enote_id": client.enote_id,
+        **kwargs,
+    }
+    await Client.objects.acreate(**client_data)
+
+
+@api.post("v1/integration/clients/", response=ClientResponseSchema)
+async def post_client(request, client: ClientSchema):
     try:
-        client = Client.objects.get(client_enote_id=client_enote_id)
-        return 200, client
-    except Client.DoesNotExist as e:
-        return 404, {"message": "Client does not exist"}
-
-
-@api.get("v1/integration/test")
-def client(request):
-    return {"test": "succes"}
-
-
-@api.post("v1/integration/clients", response={201: ClientSchema})
-def create_client(request, client: ClientSchema):
-    client = Client.objects.create(**client.dict())
-    return client
-
-
-@api.post("v1/integration/patients", response={201: PatientSchema})
-def create_patient(request, patient: PatientSchema):
-    patient = Patient.objects.create(**patient.dict())
-    return patient
-
-
-@api.post("v1/integration/kinds", response={201: KindSchema})
-def create_patient(request, patient: KindSchema):
-    patient = Kind.objects.create(**patient.dict())
-    return patient
-
-
-# @api.post("v1/integration/appointments", response={201: AppointmentSchema})
-# def create_appointment(request, appointment: AppointmentSchema):
-#     appointment = Appointment.objects.create(**appointment.dict())
-#     return appointment
+        client_dict = client.dict()
+        if await Client.objects.filter(enote_id=client.enote_id).afirst():
+            return {
+                "enote_id": client.enote_id,
+                "result": False,
+                "error_message": "Клиент с таким enote_id уже существует",
+            }
+        contact_information = client_dict["contact_information"][0]
+        """Что может быть в контактной информации?
+        Что может быть в attributes?
+        Если контактная информация не подходит по типам, всё равно сохранять пользователя?"""
+        if contact_information.get("type") == "PHONE_NUMBER":
+            phone_number = contact_information.get("value")
+            client_from_db = await Client.objects.filter(
+                phone_number=phone_number
+            ).afirst()
+            if client_from_db:
+                client_from_db.enote_id = client.enote_id
+                await client_from_db.asave()
+                return {
+                    "enote_id": client.enote_id,
+                    "result": False,
+                    "error_message": "Клиент с таким номером телефона уже существует",
+                }
+            await create_client_with_contact_info(client, phone_number=phone_number)
+            return {
+                "enote_id": client.enote_id,
+                "result": True,
+                "error_message": "Клиент с номером телефона успешно создан",
+            }
+        elif contact_information.get("type") == "EMAIL":
+            """Тут же не надо делать проверку на то, есть ли у нас клиент с таким адресом?
+            Мы ведь со своей стороны заводим клиентов только через номер телефона, только енот может
+            по email, значит это уже проверяется при проверке enote_id"""
+            await create_client_with_contact_info(
+                client, email=contact_information.get("value")
+            )
+            return {
+                "enote_id": client.enote_id,
+                "result": True,
+                "error_message": "Клиент с адресом электронной почты успешно создан",
+            }
+        return {
+            "enote_id": client.enote_id,
+            "result": False,
+            "error_message": "Нет контактных данных",
+        }
+    except Exception as e:
+        return {"error": "Произошла ошибка", "details": str(e)}

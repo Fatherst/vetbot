@@ -1,45 +1,27 @@
-from client_auth.models import Client
-from ninja import ModelSchema
-from .models import Patient, Kind  # , Appointment
+from client_auth.models import Client, AnimalKind, Patient
+from ninja import Schema
 
 
-class ClientSchema(ModelSchema):
-    class Meta:
-        model = Client
-        fields = [
-            "enote_id",
-            "first_name",
-            "middle_name",
-            "last_name",
-            "email",
-            "phone_number",
-            "tg_chat_id",
-        ]
+class ContactInformation(Schema):
+    type: str = None  # ADDRESS, PHONE_NUMBER, EMAIL, SKYPE, WEB_ADDRESS, FAX, OTHER
+    title: str = None
+    value: str = None
+    channel: str = None
+    authorization: bool = None
 
 
-class PatientSchema(ModelSchema):
-    class Meta:
-        model = Patient
-        fields = [
-            "id",
-            "name",
-            "birth_date",
-            "weight",
-            "time_of_death",
-            "breed",
-            "enote_id",
-            "kind",
-        ]
+class ClientSchema(Schema):
+    enote_id: str = None
+    state: str = None
+    is_confirmed: bool = None
+    first_name: str = ""
+    middle_name: str = ""
+    last_name: str = ""
+    contact_information: list[ContactInformation] = None
+    attributes: list[dict] = None
 
 
-class KindSchema(ModelSchema):
-    class Meta:
-        model = Kind
-        fields = ["id", "name", "enote_id"]
-
-
-# class AppointmentSchema(ModelSchema):
-#     class Meta:
-#         model = Appointment
-#         fields = ['id', 'type', 'enote_id','new_client','status','date','start_time','client','patient'
-#                   ,'visit_kind','doctor']
+class ClientResponseSchema(Schema):
+    enote_id: str
+    result: bool
+    error_message: str = None
