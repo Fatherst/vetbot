@@ -37,9 +37,6 @@ async def post_client(request, client: ClientSchema):
                 "error_message": "Клиент с таким enote_id уже существует",
             }
         contact_information = client_dict["contact_information"][0]
-        """Что может быть в контактной информации?
-        Что может быть в attributes?
-        Если контактная информация не подходит по типам, всё равно сохранять пользователя?"""
         if contact_information.get("type") == "PHONE_NUMBER":
             phone_number = contact_information.get("value")
             client_from_db = await Client.objects.filter(
@@ -60,9 +57,6 @@ async def post_client(request, client: ClientSchema):
                 "error_message": "Клиент с номером телефона успешно создан",
             }
         elif contact_information.get("type") == "EMAIL":
-            """Тут же не надо делать проверку на то, есть ли у нас клиент с таким адресом?
-            Мы ведь со своей стороны заводим клиентов только через номер телефона, только енот может
-            по email, значит это уже проверяется при проверке enote_id"""
             await create_client_with_contact_info(
                 client, email=contact_information.get("value")
             )
