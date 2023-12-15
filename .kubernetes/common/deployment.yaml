@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: 'app'
-          image: 'registry.divlab.tech/tg_bots/vetbot:<TAG>'
+          image: 'registry.divlab.tech/tg_bots/vet_bot:<TAG>'
           imagePullPolicy: Always
           ports:
             - containerPort: 80
