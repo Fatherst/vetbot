@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 'vetbot-v<VERSION>'
+  labels:
+    app: 'vetbot'
+    version: '<VERSION>'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: 'vetbot'
+      version: '<VERSION>'
+  template:
+    metadata:
+      labels:
+        app: 'vetbot'
+        version: '<VERSION>'
+    spec:
+      containers:
+        - name: 'app'
+          image: 'registry.divlab.tech/tg_bots/vet_bot:<TAG>'
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          envFrom:
+            - secretRef:
+                name: 'vetbot-secret'
+          volumeMounts:
+            - mountPath: /app/var
+              name: var-volume
+          resources:
+            limits:
+              cpu: 200m
+              memory: 150Mi
+            requests:
+              cpu: 200m
+              memory: 150Mi
+      volumes:
+        - name: var-volume
+          emptyDir: {}
