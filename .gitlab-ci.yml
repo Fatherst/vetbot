@@ -39,8 +39,8 @@ build:mr:
     name: review/$CI_COMMIT_REF_NAME
   script:
     - DOCKER_BUILDKIT=0 docker build
-      -t "$BUILD_IMAGE:BUILD_TAG_SHA"
-      -t "$BUILD_IMAGE:BUILD_TAG"
+      -t "$BUILD_IMAGE:$BUILD_TAG_SHA"
+      -t "$BUILD_IMAGE:$BUILD_TAG"
       -f ./app/Dockerfile ./app
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -55,8 +55,8 @@ build:main:
     name: production
   script:
     - DOCKER_BUILDKIT=0 docker build
-      -t "$BUILD_IMAGE:BUILD_TAG_SHA"
-      -t "$BUILD_IMAGE:BUILD_TAG"
+      -t "$BUILD_IMAGE:$BUILD_TAG_SHA"
+      -t "$BUILD_IMAGE:$BUILD_TAG"
       -f ./app/Dockerfile ./app
   rules:
     - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
