@@ -78,9 +78,9 @@ review:
     - sed -i $(printf "s/<VERSION>/%s/g" $(cat package.json | jq -r '.version' | sed -E 's/([0-9]+)\.[0-9]+\.[0-9]+/\1/g')) ./.kubernetes/**/*.yaml
     - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}/g" ./.kubernetes/**/*.yaml
     - sed -i "s/<SUB_DOMAIN>/${SUB_DOMAIN}/g" .kubernetes/**/*.yaml
-    - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],${SUB_DOMAIN}.vetbot.hhw.ru" >> .kubernetes/development/.envs
-    - echo "${DB_CONFIG}" >> .kubernetes/common/DB/.envs
-    - echo "${APP_CONFIG}" >> .kubernetes/development/.envs
+    - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],${SUB_DOMAIN}.vetbot.hhw.ru" >> .kubernetes/development/.env
+    - echo "${DB_CONFIG}" >> .kubernetes/common/DB/.env
+    - echo "${APP_CONFIG}" >> .kubernetes/development/.env
     - kubectl create namespace vetbot-${CI_COMMIT_REF_SLUG} --dry-run=client --output="yaml" | kubectl apply -f -
     - kubectl -n vetbot-${CI_COMMIT_REF_SLUG} apply -k .kubernetes/development/
   rules:
@@ -110,9 +110,9 @@ deploy:
   environment:
     name: production
   script:
-    - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],vetbot.hhw.ru" >> .kubernetes/production/.envs
-    - echo "WEBHOOK_URL=https://vetbot.hhw.ru" >> .kubernetes/production/.envs
-    - echo "${APP_CONFIG}" >> .kubernetes/production/.envs
+    - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],vetbot.hhw.ru" >> .kubernetes/production/.env
+    - echo "WEBHOOK_URL=https://vetbot.hhw.ru" >> .kubernetes/production/.env
+    - echo "${APP_CONFIG}" >> .kubernetes/production/.env
     - sed -i $(printf "s/<VERSION>/%s/g" $(cat package.json | jq -r '.version' | sed -E 's/([0-9]+)\.[0-9]+\.[0-9]+/\1/g')) ./.kubernetes/**/*.yaml
     - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}-prod/g" ./.kubernetes/**/*.yaml
     - kubectl create namespace vetbot --dry-run=client --output="yaml" | kubectl apply -f -
