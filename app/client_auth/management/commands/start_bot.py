@@ -32,5 +32,4 @@ class Command(BaseCommand):
     help = "Bot start"
 
     def handle(self, *args, **options):
-        logging.basicConfig(level=logging.INFO)
         asyncio.run(launch_bot())
