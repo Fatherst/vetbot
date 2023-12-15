@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+with-contenv
+cd /opt/app
+/opt/app/run_asgi.sh && python manage.py start_bot
