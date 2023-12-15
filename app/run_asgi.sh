@@ -13,4 +13,3 @@ python manage.py migrate --noinput
 python manage.py createsuperuser --no-input
 
 gunicorn --bind 0.0.0.0:8000 bot_admin.asgi -w 4 -k uvicorn.workers.UvicornWorker
-python manage.py start_bot
