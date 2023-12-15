@@ -1,0 +1,127 @@
+stages:
+  - build
+  - review
+  - clear
+  - deploy
+
+.build:
+  tags:
+    - divan
+  stage: build
+  variables:
+    BUILD_IMAGE: '$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME'
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker --config ~/.$CI_PROJECT_PATH_SLUG login $CI_REGISTRY -u $CI_REGISTRY_USER --password-stdin
+  environment:
+    name: $ENVIRONMENT_NAME
+  interruptible: true
+  after_script:
+    - docker --config ~/.$CI_PROJECT_PATH_SLUG push $BUILD_IMAGE:$BUILD_TAG_SHA
+    - docker --config ~/.$CI_PROJECT_PATH_SLUG push $BUILD_IMAGE:$BUILD_TAG
+
+.k8s:
+  tags:
+    - divan
+  allow_failure: true
+  variables:
+    K8S_API_ENDPOINT: '$K8S_API_ENDPOINT'
+    K8S_SECRET_ACCESS_KEY: '$K8S_SECRET_ACCESS_KEY'
+  before_script:
+    - kubectl config set-cluster apps --insecure-skip-tls-verify=true --server="$K8S_API_ENDPOINT"
+    - kubectl config set-credentials ci --token="$K8S_SECRET_ACCESS_KEY"
+    - kubectl config set-context ci --cluster=apps --user=ci
+    - kubectl config use-context ci
+
+build:mr:
+  extends:
+    - .build
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+  script:
+    - DOCKER_BUILDKIT=0 docker build
+      -t "$BUILD_IMAGE:$BUILD_TAG_SHA"
+      -t "$BUILD_IMAGE:$BUILD_TAG"
+      -f ./app/Dockerfile ./app
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      variables:
+        BUILD_TAG_SHA: '$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA'
+        BUILD_TAG: '$CI_COMMIT_REF_SLUG'
+
+build:main:
+  extends:
+    - .build
+  environment:
+    name: production
+  script:
+    - DOCKER_BUILDKIT=0 docker build
+      -t "$BUILD_IMAGE:$BUILD_TAG_SHA"
+      -t "$BUILD_IMAGE:$BUILD_TAG"
+      -f ./app/Dockerfile ./app
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+      variables:
+        BUILD_TAG_SHA: '$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-prod'
+        BUILD_TAG: 'latest'
+
+review:
+  extends:
+    - .k8s
+  stage: review
+  image: dtzar/helm-kubectl:3.6.0
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    url: https://$CI_MERGE_REQUEST_ID.vetbot.hhw.ru
+    on_stop: stop_review
+  script:
+    - SUB_DOMAIN=$CI_MERGE_REQUEST_ID
+    - VERSION=1
+    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/**/*.yaml
+    - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}/g" ./.kubernetes/**/*.yaml
+    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/common/bot/*.yaml
+    - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}/g" ./.kubernetes/common/bot/*.yaml
+    - sed -i "s/<SUB_DOMAIN>/${SUB_DOMAIN}/g" .kubernetes/**/*.yaml
+    - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],${SUB_DOMAIN}.vetbot.hhw.ru" >> .kubernetes/development/.env
+    - echo "${DB_CONFIG}" >> .kubernetes/common/DB/.env
+    - echo "${APP_CONFIG}" >> .kubernetes/common/bot/.env
+    - echo "${APP_CONFIG}" >> .kubernetes/development/.env
+    - kubectl create namespace vetbot-${CI_COMMIT_REF_SLUG} --dry-run=client --output="yaml" | kubectl apply -f -
+    - kubectl -n vetbot-${CI_COMMIT_REF_SLUG} apply -k .kubernetes/development/
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+stop_review:
+  stage: clear
+  extends:
+    - .k8s
+  variables:
+    GIT_STRATEGY: none
+  environment:
+    name: review/$CI_COMMIT_REF_NAME
+    action: stop
+  script:
+    - kubectl delete namespace vetbot-${CI_COMMIT_REF_SLUG}
+  dependencies:
+    - review
+  when: manual
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+deploy:
+  stage: deploy
+  extends:
+    - .k8s
+  environment:
+    name: production
+  script:
+    - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],vetbot.hhw.ru" >> .kubernetes/production/.env
+    - echo "WEBHOOK_URL=https://vetbot.hhw.ru" >> .kubernetes/production/.env
+    - echo "${APP_CONFIG}" >> .kubernetes/production/.env
+    - VERSION=1
+    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/**/*.yaml
+    - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}-prod/g" ./.kubernetes/**/*.yaml
+    - kubectl create namespace vetbot --dry-run=client --output="yaml" | kubectl apply -f -
+    - kubectl -n vetbot apply -k .kubernetes/production/
+  when: manual
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'

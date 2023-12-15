@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bot-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bot
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: bot
+    spec:
+      containers:
+        - name: bot
+          image: 'registry.divlab.tech/tg_bots/vet_bot:<TAG>'
+          envFrom:
+            - secretRef:
+                name: 'bot-vetbot-secrets'
+          command: ["python", "manage.py", "start_bot"]
