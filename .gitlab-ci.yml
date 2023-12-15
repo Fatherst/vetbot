@@ -75,7 +75,8 @@ review:
     on_stop: stop_review
   script:
     - SUB_DOMAIN=$CI_MERGE_REQUEST_ID
-    - sed -i $(printf "s/<VERSION>/%s/g" $(cat package.json | jq -r '.version' | sed -E 's/([0-9]+)\.[0-9]+\.[0-9]+/\1/g')) ./.kubernetes/**/*.yaml
+    - VERSION=1
+    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/**/*.yaml
     - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}/g" ./.kubernetes/**/*.yaml
     - sed -i "s/<SUB_DOMAIN>/${SUB_DOMAIN}/g" .kubernetes/**/*.yaml
     - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],${SUB_DOMAIN}.vetbot.hhw.ru" >> .kubernetes/development/.env
@@ -113,7 +114,8 @@ deploy:
     - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],vetbot.hhw.ru" >> .kubernetes/production/.env
     - echo "WEBHOOK_URL=https://vetbot.hhw.ru" >> .kubernetes/production/.env
     - echo "${APP_CONFIG}" >> .kubernetes/production/.env
-    - sed -i $(printf "s/<VERSION>/%s/g" $(cat package.json | jq -r '.version' | sed -E 's/([0-9]+)\.[0-9]+\.[0-9]+/\1/g')) ./.kubernetes/**/*.yaml
+    - VERSION=1
+    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/**/*.yaml
     - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}-prod/g" ./.kubernetes/**/*.yaml
     - kubectl create namespace vetbot --dry-run=client --output="yaml" | kubectl apply -f -
     - kubectl -n vetbot apply -k .kubernetes/production/
