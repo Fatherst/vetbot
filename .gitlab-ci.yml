@@ -81,6 +81,7 @@ review:
     - sed -i "s/<SUB_DOMAIN>/${SUB_DOMAIN}/g" .kubernetes/**/*.yaml
     - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],${SUB_DOMAIN}.vetbot.hhw.ru" >> .kubernetes/development/.env
     - echo "${DB_CONFIG}" >> .kubernetes/common/DB/.env
+    - echo "${APP_CONFIG}" >> .kubernetes/development/bot/.env
     - echo "${APP_CONFIG}" >> .kubernetes/development/.env
     - kubectl create namespace vetbot-${CI_COMMIT_REF_SLUG} --dry-run=client --output="yaml" | kubectl apply -f -
     - kubectl -n vetbot-${CI_COMMIT_REF_SLUG} apply -k .kubernetes/development/
