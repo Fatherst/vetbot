@@ -105,3 +105,26 @@ BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
 API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
+        },
+    },
+    "handlers": {
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.handlers.TimedRotatingFileHandler",
+            "when": "D",
+            "interval": 1,
+            "backupCount": 3,
+            "filename": "logfile.log",
+            "formatter": "verbose",
+        },
+    },
+    "loggers": {
+        "root": {"level": "DEBUG", "handlers": ["file"]},
+    },
+}

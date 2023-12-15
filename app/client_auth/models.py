@@ -7,8 +7,7 @@ class Client(models.Model):
         verbose_name="ID в еноте",
         db_index=True,
         unique=True,
-        null=True,
-        blank=True,
+        default="",
     )
     first_name = models.CharField(
         max_length=100, null=True, blank=True, verbose_name="Имя"
@@ -26,6 +25,7 @@ class Client(models.Model):
     tg_chat_id = models.IntegerField(
         null=True, blank=True, verbose_name="Telegram Id", unique=True
     )
+    deleted = models.BooleanField(default=False, verbose_name="Удалён")
 
     class Meta:
         verbose_name = "Клиент"
@@ -38,10 +38,14 @@ class AnimalKind(models.Model):
         verbose_name="ID в еноте",
         db_index=True,
         unique=True,
-        null=True,
-        blank=True,
     )
-    name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Имя")
+    name = models.CharField(
+        max_length=100, null=True, blank=True, verbose_name="Название"
+    )
+
+    class Meta:
+        verbose_name = "Вид"
+        verbose_name_plural = "Виды"
 
 
 class Patient(models.Model):
@@ -50,8 +54,6 @@ class Patient(models.Model):
         verbose_name="ID в еноте",
         db_index=True,
         unique=True,
-        null=True,
-        blank=True,
     )
     name = models.CharField(max_length=100, null=True, blank=True, verbose_name="Имя")
     birth_date = models.DateField(null=True, blank=True, verbose_name="Дата рождения")
@@ -60,9 +62,11 @@ class Patient(models.Model):
     )
     weight = models.FloatField(null=True, blank=True, verbose_name="Вес")
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
-    kind_id = models.ForeignKey(
-        AnimalKind, on_delete=models.PROTECT, verbose_name="Вид"
+    kind = models.ForeignKey(
+        AnimalKind, on_delete=models.PROTECT, verbose_name="Вид", null=True, blank=True
     )
-    client_id = models.ForeignKey(
-        Client, on_delete=models.PROTECT, verbose_name="ID клиента"
-    )
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
+
+    class Meta:
+        verbose_name = "Пациент"
+        verbose_name_plural = "Пациенты"
