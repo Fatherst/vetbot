@@ -56,7 +56,7 @@ async def create_or_update_client(client: ClientEnote, contact_information: list
         )
 
 
-@router.post("integration/clients/", response=Response)
+@router.post("integration/clients", response=Response)
 async def process_clients(request, clients: List[ClientEnote]):
     clients_response = Response(response=[])
     for client in clients:
@@ -67,7 +67,7 @@ async def process_clients(request, clients: List[ClientEnote]):
     return clients_response
 
 
-@router.post("integration/kinds/", response=Response)
+@router.post("integration/kinds", response=Response)
 async def process_kinds(request, kinds: List[Kind]):
     kinds_response = Response(response=[])
     for kind in kinds:
