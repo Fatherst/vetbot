@@ -1,6 +1,10 @@
-from .schemas import ClientEnote, Result, Response, Kind
+from .schemas import (
+    ClientEnote,
+    Result,
+    Response,
+    Kind,
+)
 from client_auth.models import Client, AnimalKind
-from typing import List
 from ninja import Router
 import re
 
@@ -8,67 +12,61 @@ import re
 router = Router()
 
 
-async def create_or_update_client(client: ClientEnote, contact_information: list):
+async def result(schema_instance, success_message: str, res_bool: bool):
+    return Result(
+        enote_id=schema_instance.enote_id,
+        result=res_bool,
+        error_message=success_message,
+    )
+
+
+async def create_or_update_client(enote_client: ClientEnote):
     try:
-        defaults = {
-            "first_name": client.first_name,
-            "middle_name": client.middle_name,
-            "last_name": client.last_name,
-        }
+        if enote_client.state == "DELETED":
+            client = await Client.objects.aget(enote_id=enote_client.enote_id)
+            client.deleted = True
+            await client.asave()
+            return await result(enote_client, "Клиент успешно удалён",True)
+        contact_information = enote_client.contact_information
+        phone = None
+        email = None
         for contact in contact_information:
             if contact.type == "PHONE_NUMBER":
-                phone_number = re.sub(r"\D", "", contact.value)
-                defaults["phone_number"] = phone_number
-                client_instance = await Client.objects.filter(
-                    phone_number=phone_number,
-                ).afirst()
-                """Енот ID должен тогда быть null или принимать какое-то значение по умолчанию"""
-                if client_instance and not client_instance.enote_id:
-                    client_instance.enote_id = client.enote_id
-                    client_instance.first_name = client.first_name
-                    client_instance.middle_name = client.middle_name
-                    client_instance.last_name = client.last_name
-                    await client_instance.asave()
-                    success_message = "Клиент из телеграма успешно обновлен"
-                    return Result(
-                        enote_id=client.enote_id,
-                        result=True,
-                        error_message=success_message,
-                    )
+                phone = re.sub(r"\D", "", contact.value)
             elif contact.type == "EMAIL":
-                defaults["email"] = contact.value
-        client_instance, created = await Client.objects.aupdate_or_create(
-            enote_id=client.enote_id, defaults=defaults
+                email = contact.value
+        client = await Client.objects.filter(phone_number=phone).afirst()
+        if client and not client.enote_id:
+            client.enote_id = enote_client.enote_id
+            await client.asave()
+        defaults = {
+            "first_name": enote_client.first_name,
+            "middle_name": enote_client.middle_name,
+            "last_name": enote_client.last_name,
+            'email': email,
+            'phone_number': phone
+        }
+        _, created = await Client.objects.aupdate_or_create(
+            enote_id=enote_client.enote_id, defaults=defaults
         )
         success_message = (
             "Клиент успешно создан" if created else "Клиент успешно обновлен"
         )
-        return Result(
-            enote_id=client.enote_id,
-            result=True,
-            error_message=success_message,
-        )
+        return await result(enote_client, success_message, True)
     except Exception as error:
-        return Result(
-            enote_id=client.enote_id,
-            result=False,
-            error_message=error,
-        )
+        return await result(enote_client, str(error), False)
 
 
-@router.post("integration/clients", response=Response)
-async def process_clients(request, clients: List[ClientEnote]):
+@router.post("clients", response=Response)
+async def process_clients(request, clients: list[ClientEnote]):
     clients_response = Response(response=[])
     for client in clients:
-        contact_information = client.contact_information
-        clients_response.response.append(
-            await create_or_update_client(client, contact_information)
-        )
+        clients_response.response.append(await create_or_update_client(client))
     return clients_response
 
 
-@router.post("integration/kinds", response=Response)
-async def process_kinds(request, kinds: List[Kind]):
+@router.post("kinds", response=Response)
+async def process_kinds(request, kinds: list[Kind]):
     kinds_response = Response(response=[])
     for kind in kinds:
         try:
@@ -81,17 +79,7 @@ async def process_kinds(request, kinds: List[Kind]):
             success_message = (
                 "Вид успешно создан" if created else "Вид успешно обновлен"
             )
-            kinds_response.response.append(
-                Result(
-                    enote_id=kind.enote_id,
-                    result=True,
-                    error_message=success_message,
-                )
-            )
+            kinds_response.response.append(await result(kind, success_message, True))
         except Exception as error:
-            return Result(
-                enote_id=kind.enote_id,
-                result=False,
-                error_message=error,
-            )
+            return await result(kind, str(error), False)
     return kinds_response

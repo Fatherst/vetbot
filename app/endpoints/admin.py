@@ -1,3 +1,14 @@
 from django.contrib import admin
 
-# Register your models here.
+# from client_auth.models import DiscountCard
+#
+#
+# @admin.register(DiscountCard)
+# class CardAdmin(admin.ModelAdmin):
+#     list_display = (
+#         "id",
+#         "enote_id",
+#         "client_id",
+#         "category_id",
+#         "deleted"
+#     )

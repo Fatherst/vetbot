@@ -12,4 +12,4 @@ class BasicAuth(HttpBasicAuth):
 
 api = NinjaAPI(auth=BasicAuth())
 
-api.add_router("v1/", router)
+api.add_router("v1/integration/", router)
