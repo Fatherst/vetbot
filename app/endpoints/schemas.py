@@ -1,6 +1,7 @@
 from ninja import Schema, Field
 from typing import Optional
 
+
 class ContactInformation(Schema):
     type: str = None
     title: str = None
@@ -25,6 +26,7 @@ class ClientEnote(Schema):
     last_name: str = Field("", alias="lastName")
     contact_information: list[ContactInformation] = None
     attributes: Optional[list[dict]] = None
+
 
 """Данные могут быть null, надо указать в схеме, что она должна ждать поле нужного типа либо null
 null может быть любое поле, но в тесте падало на attributes"""

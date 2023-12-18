@@ -23,12 +23,18 @@ async def create_or_update_client(client: ClientEnote, contact_information: list
                     phone_number=phone_number,
                 ).afirst()
                 """Енот ID должен тогда быть null или принимать какое-то значение по умолчанию"""
-                if client_instance and client_instance.enote_id == "":
+                if client_instance and not client_instance.enote_id:
                     client_instance.enote_id = client.enote_id
                     client_instance.first_name = client.first_name
                     client_instance.middle_name = client.middle_name
                     client_instance.last_name = client.last_name
                     await client_instance.asave()
+                    success_message = "Клиент из телеграма успешно обновлен"
+                    return Result(
+                        enote_id=client.enote_id,
+                        result=True,
+                        error_message=success_message,
+                    )
             elif contact.type == "EMAIL":
                 defaults["email"] = contact.value
         client_instance, created = await Client.objects.aupdate_or_create(

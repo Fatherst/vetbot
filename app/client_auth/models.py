@@ -7,6 +7,8 @@ class Client(models.Model):
         verbose_name="ID в еноте",
         db_index=True,
         unique=True,
+        null=True,
+        blank=True,
     )
     first_name = models.CharField(
         max_length=100, null=True, blank=True, verbose_name="Имя"
