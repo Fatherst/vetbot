@@ -33,9 +33,9 @@ null может быть любое поле, но в тесте падало н
 
 
 class Result(Schema):
-    enote_id: str
+    enoteId: str
     result: bool
-    error_message: str = None
+    errorMessage: str = None
 
 
 class Response(Schema):

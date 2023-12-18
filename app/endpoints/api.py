@@ -12,21 +12,9 @@ import re
 router = Router()
 
 
-async def result(schema_instance, success_message: str, res_bool: bool):
-    return Result(
-        enote_id=schema_instance.enote_id,
-        result=res_bool,
-        error_message=success_message,
-    )
-
-
 async def create_or_update_client(enote_client: ClientEnote):
     try:
-        if enote_client.state == "DELETED":
-            client = await Client.objects.aget(enote_id=enote_client.enote_id)
-            client.deleted = True
-            await client.asave()
-            return await result(enote_client, "Клиент успешно удалён",True)
+        deleted = True if enote_client.state == "DELETED" else False
         contact_information = enote_client.contact_information
         phone = None
         email = None
@@ -43,18 +31,20 @@ async def create_or_update_client(enote_client: ClientEnote):
             "first_name": enote_client.first_name,
             "middle_name": enote_client.middle_name,
             "last_name": enote_client.last_name,
-            'email': email,
-            'phone_number': phone
+            "email": email,
+            "phone_number": phone,
+            "deleted": deleted,
         }
         _, created = await Client.objects.aupdate_or_create(
             enote_id=enote_client.enote_id, defaults=defaults
         )
-        success_message = (
-            "Клиент успешно создан" if created else "Клиент успешно обновлен"
+        return Result(
+            enoteId=enote_client.enote_id,
+            result=True,
+            errorMessage="",
         )
-        return await result(enote_client, success_message, True)
     except Exception as error:
-        return await result(enote_client, str(error), False)
+        return Result(enoteId=enote_client.enote_id, result=False, errorMessage=error)
 
 
 @router.post("clients", response=Response)
@@ -65,21 +55,22 @@ async def process_clients(request, clients: list[ClientEnote]):
     return clients_response
 
 
+async def create_or_update_kind(enote_kind: Kind):
+    try:
+        defaults = {
+            "name": enote_kind.name,
+        }
+        _, created = await AnimalKind.objects.aupdate_or_create(
+            enote_id=enote_kind.enote_id, defaults=defaults
+        )
+        return Result(enoteId=enote_kind.enote_id, result=True, errorMessage="")
+    except Exception as error:
+        return Result(enoteId=enote_kind.enote_id, result=False, errorMessage="")
+
+
 @router.post("kinds", response=Response)
 async def process_kinds(request, kinds: list[Kind]):
     kinds_response = Response(response=[])
     for kind in kinds:
-        try:
-            defaults = {
-                "name": kind.name,
-            }
-            kind_instance, created = await AnimalKind.objects.aupdate_or_create(
-                enote_id=kind.enote_id, defaults=defaults
-            )
-            success_message = (
-                "Вид успешно создан" if created else "Вид успешно обновлен"
-            )
-            kinds_response.response.append(await result(kind, success_message, True))
-        except Exception as error:
-            return await result(kind, str(error), False)
+        kinds_response.response.append(await create_or_update_kind(kind))
     return kinds_response
