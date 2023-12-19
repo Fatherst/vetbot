@@ -16,7 +16,7 @@ router = Router()
 
 async def create_or_update_client(enote_client: ClientEnote):
     try:
-        deleted = True if enote_client.object_state == "DELETED" else False
+        deleted = True if enote_client.state == "DELETED" else False
         contact_information = enote_client.contact_information
         phone = None
         email = None
@@ -45,7 +45,7 @@ async def create_or_update_client(enote_client: ClientEnote):
             result=True,
         )
     except Exception as error:
-        return Result(enote_id=enote_client.enote_id, result=False, error_message=error)
+        return Result(enote_id=enote_client.enote_id, result=False, error_message=str(error))
 
 
 @router.post("clients", response=Response, by_alias=True)
@@ -58,7 +58,7 @@ async def process_clients(request, clients: list[ClientEnote]):
 
 async def create_or_update_kind(enote_kind: Kind):
     try:
-        if enote_kind.object_state == "DELETED":
+        if enote_kind.state == "DELETED":
             await AnimalKind.objects.adelete(enote_id=enote_kind.enote_id)
             return Result(enote_id=enote_kind.enote_id, result=True)
         defaults = {
@@ -69,7 +69,7 @@ async def create_or_update_kind(enote_kind: Kind):
         )
         return Result(enote_id=enote_kind.enote_id, result=True)
     except Exception as error:
-        return Result(enote_id=enote_kind.enote_id, result=False, error_message=error)
+        return Result(enote_id=enote_kind.enote_id, result=False, error_message=str(error))
 
 
 @router.post("kinds", response=Response)
@@ -82,7 +82,7 @@ async def process_kinds(request, kinds: list[Kind]):
 
 async def create_or_update_card_categories(category: DiscountCardCategorySchema):
     try:
-        if category.object_state == "DELETED":
+        if category.state == "DELETED":
             await DiscountCardCategory.objects.adelete(enote_id=category.enote_id)
             return Result(enote_id=category.enote_id, result=True)
         defaults = {
@@ -99,7 +99,7 @@ async def create_or_update_card_categories(category: DiscountCardCategorySchema)
         return Result(
             enote_id=category.enote_id,
             result=False,
-            error_message=error,
+            error_message=str(error),
         )
 
 
@@ -117,7 +117,7 @@ async def process_card_categories(
 
 async def create_or_update_card(card: DiscountCardSchema):
     try:
-        deleted = True if card.object_state == "DELETED" else False
+        deleted = True if card.state == "DELETED" else False
         client = await Client.objects.aget(enote_id=card.client_enote_id)
         category = await DiscountCardCategory.objects.aget(
             enote_id=card.category_of_discount_enote_id
@@ -139,7 +139,7 @@ async def create_or_update_card(card: DiscountCardSchema):
         return Result(
             enote_id=card.enote_id,
             result=False,
-            error_message=error,
+            error_message=str(error),
         )
 
 
