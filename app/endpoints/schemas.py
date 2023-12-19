@@ -28,7 +28,6 @@ class ClientEnote(Schema):
     attributes: Optional[list[dict]] = None
 
 
-
 class DiscountCardSchema(Schema):
     enote_id: str = Field(None, alias="enoteId")
     state: str = Field(None, alias="objectState")
@@ -40,12 +39,10 @@ class DiscountCardSchema(Schema):
     description: str = Field(None, alias="cardDescription")
 
 
-
 class DiscountCardCategorySchema(Schema):
     enote_id: str
     state: str
     name: str = None
-
 
 
 class Result(Schema):

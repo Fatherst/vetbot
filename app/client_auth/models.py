@@ -73,43 +73,4 @@ class Patient(models.Model):
         verbose_name_plural = "Пациенты"
 
 
-class DiscountCardCategory(models.Model):
-    enote_id = models.CharField(
-        max_length=150,
-        verbose_name="ID в еноте",
-        db_index=True,
-        unique=True,
-    )
-    name = models.CharField(
-        max_length=150, null=True, blank=True, verbose_name="Название"
-    )
 
-    class Meta:
-        verbose_name = "Категория дисконтных карт"
-        verbose_name_plural = "Категории дисконтных карт"
-
-
-class DiscountCard(models.Model):
-    enote_id = models.CharField(
-        max_length=150,
-        verbose_name="ID в еноте",
-        db_index=True,
-        unique=True,
-    )
-    card_number = models.CharField(
-        max_length=150, verbose_name="Номер карты", unique=True
-    )
-    client_id = models.ForeignKey(
-        Client, on_delete=models.PROTECT, verbose_name="Клиент", to_field="enote_id"
-    )
-    category_id = models.ForeignKey(
-        DiscountCardCategory,
-        on_delete=models.PROTECT,
-        verbose_name="Категория карты",
-        to_field="enote_id",
-    )
-    deleted = models.BooleanField(default=False, verbose_name="Удален")
-
-    class Meta:
-        verbose_name = "Дисконтная карта"
-        verbose_name_plural = "Дисконтные карты"
