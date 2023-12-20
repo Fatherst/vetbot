@@ -1,8 +1,8 @@
 from ninja import Schema, Field
 
 
-class DiscountCardSchema(Schema):
-    enote_id: str = Field(None, alias="enoteId")
+class DiscountCard(Schema):
+    enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
     name: str = None
     client_enote_id: str = Field(None, alias="clientEnoteId")
@@ -12,7 +12,7 @@ class DiscountCardSchema(Schema):
     description: str = Field(None, alias="cardDescription")
 
 
-class DiscountCardCategorySchema(Schema):
-    enote_id: str
-    state: str
+class DiscountCardCategory(Schema):
+    enote_id: str = Field(alias="enoteId")
+    state: str = Field(None, alias="objectState")
     name: str = None

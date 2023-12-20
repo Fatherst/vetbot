@@ -1,11 +1,7 @@
-from .schemas import (
-    ClientEnote,
-    Result,
-    Response,
-    Kind
-)
-from client_auth.models import Client, AnimalKind
+from .schemas import ClientEnote, Result, Response, Kind
 from bonuses.models import DiscountCardCategory, DiscountCard
+from bonuses import schemas
+from client_auth.models import Client, AnimalKind
 from ninja import Router
 import re
 
@@ -60,7 +56,7 @@ async def process_clients(request, clients: list[ClientEnote]):
 async def create_or_update_kind(enote_kind: Kind) -> Result:
     try:
         if enote_kind.state == "DELETED":
-            await DiscountCardCategory.objects.filter(enote_id=enote_kind.enote_id).adelete()
+            await AnimalKind.objects.filter(enote_id=enote_kind.enote_id).adelete()
             return Result(enote_id=enote_kind.enote_id, result=True)
         defaults = {
             "name": enote_kind.name,
@@ -83,4 +79,77 @@ async def process_kinds(request, kinds: list[Kind]):
     return kinds_response
 
 
+async def create_or_update_card_categories(
+    category: schemas.DiscountCardCategory,
+) -> Result:
+    try:
+        if category.state == "DELETED":
+            await DiscountCardCategory.objects.filter(
+                enote_id=category.enote_id
+            ).adelete()
+            return Result(enote_id=category.enote_id, result=True)
+        defaults = {
+            "name": category.name,
+        }
+        _, created = await DiscountCardCategory.objects.aupdate_or_create(
+            enote_id=category.enote_id, defaults=defaults
+        )
+        return Result(
+            enote_id=category.enote_id,
+            result=True,
+        )
+    except Exception as error:
+        return Result(
+            enote_id=category.enote_id,
+            result=False,
+            error_message=str(error),
+        )
 
+
+@client_router.post("discount_cards/categories", response=Response, by_alias=True)
+async def process_card_categories(
+    request, categories: list[schemas.DiscountCardCategory]
+):
+    cards_categories_response = Response(response=[])
+    for category in categories:
+        cards_categories_response.response.append(
+            await create_or_update_card_categories(category)
+        )
+    return cards_categories_response
+
+
+async def create_or_update_card(card: schemas.DiscountCard) -> Result:
+    try:
+        deleted = True if card.state == "DELETED" else False
+        client = await Client.objects.aget(enote_id=card.client_enote_id)
+        print(client)
+        category = await DiscountCardCategory.objects.aget(
+            enote_id=card.category_enote_id
+        )
+        defaults = {
+            "card_number": card.card_number,
+            "client": client,
+            "category": category,
+            "deleted": deleted,
+        }
+        _, created = await DiscountCard.objects.aupdate_or_create(
+            enote_id=card.enote_id, defaults=defaults
+        )
+        return Result(
+            enote_id=card.enote_id,
+            result=True,
+        )
+    except Exception as error:
+        return Result(
+            enote_id=card.enote_id,
+            result=False,
+            error_message=str(error),
+        )
+
+
+@client_router.post("discount_cards", response=Response, by_alias=True)
+async def process_cards(request, cards: list[schemas.DiscountCard]):
+    cards_response = Response(response=[])
+    for card in cards:
+        cards_response.response.append(await create_or_update_card(card))
+    return cards_response

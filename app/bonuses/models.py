@@ -28,14 +28,13 @@ class DiscountCard(models.Model):
     card_number = models.CharField(
         max_length=150, verbose_name="Номер карты", unique=True
     )
-    client = models.ForeignKey(
-        Client, on_delete=models.PROTECT, verbose_name="Клиент", to_field="enote_id"
-    )
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
     category = models.ForeignKey(
         DiscountCardCategory,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         verbose_name="Категория карты",
-        to_field="enote_id",
+        blank=True,
+        null=True,
     )
     deleted = models.BooleanField(default=False, verbose_name="Удален")
 

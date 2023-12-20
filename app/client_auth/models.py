@@ -71,6 +71,3 @@ class Patient(models.Model):
     class Meta:
         verbose_name = "Пациент"
         verbose_name_plural = "Пациенты"
-
-
-
