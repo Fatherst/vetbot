@@ -46,7 +46,7 @@ async def create_or_update_client(enote_client: ClientEnote) -> Result:
 
 
 @client_router.post("clients", response=Response, by_alias=True)
-async def process_clients(request, clients: list[ClientEnote]):
+async def process_clients(request, clients: list[ClientEnote]) -> Response:
     clients_response = Response(response=[])
     for client in clients:
         clients_response.response.append(await create_or_update_client(client))
@@ -72,7 +72,7 @@ async def create_or_update_kind(enote_kind: Kind) -> Result:
 
 
 @client_router.post("kinds", response=Response)
-async def process_kinds(request, kinds: list[Kind]):
+async def process_kinds(request, kinds: list[Kind]) -> Response:
     kinds_response = Response(response=[])
     for kind in kinds:
         kinds_response.response.append(await create_or_update_kind(kind))
@@ -109,7 +109,7 @@ async def create_or_update_card_categories(
 @client_router.post("discount_cards/categories", response=Response, by_alias=True)
 async def process_card_categories(
     request, categories: list[schemas.DiscountCardCategory]
-):
+) -> Response:
     cards_categories_response = Response(response=[])
     for category in categories:
         cards_categories_response.response.append(
@@ -148,7 +148,7 @@ async def create_or_update_card(card: schemas.DiscountCard) -> Result:
 
 
 @client_router.post("discount_cards", response=Response, by_alias=True)
-async def process_cards(request, cards: list[schemas.DiscountCard]):
+async def process_cards(request, cards: list[schemas.DiscountCard]) -> Response:
     cards_response = Response(response=[])
     for card in cards:
         cards_response.response.append(await create_or_update_card(card))
