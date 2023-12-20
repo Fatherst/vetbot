@@ -1,7 +1,7 @@
 from ninja import NinjaAPI
 from ninja.security import HttpBasicAuth
 from django.conf import settings
-from endpoints.api import router
+from endpoints.api import client_router
 
 
 class BasicAuth(HttpBasicAuth):
@@ -12,4 +12,4 @@ class BasicAuth(HttpBasicAuth):
 
 api = NinjaAPI(auth=BasicAuth())
 
-api.add_router("v1/integration/", router)
+api.add_router("v1/integration/", client_router)
