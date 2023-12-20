@@ -28,10 +28,12 @@ class DiscountCard(models.Model):
     card_number = models.CharField(
         max_length=150, verbose_name="Номер карты", unique=True
     )
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
+    client = models.ForeignKey(
+        Client, on_delete=models.PROTECT, verbose_name="Клиент", blank=True, null=True
+    )
     category = models.ForeignKey(
         DiscountCardCategory,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         verbose_name="Категория карты",
         blank=True,
         null=True,

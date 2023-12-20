@@ -121,11 +121,12 @@ async def process_card_categories(
 async def create_or_update_card(card: schemas.DiscountCard) -> Result:
     try:
         deleted = True if card.state == "DELETED" else False
-        client = await Client.objects.aget(enote_id=card.client_enote_id)
-        print(client)
-        category = await DiscountCardCategory.objects.aget(
+        client = None
+        category = None
+        client = await Client.objects.filter(enote_id=card.client_enote_id).afirst()
+        category = await DiscountCardCategory.objects.filter(
             enote_id=card.category_enote_id
-        )
+        ).afirst()
         defaults = {
             "card_number": card.card_number,
             "client": client,
