@@ -26,7 +26,7 @@ class DiscountCard(models.Model):
         unique=True,
     )
     card_number = models.CharField(
-        max_length=150, verbose_name="Номер карты", unique=True
+        max_length=150, verbose_name="Номер карты", blank=True, null=False
     )
     client = models.ForeignKey(
         Client, on_delete=models.PROTECT, verbose_name="Клиент", blank=True, null=True
