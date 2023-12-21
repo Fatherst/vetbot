@@ -13,7 +13,7 @@ class CardAdmin(admin.ModelAdmin):
         "category_id",
         "deleted",
     )
-    search_fields = ["enote_id", "client"]
+    search_fields = ["enote_id", "client_id"]
 
 
 @admin.register(DiscountCardCategory)
