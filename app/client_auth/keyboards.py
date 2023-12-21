@@ -17,7 +17,7 @@ def get_contact():
     return contact_markup
 
 
-def get_user_main_menu():
+def user_main_menu():
     buttons = [
         [
             InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
@@ -38,6 +38,56 @@ def get_user_main_menu():
         ],
         [
             InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
+        ],
+    ]
+    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_markup
+
+
+def not_enote_main_menu():
+    buttons = [
+        [
+            InlineKeyboardButton(text="Записаться ✔️", callback_data="book"),
+        ],
+        [
+            InlineKeyboardButton(text="Программа лояльности", callback_data="loyalty"),
+        ],
+        [
+            InlineKeyboardButton(text="О клинике  🏥", callback_data="about"),
+        ],
+        [
+            InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
+        ],
+    ]
+    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_markup
+
+
+def back_or_loyalty():
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text="Условия программы лояльности 💝", callback_data="loyalty"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="Получить 1000 бонусов за рекомендацию 💲",
+                callback_data="recommend",
+            ),
+        ],
+        [
+            InlineKeyboardButton(text="Назад 🔙", callback_data="back"),
+        ],
+    ]
+    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_markup
+
+
+def back():
+    buttons = [
+        [
+            InlineKeyboardButton(text="Назад 🔙", callback_data="back"),
         ],
     ]
     inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
