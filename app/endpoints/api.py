@@ -4,6 +4,10 @@ from bonuses import schemas
 from client_auth.models import Client, AnimalKind
 from ninja import Router
 import re
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 client_router = Router()
@@ -40,6 +44,7 @@ async def create_or_update_client(enote_client: ClientEnote) -> Result:
             result=True,
         )
     except Exception as error:
+        logger.error(enote_client)
         return Result(
             enote_id=enote_client.enote_id, result=False, error_message=str(error)
         )

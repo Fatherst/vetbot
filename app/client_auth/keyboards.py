@@ -63,7 +63,7 @@ def not_enote_main_menu():
     return inline_markup
 
 
-def back_or_loyalty():
+def back_or_loyalty_or_recomend():
     buttons = [
         [
             InlineKeyboardButton(
@@ -74,6 +74,21 @@ def back_or_loyalty():
             InlineKeyboardButton(
                 text="Получить 1000 бонусов за рекомендацию 💲",
                 callback_data="recommend",
+            ),
+        ],
+        [
+            InlineKeyboardButton(text="Назад 🔙", callback_data="back"),
+        ],
+    ]
+    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_markup
+
+
+def back_or_loyalty():
+    buttons = [
+        [
+            InlineKeyboardButton(
+                text="Условия программы лояльности 💝", callback_data="loyalty"
             ),
         ],
         [

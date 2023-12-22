@@ -5,6 +5,7 @@ from .keyboards import (
     not_enote_main_menu,
     back,
     back_or_loyalty,
+    back_or_loyalty_or_recomend,
 )
 from .models import Client
 from aiogram.fsm.context import FSMContext
@@ -13,9 +14,13 @@ from aiogram import Router, F
 from aiogram.filters import Command, Filter
 import re
 import random
-import requests
+import aiohttp
+from django.conf import settings
+from aiohttp.client_exceptions import ClientResponseError
+import logging
 
 
+logger = logging.getLogger(__name__)
 client_router = Router()
 
 
@@ -71,8 +76,7 @@ async def send_greeting(message: types.Message, state: FSMContext):
         text=f"{greeting}\n\n{text}",
         reply_markup=reply_markup,
     )
-    if text=="":  # Проверка на наличие текста для установки состояния FSM
-        print('sd')
+    if text == "":  # Проверка на наличие текста для установки состояния FSM
         await state.set_state(PhoneStates.phone)
 
 
@@ -154,30 +158,51 @@ async def handle_code(message: types.Message, state: FSMContext):
 @client_router.callback_query(F.data == "back")
 async def main_menu(callback: types.CallbackQuery):
     greeting, _, reply_markup = await get_user_data(callback.from_user.id)
-    await callback.message.answer(
+    await callback.message.edit_text(
         text=f"{greeting}\n\nВыберите, что вас интересует ⤵",
         reply_markup=reply_markup,
     )
 
 
 @client_router.callback_query(F.data == "bonuses")
-async def loyalty_program(callback: types.CallbackQuery):
-    headers = {"apikey": "", "Authorization": ""}
+async def bonuses_program(callback: types.CallbackQuery):
     client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
-    # requests.get(
-    #    "https://ru.enote.link/79c0973a-3b89-11ec-f988-12896acfa599-e5/hs/api/v1/balance?client_enote_id=5586e32b-2c28-4db3-916e-9bb0e8092850&department_enote_id=14bc1738-5781-43f7-9b6d-3b1a9769fc9d"
-    #    f"?client_enote_id={client.enote_id}&department_enote_id=14bc1738-5781-43f7-9b6d-3b1a9769fc9d",
-    #    headers=headers,
-    # )
-    await callback.message.answer(
-        text=f"{callback.from_user.first_name}, на данный момент Ваш статус в программе лояльности:\n\n<b>БРОНЗОВЫЙ</b>\n\nЭто значит, что Вы получаете 3% бонусными баллами с потраченной в Клинике суммы!\n\nБаланс Вашего бонусного счета: 1000 бонусных баллов.\n\nВы можете оплатить бонусами до 20% от стоимости услуг Клиники!\n\n1 бонусный балл = 1 рубль",
-        reply_markup=back_or_loyalty(),
+    query_params = {
+        "client_enote_id": client.enote_id,
+        "department_enote_id": "9c0d9196-5a62-4508-ad92-e3ade9b247d8",
+    }
+    headers = {"apikey": settings.APIKEY, "Authorization": settings.BASIC_AUTH}
+    balance = None
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://ru.enote.link/79c0973a-3b89-11ec-f988-12896acfa599-e5/hs/api/v1/balance",
+                params=query_params,
+                headers=headers,
+            ) as resp:
+                resp.raise_for_status()
+                body = await resp.json()
+                balance = body["totalBalanceClient"]
+    except ClientResponseError as error:
+        logger.error(error)
+    if balance:
+        msg = (
+            f"на данный момент Ваш статус в программе лояльности:\n\n<b>БРОНЗОВЫЙ</b>\n\nЭто значит, что Вы получаете"
+            f" 3% бонусными баллами с потраченной в Клинике суммы!\n\nБаланс Вашего бонусного счета: {balance} бонусных баллов.\n\nВы можете оплатить бонусами до 20% от стоимости услуг Клиники!\n\n1 бонусный балл = 1 рубль"
+        )
+        reply_markup = back_or_loyalty_or_recomend()
+    else:
+        msg = "к сожалению, у вас пока нет бонусного счёта, вы сможете открыть его при посещении клиники"
+        reply_markup = back_or_loyalty()
+    await callback.message.edit_text(
+        text=f"<b>{callback.from_user.first_name}</b>, {msg}",
+        reply_markup=reply_markup,
     )
 
 
 @client_router.callback_query(F.data == "loyalty")
 async def loyalty_program(callback: types.CallbackQuery):
-    await callback.message.answer(
+    await callback.message.edit_text(
         text="В рамках программы лояльности Клиника начисляет Клиентам бонусные баллы (кешбэк), которые можно использовать для оплаты услуг Клиники.\n\n 1 бонусный балл = 1 рубль\n\nРазмер кешбэка зависит от статуса Клиента в программе лояльности:\n\nБронзовый статус - кешбэк 3%\n\nКлиент оплатил услуг Клиники на 0 - 9999 руб\n\nСеребряный статус - кешбэк 5%\n\nКлиент оплатил услуг Клиники на 10000 - 29999 руб\n\nЗолотой статус - кешбэк 8%\n\nКлиент оплатил услуг Клиники на 30000 - 49999 руб\n\nПлатиновый статус - кешбэк 10%\n\nКлиент оплатил услуг Клиники на сумму более 50000 руб\n\nВы можете оплатить бонусами до 10% стоимости услуг хирургии и до 20% от стоимости услуг терапии Клиники!\n\nКроме этого, Клиника подарит 1000 бонусных баллов за каждого нового Клиента, которому Вы рекомендовали нашу Клинику.",
         reply_markup=back(),
     )

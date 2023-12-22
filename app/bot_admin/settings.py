@@ -107,6 +107,10 @@ BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
 API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
 
+BASIC_AUTH = os.getenv("BASIC_AUTH")
+APIKEY = os.getenv("APIKEY")
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

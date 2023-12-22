@@ -49,6 +49,16 @@ class AnimalKind(models.Model):
         verbose_name_plural = "Виды"
 
 
+class BlockedClient(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True)
+    reason = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Заблокированный клиент"
+        verbose_name_plural = "Заблокированные клиенты"
+
+
 class Patient(models.Model):
     enote_id = models.CharField(
         max_length=150,
