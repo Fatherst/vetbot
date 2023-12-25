@@ -107,8 +107,11 @@ BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
 API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
 
-BASIC_AUTH = os.getenv("BASIC_AUTH")
-APIKEY = os.getenv("APIKEY")
+ENOTE_BASIC_AUTH = os.getenv("ENOTE_BASIC_AUTH")
+ENOTE_APIKEY = os.getenv("ENOTE_APIKEY")
+
+ENOTE_BALANCE_DEPARTMENT = os.getenv("ENOTE_BALANCE_DEPARTMENT")
+ENOTE_BALANCE_URL = os.getenv("ENOTE_BALANCE_URL")
 
 
 LOGGING = {
@@ -137,10 +140,11 @@ LOGGING = {
 
 
 sentry_sdk.init(
-    dsn=os.getenv("DSN_TEST"),
+    dsn=os.getenv("SENTRY_DSN"),
     integrations=[
         DjangoIntegration(),
     ],
+    environment="dev",
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.

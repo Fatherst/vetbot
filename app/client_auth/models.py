@@ -21,7 +21,7 @@ class Client(models.Model):
     )
     email = models.EmailField(verbose_name="E-mail", null=True, blank=True)
     phone_number = models.CharField(
-        max_length=12, null=True, blank=True, verbose_name="Телефон"
+        max_length=12, null=True, blank=True, verbose_name="Телефон", unique=True
     )
     tg_chat_id = models.IntegerField(
         null=True, blank=True, verbose_name="Telegram Id", unique=True
@@ -50,8 +50,8 @@ class AnimalKind(models.Model):
 
 
 class BlockedClient(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True)
-    reason = models.TextField()
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, null=True, blank=True)
+    reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
