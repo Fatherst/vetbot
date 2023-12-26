@@ -1,5 +1,7 @@
 from django.db import models
-
+from django.db.models import Sum
+from asgiref.sync import sync_to_async
+from bonuses.models import DiscountCard, BonusTransaction
 
 class Client(models.Model):
     enote_id = models.CharField(
@@ -27,6 +29,18 @@ class Client(models.Model):
         null=True, blank=True, verbose_name="Telegram Id", unique=True
     )
     deleted = models.BooleanField(default=False, verbose_name="Удалён")
+
+    @property
+    async def balance(self):
+        card = await self.discount_cards.afirst()
+        if not card:
+            return 0
+        balance = await sync_to_async(
+            lambda: BonusTransaction.objects.filter(discount_card=card).aggregate(
+                total_balance=Sum("sum")
+            )["total_balance"]
+        )()
+        return balance
 
     class Meta:
         verbose_name = "Клиент"

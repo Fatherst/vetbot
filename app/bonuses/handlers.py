@@ -4,6 +4,7 @@ from .keyboards import (
     bonuses_menu,
 )
 from client_auth.models import Client
+from .models import DiscountCard
 from aiogram import Router, F
 from .enote_integration.methods import enote_get_balance
 import logging
@@ -18,7 +19,7 @@ bonuses_router = Router()
 @bonuses_router.callback_query(F.data == "bonuses")
 async def bonuses_program(callback: types.CallbackQuery):
     client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
-    balance = await enote_get_balance(client)
+    balance = await client.balance
     msg = (
         (
             f"на данный момент Ваш статус в программе лояльности:\n\n<b>БРОНЗОВЫЙ</b>\n\nЭто значит, что Вы получаете"

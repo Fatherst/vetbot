@@ -16,3 +16,18 @@ class DiscountCardCategory(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
     name: str = None
+
+
+class BonusPoints(Schema):
+    discount_card_enote_id: str = Field(alias="discountCardEnoteId")
+    event_date: str = Field(alias="eventDate")
+    sum: int
+
+
+class BonusTransaction(Schema):
+    enote_id: str = Field(alias="enoteId")
+    state: str = Field(alias="objectState")
+    discount_operation_type: str = Field(alias="discountOperationType")
+    department_enote_id: str = Field(alias="departmentEnoteId")
+    description: str = Field(None, alias="description")
+    bonus_points: list[BonusPoints] = Field(alias="bonusPoints")

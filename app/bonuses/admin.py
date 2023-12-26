@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import DiscountCard, DiscountCardCategory
+from .models import DiscountCard, DiscountCardCategory, BonusTransaction
 
 
 @admin.register(DiscountCard)
@@ -23,4 +23,10 @@ class CardCategoryAdmin(admin.ModelAdmin):
         "enote_id",
         "name",
     )
+    search_fields = ["enote_id"]
+
+
+@admin.register(BonusTransaction)
+class BonusTransactionAdmin(admin.ModelAdmin):
+    list_display = ("id", "enote_id", "sum", "discount_card", "transaction_datetime")
     search_fields = ["enote_id"]
