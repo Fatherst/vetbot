@@ -3,6 +3,7 @@ from django.db.models import Sum
 from asgiref.sync import sync_to_async
 from bonuses.models import DiscountCard, BonusTransaction
 
+
 class Client(models.Model):
     enote_id = models.CharField(
         max_length=150,
@@ -36,9 +37,9 @@ class Client(models.Model):
         if not card:
             return 0
         balance = await sync_to_async(
-            lambda: BonusTransaction.objects.filter(discount_card=card).aggregate(
-                total_balance=Sum("sum")
-            )["total_balance"]
+            lambda: card.bonus_transactions.aggregate(total_balance=Sum("sum"))[
+                "total_balance"
+            ]
         )()
         return balance
 

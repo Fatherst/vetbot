@@ -5,7 +5,8 @@ from client_auth.models import Client, AnimalKind
 from ninja import Router
 import re
 import logging
-
+from asgiref.sync import sync_to_async
+from django.shortcuts import get_object_or_404
 
 logger = logging.getLogger(__name__)
 
@@ -163,17 +164,29 @@ async def process_cards(request, cards: list[schemas.DiscountCard]) -> Response:
 
 async def update_transaction(transaction: schemas.BonusTransaction) -> Result:
     try:
-        for bonus_point in transaction.bonus_points:
-            discount_card = bonus_point.discount_card_enote_id
-            transaction_datetime = bonus_point.event_date
-            if transaction.discount_operation_type == "ADD":
-                sum = bonus_point.sum
-            elif transaction.discount_operation_type == "CANCEL":
-                sum = -abs(bonus_point.sum)
-        card = await DiscountCard.objects.aget(enote_id=discount_card)
+        for bonus_operation in transaction.bonus_points:
+            discount_card_enote_id = bonus_operation.discount_card_enote_id
+            datetime = bonus_operation.date
+            if transaction.state == "DELETED":
+                await BonusTransaction.objects.filter(
+                    enote_id=transaction.enote_id
+                ).adelete()
+                return Result(
+                    enote_id=transaction.enote_id,
+                    result=True,
+                )
+            if transaction.operation_type == "ADD":
+                sum = bonus_operation.sum
+            else:
+                sum = bonus_operation.sum
+                if sum > 0:
+                    sum = -abs(sum)
+        card = await sync_to_async(
+            lambda: get_object_or_404(DiscountCard, enote_id=discount_card_enote_id)
+        )()
         await BonusTransaction.objects.acreate(
             enote_id=transaction.enote_id,
-            transaction_datetime=transaction_datetime,
+            datetime=datetime,
             discount_card=card,
             sum=sum,
         )
@@ -191,9 +204,9 @@ async def update_transaction(transaction: schemas.BonusTransaction) -> Result:
 
 @client_router.post("bonus_points", response=Response, by_alias=True)
 async def process_transactions(
-    request, balances: list[schemas.BonusTransaction]
+    request, transactions: list[schemas.BonusTransaction]
 ) -> Response:
     balance_response = Response(response=[])
-    for transaction in balances:
+    for transaction in transactions:
         balance_response.response.append(await update_transaction(transaction))
     return balance_response

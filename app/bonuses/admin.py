@@ -28,5 +28,5 @@ class CardCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(BonusTransaction)
 class BonusTransactionAdmin(admin.ModelAdmin):
-    list_display = ("id", "enote_id", "sum", "discount_card", "transaction_datetime")
+    list_display = ("id", "enote_id", "sum", "discount_card", "datetime")
     search_fields = ["enote_id"]

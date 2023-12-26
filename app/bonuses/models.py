@@ -27,8 +27,13 @@ class DiscountCard(models.Model):
     card_number = models.CharField(
         max_length=150, verbose_name="Номер карты", blank=True, null=True, unique=False
     )
-    client = models.ForeignKey(related_name="discount_cards",
-        to="client_auth.Client", on_delete=models.PROTECT, verbose_name="Клиент", blank=True, null=True
+    client = models.ForeignKey(
+        related_name="discount_cards",
+        to="client_auth.Client",
+        on_delete=models.PROTECT,
+        verbose_name="Клиент",
+        blank=True,
+        null=True,
     )
     category = models.ForeignKey(
         DiscountCardCategory,
@@ -47,6 +52,11 @@ class DiscountCard(models.Model):
 class BonusTransaction(models.Model):
     enote_id = models.CharField(max_length=150, unique=True, db_index=True)
     sum = models.IntegerField()
-    discount_card = models.ForeignKey(related_name="bonus_transactions",
-                                      to=DiscountCard, on_delete=models.PROTECT)
-    transaction_datetime = models.DateTimeField()
+    discount_card = models.ForeignKey(
+        related_name="bonus_transactions", to=DiscountCard, on_delete=models.PROTECT
+    )
+    datetime = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "Транзакция по бонусной карте"
+        verbose_name_plural = "Транзакции по бонусной карте"
