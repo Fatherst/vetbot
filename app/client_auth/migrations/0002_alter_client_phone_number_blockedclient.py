@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 blank=True,
                 max_length=12,
                 null=True,
-                unique=True,
+                unique=False,
                 verbose_name="Телефон",
             ),
         ),
