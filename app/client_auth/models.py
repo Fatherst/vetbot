@@ -1,4 +1,7 @@
 from django.db import models
+from django.db.models import Sum
+from asgiref.sync import sync_to_async
+from bonuses.models import DiscountCard, BonusTransaction
 
 
 class Client(models.Model):
@@ -21,12 +24,24 @@ class Client(models.Model):
     )
     email = models.EmailField(verbose_name="E-mail", null=True, blank=True)
     phone_number = models.CharField(
-        max_length=12, null=True, blank=True, verbose_name="Телефон"
+        max_length=12, null=True, blank=True, verbose_name="Телефон", unique=True
     )
     tg_chat_id = models.IntegerField(
         null=True, blank=True, verbose_name="Telegram Id", unique=True
     )
     deleted = models.BooleanField(default=False, verbose_name="Удалён")
+
+    @property
+    async def balance(self):
+        card = await self.discount_cards.afirst()
+        if not card:
+            return 0
+        balance = await sync_to_async(
+            lambda: card.bonus_transactions.aggregate(total_balance=Sum("sum"))[
+                "total_balance"
+            ]
+        )()
+        return balance
 
     class Meta:
         verbose_name = "Клиент"
@@ -47,6 +62,16 @@ class AnimalKind(models.Model):
     class Meta:
         verbose_name = "Вид"
         verbose_name_plural = "Виды"
+
+
+class BlockedClient(models.Model):
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, null=True, blank=True)
+    reason = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Заблокированный клиент"
+        verbose_name_plural = "Заблокированные клиенты"
 
 
 class Patient(models.Model):

@@ -1,7 +1,7 @@
 from aiogram import types
 from .keyboards import (
     get_contact,
-    get_user_main_menu,
+    main_menu_kb,
 )
 from .models import Client
 from aiogram.fsm.context import FSMContext
@@ -10,13 +10,15 @@ from aiogram import Router, F
 from aiogram.filters import Command, Filter
 import re
 import random
+import logging
 
 
+logger = logging.getLogger(__name__)
 client_router = Router()
 
 
 class PhoneFilter(Filter):
-    mask = r"(7[0-9]{10})"
+    mask = r"(7|8[0-9]{10})"
 
     async def __call__(self, message: types.Message) -> bool:
         row_phone_number = message.text
@@ -30,34 +32,38 @@ class PhoneStates(StatesGroup):
     code = State()
 
 
-@client_router.message(Command("start"))
-async def send_greeting(message: types.Message, state: FSMContext):
-    """
-    Проверка на то, зарегистрирован ли пользователь уже
-    """
-    await state.clear()
-    user_id = message.from_user.id
+async def get_user_data(user_id: int) -> tuple[str, str, types.InlineKeyboardMarkup]:
     client = await Client.objects.filter(tg_chat_id=user_id).afirst()
     if client:
         if client.first_name:
             greeting = f"{client.first_name}, приветствую"
         else:
             greeting = "Приветствую"
-        await message.answer(
-            text=f"<b>{greeting}</b>\n\nВыберите, что вас интересует ⤵",
-            reply_markup=get_user_main_menu(),
+        return (
+            greeting,
+            "<b>Выберите, что вас интересует ⤵</b>",
+            await main_menu_kb(bool(client.enote_id)),
         )
     else:
-        greeting = (
-            "Добро пожаловать в бота ветеринарного центра <b>Друзья</b> 🐈\n"
-            "Для начала мне нужно Вас идентифицировать в качестве клиента нашей клиники. "
-            "Для этого, пожалуйста,нажмите на кнопку чтобы отправить свой номер телефона,"
-            " указанный в Telegram, или напишите его вручную"
+        return (
+            "<b>Добро пожаловать в бота ветеринарного центра Друзья 🐈</b>\n\n"
+            "Для начала мне нужно вас идентифицировать в качестве клиента нашей клиники. "
+            "Для этого, пожалуйста, нажмите на кнопку чтобы отправить свой номер телефона, "
+            "указанный в Telegram, или напишите его вручную",
+            "",
+            await get_contact(),
         )
-        await message.answer(
-            text=greeting,
-            reply_markup=get_contact(),
-        )
+
+
+@client_router.message(Command("start"))
+async def send_greeting(message: types.Message, state: FSMContext):
+    await state.clear()
+    greeting, text, reply_markup = await get_user_data(message.from_user.id)
+    await message.answer(
+        text=f"{greeting}\n\n{text}",
+        reply_markup=reply_markup,
+    )
+    if not text:  # Проверка на наличие текста для установки состояния FSM
         await state.set_state(PhoneStates.phone)
 
 
@@ -66,8 +72,14 @@ async def process_client_phone(
 ):
     """Проверку на то, есть ли пользователь я вообще убрал, теперь только проверка на черный список"""
     black_list = []
+    user_phone_number = re.sub(r"\D", "", user_phone_number)
     client = await Client.objects.filter(phone_number=user_phone_number).afirst()
-    if client not in black_list:
+    if client in black_list:
+        await message.answer(
+            text="Здравствуйте! Благодарим за обращение. На данный момент услуга недоступна.",
+        )
+        await state.clear()
+    else:
         # code = random.randrange(1001, 9999)
         code = 1
         await state.update_data(code=code)
@@ -78,11 +90,6 @@ async def process_client_phone(
             reply_markup=types.ReplyKeyboardRemove(),
         )
         await state.set_state(PhoneStates.code)
-    else:
-        await message.answer(
-            text="Здравствуйте! Благодарим за обращение. На данный момент услуга недоступна.",
-        )
-        await state.clear()
 
 
 @client_router.message(PhoneStates.phone, F.text, PhoneFilter())
@@ -104,11 +111,9 @@ async def handle_wrong_text_contact(message: types.Message):
 
 @client_router.message(PhoneStates.phone, F.content_type.in_({"contact"}))
 async def handle_contact(message: types.Message, state: FSMContext):
-    phone_number = message.contact.phone_number
-    phone_number = re.sub(r"\D", "", phone_number)
     await process_client_phone(
         state=state,
-        user_phone_number=phone_number,
+        user_phone_number=message.contact.phone_number,
         message=message,
     )
 
@@ -117,15 +122,25 @@ async def handle_contact(message: types.Message, state: FSMContext):
 async def handle_code(message: types.Message, state: FSMContext):
     data = await state.get_data()
     if str(data["code"]) == message.text:
-        await Client.objects.aupdate_or_create(
-            phone_number=data["phone_number"], tg_chat_id=message.from_user.id
+        defaults = {"tg_chat_id": message.from_user.id}
+        client, created = await Client.objects.aupdate_or_create(
+            phone_number=data["phone_number"], defaults=defaults
         )
         await state.clear()
         await message.answer(
             text="Вы успешно авторизовались в клиентской части бота",
-            reply_markup=get_user_main_menu(),
+            reply_markup=await main_menu_kb(bool(client.enote_id)),
         )
     else:
         await message.answer(
             text="Код неправильный, попробуй ввести ещё раз, либо напиши /start, чтобы начать сначала",
         )
+
+
+@client_router.callback_query(F.data == "main_menu")
+async def main_menu(callback: types.CallbackQuery):
+    greeting, text, reply_markup = await get_user_data(callback.from_user.id)
+    await callback.message.edit_text(
+        text=f"{greeting}\n\n{text}",
+        reply_markup=reply_markup,
+    )
