@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from admin_auth.handlers import admin_router
+from bonuses.handlers import bonuses_router
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from client_auth.handlers import client_router
@@ -16,6 +17,7 @@ async def launch_bot():
 
     dp.include_router(admin_router)
     dp.include_router(client_router)
+    dp.include_router(bonuses_router)
 
     await bot.delete_webhook()
     await dp.start_polling(bot)
