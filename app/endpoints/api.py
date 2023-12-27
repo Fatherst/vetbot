@@ -178,12 +178,8 @@ async def update_or_create_transaction(transaction: schemas.BonusTransaction) ->
             if transaction.operation_type == "ADD":
                 sum = bonus_operation.sum
             else:
-                sum = bonus_operation.sum
-                if sum > 0:
-                    sum = -sum
-        card = await sync_to_async(
-            lambda: get_object_or_404(DiscountCard, enote_id=discount_card_enote_id)
-        )()
+                sum = -bonus_operation.sum
+        card = await DiscountCard.objects.aget(enote_id=discount_card_enote_id)
         await BonusTransaction.objects.aupdate_or_create(
             enote_id=transaction.enote_id,
             defaults={
