@@ -24,7 +24,7 @@ class Client(models.Model):
     )
     email = models.EmailField(verbose_name="E-mail", null=True, blank=True)
     phone_number = models.CharField(
-        max_length=12, null=True, blank=True, verbose_name="Телефон", unique=True
+        max_length=12, null=True, blank=True, verbose_name="Телефон", unique=False
     )
     tg_chat_id = models.IntegerField(
         null=True, blank=True, verbose_name="Telegram Id", unique=True
