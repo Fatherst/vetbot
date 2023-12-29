@@ -50,7 +50,7 @@ class AnimalKind(models.Model):
 
 
 class BlockedClient(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, null=True, blank=True)
+    client = models.ForeignKey(Client, on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

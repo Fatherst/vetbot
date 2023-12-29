@@ -5,7 +5,7 @@ from .keyboards import (
 )
 from client_auth.models import Client
 from aiogram import Router, F
-from .enote_integration.methods import enote_get_balance
+from api_methods.methods import get_balance
 import logging
 
 
@@ -17,12 +17,16 @@ bonuses_router = Router()
 
 @bonuses_router.callback_query(F.data == "bonuses")
 async def bonuses_program(callback: types.CallbackQuery):
-    client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
-    balance = await enote_get_balance(client)
+    user_id = callback.from_user.id
+    client = await Client.objects.filter(tg_chat_id=user_id).afirst()
+    balance = await get_balance(client)
     msg = (
         (
-            f"на данный момент Ваш статус в программе лояльности:\n\n<b>БРОНЗОВЫЙ</b>\n\nЭто значит, что Вы получаете"
-            f" 3% бонусными баллами с потраченной в Клинике суммы!\n\nБаланс Вашего бонусного счета: {balance} бонусных баллов.\n\nВы можете оплатить бонусами до 20% от стоимости услуг Клиники!\n\n1 бонусный балл = 1 рубль"
+            f"на данный момент Ваш статус в программе лояльности:\n\n<b>БРОНЗОВЫЙ</b>\n\nЭто значит,"
+            f" что Вы получаете"
+            f" 3% бонусными баллами с потраченной в Клинике суммы!\n\nБаланс Вашего бонусного счета:"
+            f" {balance} бонусных баллов.\n\nВы можете оплатить бонусами до 20% от стоимости услуг"
+            f" Клиники!\n\n1 бонусный балл = 1 рубль"
         )
         if balance
         else "к сожалению, у вас пока нет бонусного счёта, вы сможете открыть его при посещении клиники"
