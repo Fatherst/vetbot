@@ -4,6 +4,7 @@ from .keyboards import (
     bonuses_menu,
 )
 from client_auth.models import Client
+from .models import DiscountCard
 from aiogram import Router, F
 from api_methods.methods import get_balance
 import logging
