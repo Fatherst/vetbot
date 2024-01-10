@@ -1,12 +1,12 @@
+import logging
+from aiogram import Router, F
 from aiogram import types
 from .keyboards import (
-    back_to_bonuses,
+    back_to_bonuses_or_menu,
     bonuses_menu,
 )
 from client_auth.models import Client
-from aiogram import Router, F
-from api_methods.methods import get_balance
-import logging
+from .methods import get_balance
 
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,8 @@ async def bonuses_program(callback: types.CallbackQuery):
 
 @bonuses_router.callback_query(F.data == "loyalty")
 async def loyalty_program(callback: types.CallbackQuery):
-    client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
+    user_id = callback.from_user.id
+    client = await Client.objects.filter(tg_chat_id=user_id).afirst()
     await callback.message.edit_text(
         text="В рамках программы лояльности Клиника начисляет Клиентам бонусные баллы (кешбэк), которые можно"
         " использовать для оплаты услуг Клиники.\n\n 1 бонусный балл = 1 рубль\n\nРазмер кешбэка зависит от статуса"
@@ -50,5 +51,5 @@ async def loyalty_program(callback: types.CallbackQuery):
         "Вы можете оплатить бонусами до 10% стоимости услуг хирургии и до 20% от стоимости услуг терапии Клиники!"
         "\n\nКроме этого, Клиника подарит 1000 бонусных баллов за каждого нового Клиента, "
         "которому Вы рекомендовали нашу Клинику.",
-        reply_markup=await back_to_bonuses(bool(client.enote_id)),
+        reply_markup=await back_to_bonuses_or_menu(bool(client.enote_id)),
     )

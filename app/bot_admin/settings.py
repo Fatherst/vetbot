@@ -115,8 +115,9 @@ ENOTE_API_URL = os.getenv("ENOTE_API_URL")
 
 EASY_LOGIN = os.getenv("EASY_LOGIN")
 EASY_PASSWORD = os.getenv("EASY_PASSWORD")
-EASY_ID = os.getenv("EASY_ID")
+EASY_CONNECT_ID = os.getenv("EASY_CONNECT_ID")
 EASY_ORIGINATOR = os.getenv("EASY_ORIGINATOR")
+EASY_SEND_SMS_URL = os.getenv("EASY_SEND_SMS_URL")
 
 LOGGING = {
     "version": 1,
@@ -155,5 +156,4 @@ sentry_sdk.init(
     traces_sample_rate=1.0,
     # If you wish to associate users to errors (assuming you are using
     # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=False,
 )

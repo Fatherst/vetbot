@@ -1,18 +1,15 @@
+import re
+import random
+import logging
+from typing import NamedTuple
 from aiogram import types
-from .keyboards import (
-    get_contact,
-    main_menu_kb,
-)
-from .models import Client
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F
 from aiogram.filters import Command, Filter
-import re
-import random
-import logging
-from api_methods.methods import easy_send_code
-
+from bonuses.methods import easy_send_code
+from client_auth import keyboards
+from .models import Client
 
 logger = logging.getLogger(__name__)
 client_router = Router()
@@ -33,40 +30,46 @@ class PhoneStates(StatesGroup):
     code = State()
 
 
-async def authenticate_user(
+class AuthResult(NamedTuple):
+    greeting: str
+    new_client: bool
+    reply_markup: types.InlineKeyboardMarkup
+
+async def prepare_authentication_response(
     user_id: int,
-) -> tuple[str, str, types.InlineKeyboardMarkup]:
+) -> AuthResult:
     client = await Client.objects.filter(tg_chat_id=user_id).afirst()
     if client:
         if client.first_name:
-            greeting = f"{client.first_name}, приветствую"
+            greeting = f"{client.first_name}, приветствую\n\n<b>Выберите, что вас интересует ⤵</b>"
         else:
-            greeting = "Приветствую"
-        return (
+            greeting = "Приветствую\n\n<b>Выберите, что вас интересует ⤵</b>"
+        return AuthResult(
             greeting,
-            "<b>Выберите, что вас интересует ⤵</b>",
-            await main_menu_kb(bool(client.enote_id)),
+            False,
+            await keyboards.main_menu(bool(client.enote_id)),
         )
     else:
-        return (
+        return AuthResult(
             "<b>Добро пожаловать в бота ветеринарного центра Друзья 🐈</b>\n\n"
             "Для начала мне нужно вас идентифицировать в качестве клиента нашей клиники. "
             "Для этого, пожалуйста, нажмите на кнопку чтобы отправить свой номер телефона, "
             "указанный в Telegram, или напишите его вручную",
-            "",
-            await get_contact(),
+            True,
+            await keyboards.get_contact(),
         )
 
 
 @client_router.message(Command("start"))
 async def send_greeting(message: types.Message, state: FSMContext):
     await state.clear()
-    greeting, text, reply_markup = await authenticate_user(message.from_user.id)
+    user_id = message.from_user.id
+    result = await prepare_authentication_response(user_id)
     await message.answer(
-        text=f"{greeting}\n\n{text}",
-        reply_markup=reply_markup,
+        text=result.greeting,
+        reply_markup=result.reply_markup,
     )
-    if not text:  # Проверка на наличие текста для установки состояния FSM
+    if result.new_client:  # Проверка на наличие текста для установки состояния FSM
         await state.set_state(PhoneStates.phone)
 
 
@@ -88,9 +91,9 @@ async def process_client_phone(
         # code = random.randrange(1001, 9999)
         code = 1
         await state.update_data(code=code)
-        code_sent = await easy_send_code(code, user_phone_number)
-        print(code_sent)
-        if code_sent == True:
+        #code_sent = await easy_send_code(code, user_phone_number)
+        code_sent = True
+        if code_sent:
             await state.update_data(phone_number=user_phone_number)
             await message.answer(
                 text="Приветствую!\n\n"
@@ -102,7 +105,7 @@ async def process_client_phone(
             await message.answer(
                 text="Приветствую!\n\n"
                 "Не получилось прислать код на указанный номер телефона, попробуйте прислать телефон ещё раз",
-                reply_markup=await get_contact(),
+                reply_markup=await keyboards.get_contact(),
             )
 
 
@@ -146,7 +149,7 @@ async def handle_code(message: types.Message, state: FSMContext):
         await state.clear()
         await message.answer(
             text="Вы успешно авторизовались в клиентской части бота",
-            reply_markup=await main_menu(bool(client.enote_id)),
+            reply_markup=await keyboards.main_menu(bool(client.enote_id)),
         )
     else:
         await message.answer(
@@ -156,8 +159,9 @@ async def handle_code(message: types.Message, state: FSMContext):
 
 @client_router.callback_query(F.data == "main_menu")
 async def main_menu(callback: types.CallbackQuery):
-    greeting, text, reply_markup = await authenticate_user(callback.from_user.id)
+    user_id = callback.from_user.id
+    result = await prepare_authentication_response(user_id)
     await callback.message.edit_text(
-        text=f"{greeting}\n\n{text}",
-        reply_markup=reply_markup,
+        text=result.greeting,
+        reply_markup=result.reply_markup,
     )

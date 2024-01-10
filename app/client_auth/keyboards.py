@@ -17,7 +17,7 @@ async def get_contact():
     return contact_markup
 
 
-async def main_menu_kb(old_client: bool):
+async def main_menu(old_client: bool):
     buttons = [
         [
             InlineKeyboardButton(text="Записаться ✔️", callback_data="book"),
@@ -30,22 +30,20 @@ async def main_menu_kb(old_client: bool):
         ],
     ]
     if old_client:
-        buttons.append(
+        buttons.extend(
+            [
             [
                 InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
             ],
-        )
-        buttons.append(
             [
                 InlineKeyboardButton(text="Мои записи 📝", callback_data="appointments"),
             ],
-        )
-        buttons.append(
             [
                 InlineKeyboardButton(
                     text="Рекомендовать клинику 📢", callback_data="recommend"
                 ),
             ],
+            ]
         )
     else:
         buttons.append(

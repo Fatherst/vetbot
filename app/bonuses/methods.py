@@ -1,8 +1,8 @@
+import logging
 import aiohttp
 from django.conf import settings
 from aiohttp.client_exceptions import ClientResponseError
 from client_auth.models import Client
-import logging
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ async def get_balance(client: Client):
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                settings.ENOTE_API_URL + "balance",
+                f"{settings.ENOTE_API_URL}/{balance}",
                 params=query_params,
                 headers=headers,
             ) as resp:
@@ -46,17 +46,14 @@ async def easy_send_code(code: int, phone_number):
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                f"https://xml.smstec.ru/api/v1/easysms/{settings.EASY_ID}/send_sms",
+                settings.EASY_SEND_SMS_URL,
                 params=query_params,
             ) as resp:
                 resp.raise_for_status()
-                print(resp)
                 text = await resp.text()
-                print(text)
                 if text.__contains__("ERROR"):
                     return False
                 return True
     except Exception as error:
         logger.error(error)
-        print(error)
         return error
