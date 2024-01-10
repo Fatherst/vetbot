@@ -1,5 +1,4 @@
 from django.db import models
-from client_auth.models import Client
 
 
 class DiscountCardCategory(models.Model):
@@ -29,7 +28,12 @@ class DiscountCard(models.Model):
         max_length=150, verbose_name="Номер карты", blank=True, null=True, unique=False
     )
     client = models.ForeignKey(
-        Client, on_delete=models.PROTECT, verbose_name="Клиент", blank=True, null=True
+        related_name="discount_cards",
+        to="client_auth.Client",
+        on_delete=models.PROTECT,
+        verbose_name="Клиент",
+        blank=True,
+        null=True,
     )
     category = models.ForeignKey(
         DiscountCardCategory,
@@ -43,3 +47,16 @@ class DiscountCard(models.Model):
     class Meta:
         verbose_name = "Дисконтная карта"
         verbose_name_plural = "Дисконтные карты"
+
+
+class BonusTransaction(models.Model):
+    enote_id = models.CharField(max_length=150, unique=True, db_index=True)
+    sum = models.IntegerField()
+    discount_card = models.ForeignKey(
+        related_name="bonus_transactions", to=DiscountCard, on_delete=models.PROTECT
+    )
+    datetime = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "Транзакция по бонусной карте"
+        verbose_name_plural = "Транзакции по бонусной карте"
