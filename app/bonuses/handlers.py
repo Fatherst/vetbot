@@ -6,7 +6,7 @@ from .keyboards import (
     bonuses_menu,
 )
 from client_auth.models import Client
-from .methods import get_balance
+from integrations.enote.methods import get_balance
 
 
 logger = logging.getLogger(__name__)
@@ -17,8 +17,7 @@ bonuses_router = Router()
 
 @bonuses_router.callback_query(F.data == "bonuses")
 async def bonuses_program(callback: types.CallbackQuery):
-    user_id = callback.from_user.id
-    client = await Client.objects.filter(tg_chat_id=user_id).afirst()
+    client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
     balance = await get_balance(client)
     msg = (
         (
@@ -39,17 +38,17 @@ async def bonuses_program(callback: types.CallbackQuery):
 
 @bonuses_router.callback_query(F.data == "loyalty")
 async def loyalty_program(callback: types.CallbackQuery):
-    user_id = callback.from_user.id
-    client = await Client.objects.filter(tg_chat_id=user_id).afirst()
+    client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
+    text = "В рамках программы лояльности Клиника начисляет Клиентам бонусные баллы (кешбэк), которые можно"
+    " использовать для оплаты услуг Клиники.\n\n 1 бонусный балл = 1 рубль\n\nРазмер кешбэка зависит от статуса"
+    " Клиента в программе лояльности:\n\nБронзовый статус - кешбэк 3%\n\nКлиент оплатил услуг Клиники "
+    "на 0 - 9999 руб\n\nСеребряный статус - кешбэк 5%\n\nКлиент оплатил услуг Клиники на 10000 - 29999 руб"
+    "\n\nЗолотой статус - кешбэк 8%\n\nКлиент оплатил услуг Клиники на 30000 - 49999 руб\n\n"
+    "Платиновый статус - кешбэк 10%\n\nКлиент оплатил услуг Клиники на сумму более 50000 руб\n\n"
+    "Вы можете оплатить бонусами до 10% стоимости услуг хирургии и до 20% от стоимости услуг терапии Клиники!"
+    "\n\nКроме этого, Клиника подарит 1000 бонусных баллов за каждого нового Клиента, "
+    "которому Вы рекомендовали нашу Клинику."
     await callback.message.edit_text(
-        text="В рамках программы лояльности Клиника начисляет Клиентам бонусные баллы (кешбэк), которые можно"
-        " использовать для оплаты услуг Клиники.\n\n 1 бонусный балл = 1 рубль\n\nРазмер кешбэка зависит от статуса"
-        " Клиента в программе лояльности:\n\nБронзовый статус - кешбэк 3%\n\nКлиент оплатил услуг Клиники "
-        "на 0 - 9999 руб\n\nСеребряный статус - кешбэк 5%\n\nКлиент оплатил услуг Клиники на 10000 - 29999 руб"
-        "\n\nЗолотой статус - кешбэк 8%\n\nКлиент оплатил услуг Клиники на 30000 - 49999 руб\n\n"
-        "Платиновый статус - кешбэк 10%\n\nКлиент оплатил услуг Клиники на сумму более 50000 руб\n\n"
-        "Вы можете оплатить бонусами до 10% стоимости услуг хирургии и до 20% от стоимости услуг терапии Клиники!"
-        "\n\nКроме этого, Клиника подарит 1000 бонусных баллов за каждого нового Клиента, "
-        "которому Вы рекомендовали нашу Клинику.",
+        text=text,
         reply_markup=await back_to_bonuses_or_menu(bool(client.enote_id)),
     )

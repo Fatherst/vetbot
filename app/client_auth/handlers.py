@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F
 from aiogram.filters import Command, Filter
-from bonuses.methods import easy_send_code
+from integrations.easysms.methods import easy_send_code
 from client_auth import keyboards
 from .models import Client
 
@@ -34,6 +34,7 @@ class AuthResult(NamedTuple):
     greeting: str
     new_client: bool
     reply_markup: types.InlineKeyboardMarkup
+
 
 async def prepare_authentication_response(
     user_id: int,
@@ -63,8 +64,7 @@ async def prepare_authentication_response(
 @client_router.message(Command("start"))
 async def send_greeting(message: types.Message, state: FSMContext):
     await state.clear()
-    user_id = message.from_user.id
-    result = await prepare_authentication_response(user_id)
+    result = await prepare_authentication_response(message.from_user.id)
     await message.answer(
         text=result.greeting,
         reply_markup=result.reply_markup,
@@ -91,7 +91,7 @@ async def process_client_phone(
         # code = random.randrange(1001, 9999)
         code = 1
         await state.update_data(code=code)
-        #code_sent = await easy_send_code(code, user_phone_number)
+        #code_sent = await easy_send_code(code, '7'+user_phone_number[1:])
         code_sent = True
         if code_sent:
             await state.update_data(phone_number=user_phone_number)
@@ -159,8 +159,7 @@ async def handle_code(message: types.Message, state: FSMContext):
 
 @client_router.callback_query(F.data == "main_menu")
 async def main_menu(callback: types.CallbackQuery):
-    user_id = callback.from_user.id
-    result = await prepare_authentication_response(user_id)
+    result = await prepare_authentication_response(callback.from_user.id)
     await callback.message.edit_text(
         text=result.greeting,
         reply_markup=result.reply_markup,

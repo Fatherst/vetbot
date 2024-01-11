@@ -44,6 +44,7 @@ class DiscountCardCategory(Schema):
     state: str = Field(None, alias="objectState")
     name: str = None
 
+
 class Result(Schema):
     enote_id: str = Field(alias="enoteId")
     result: bool

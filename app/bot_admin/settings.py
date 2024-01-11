@@ -115,7 +115,6 @@ ENOTE_API_URL = os.getenv("ENOTE_API_URL")
 
 EASY_LOGIN = os.getenv("EASY_LOGIN")
 EASY_PASSWORD = os.getenv("EASY_PASSWORD")
-EASY_CONNECT_ID = os.getenv("EASY_CONNECT_ID")
 EASY_ORIGINATOR = os.getenv("EASY_ORIGINATOR")
 EASY_SEND_SMS_URL = os.getenv("EASY_SEND_SMS_URL")
 
@@ -149,7 +148,6 @@ sentry_sdk.init(
     integrations=[
         DjangoIntegration(),
     ],
-    environment=os.getenv("SENTRY_ENV"),
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.

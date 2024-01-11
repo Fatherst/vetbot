@@ -32,17 +32,19 @@ async def main_menu(old_client: bool):
     if old_client:
         buttons.extend(
             [
-            [
-                InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
-            ],
-            [
-                InlineKeyboardButton(text="Мои записи 📝", callback_data="appointments"),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="Рекомендовать клинику 📢", callback_data="recommend"
-                ),
-            ],
+                [
+                    InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="Мои записи 📝", callback_data="appointments"
+                    ),
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="Рекомендовать клинику 📢", callback_data="recommend"
+                    ),
+                ],
             ]
         )
     else:

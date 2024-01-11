@@ -1,10 +1,16 @@
 from ninja import Router
 import re
 import logging
-from .schemas import ClientEnote, Result, Response, Kind, DiscountCardCategory, DiscountCard
+from .schemas import (
+    ClientEnote,
+    Result,
+    Response,
+    Kind,
+    DiscountCardCategory,
+    DiscountCard,
+)
 from bonuses import models
 from client_auth.models import Client, AnimalKind
-
 
 
 logger = logging.getLogger(__name__)

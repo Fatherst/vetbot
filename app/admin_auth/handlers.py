@@ -10,7 +10,6 @@ from .models import Admin
 from .keyboards import admin_menu
 
 
-
 admin_router = Router()
 
 
