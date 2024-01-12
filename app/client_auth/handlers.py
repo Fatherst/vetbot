@@ -92,7 +92,7 @@ async def process_client_phone(
         code = 1
         await state.update_data(code=code)
         code_sent = True
-        if settings.EASY_INTEGRATION_ABLED:
+        if settings.USE_EASY_SMS:
             code = random.randrange(1001, 9999)
             code_sent = await easy_send_code(code, "7" + user_phone_number[1:])
         if code_sent:
