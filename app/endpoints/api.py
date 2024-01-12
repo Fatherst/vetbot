@@ -1,12 +1,17 @@
-from .schemas import ClientEnote, Result, Response, Kind
-from bonuses.models import DiscountCardCategory, DiscountCard, BonusTransaction
-from bonuses import schemas
-from client_auth.models import Client, AnimalKind
 from ninja import Router
 import re
 import logging
-from asgiref.sync import sync_to_async
-from django.shortcuts import get_object_or_404
+from .schemas import (
+    ClientEnote,
+    Result,
+    Response,
+    Kind,
+    DiscountCardCategory,
+    DiscountCard,
+)
+from bonuses import models
+from client_auth.models import Client, AnimalKind
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +30,7 @@ async def create_or_update_client(enote_client: ClientEnote) -> Result:
                 phone = re.sub(r"\D", "", contact.value)
             elif contact.type == "EMAIL":
                 email = contact.value
-        client = await Client.objects.filter(phone_number=phone).afirst()
+        client = await Client.objects.filter(phone_number__contains=phone[1:]).afirst()
         if client and not client.enote_id:
             client.enote_id = enote_client.enote_id
             await client.asave()
@@ -86,18 +91,18 @@ async def process_kinds(request, kinds: list[Kind]) -> Response:
 
 
 async def create_or_update_card_categories(
-    category: schemas.DiscountCardCategory,
+    category: DiscountCardCategory,
 ) -> Result:
     try:
         if category.state == "DELETED":
-            await DiscountCardCategory.objects.filter(
+            await models.DiscountCardCategory.objects.filter(
                 enote_id=category.enote_id
             ).adelete()
             return Result(enote_id=category.enote_id, result=True)
         defaults = {
             "name": category.name,
         }
-        _, created = await DiscountCardCategory.objects.aupdate_or_create(
+        _, created = await models.DiscountCardCategory.objects.aupdate_or_create(
             enote_id=category.enote_id, defaults=defaults
         )
         return Result(
@@ -114,7 +119,7 @@ async def create_or_update_card_categories(
 
 @client_router.post("discount_cards/categories", response=Response, by_alias=True)
 async def process_card_categories(
-    request, categories: list[schemas.DiscountCardCategory]
+    request, categories: list[DiscountCardCategory]
 ) -> Response:
     cards_categories_response = Response(response=[])
     for category in categories:
@@ -124,13 +129,13 @@ async def process_card_categories(
     return cards_categories_response
 
 
-async def create_or_update_card(card: schemas.DiscountCard) -> Result:
+async def create_or_update_card(card: DiscountCard) -> Result:
     try:
         deleted = True if card.state == "DELETED" else False
         client = None
         category = None
         client = await Client.objects.filter(enote_id=card.client_enote_id).afirst()
-        category = await DiscountCardCategory.objects.filter(
+        category = await models.DiscountCardCategory.objects.filter(
             enote_id=card.category_enote_id
         ).afirst()
         defaults = {
@@ -139,7 +144,7 @@ async def create_or_update_card(card: schemas.DiscountCard) -> Result:
             "category": category,
             "deleted": deleted,
         }
-        _, created = await DiscountCard.objects.aupdate_or_create(
+        _, created = await models.DiscountCard.objects.aupdate_or_create(
             enote_id=card.enote_id, defaults=defaults
         )
         return Result(
@@ -155,56 +160,8 @@ async def create_or_update_card(card: schemas.DiscountCard) -> Result:
 
 
 @client_router.post("discount_cards", response=Response, by_alias=True)
-async def process_cards(request, cards: list[schemas.DiscountCard]) -> Response:
+async def process_cards(request, cards: list[DiscountCard]) -> Response:
     cards_response = Response(response=[])
     for card in cards:
         cards_response.response.append(await create_or_update_card(card))
     return cards_response
-
-
-async def update_or_create_transaction(transaction: schemas.BonusTransaction) -> Result:
-    try:
-        for bonus_operation in transaction.bonus_points:
-            discount_card_enote_id = bonus_operation.discount_card_enote_id
-            datetime = bonus_operation.date
-            if transaction.state == "DELETED":
-                await BonusTransaction.objects.filter(
-                    enote_id=transaction.enote_id
-                ).adelete()
-                return Result(
-                    enote_id=transaction.enote_id,
-                    result=True,
-                )
-            if transaction.operation_type == "ADD":
-                sum = bonus_operation.sum
-            else:
-                sum = -bonus_operation.sum
-        card = await DiscountCard.objects.aget(enote_id=discount_card_enote_id)
-        await BonusTransaction.objects.aupdate_or_create(
-            enote_id=transaction.enote_id,
-            defaults={
-                "datetime": datetime,
-                "discount_card": card,
-                "sum": sum,
-            }
-        )
-        return Result(
-            enote_id=transaction.enote_id,
-            result=True,
-        )
-    except Exception as error:
-        return Result(
-            enote_id=transaction.enote_id,
-            result=False,
-            error_message=str(error),
-        )
-
-
-@client_router.post("bonus_points", response=Response, by_alias=True)
-async def process_transactions(
-    request, transactions: list[schemas.BonusTransaction]
-) -> Response:
-    balance_response = Response(response=[])
-    for transaction in transactions:
-        balance_response.response.append(await update_or_create_transaction(transaction))
-    return balance_response

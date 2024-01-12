@@ -60,3 +60,9 @@ class BonusTransaction(models.Model):
     class Meta:
         verbose_name = "Транзакция по бонусной карте"
         verbose_name_plural = "Транзакции по бонусной карте"
+
+
+class RecommendBonus(models.Model):
+    amount = models.IntegerField()
+    description = models.TextField()
+    referred_id = models.IntegerField()

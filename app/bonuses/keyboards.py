@@ -30,9 +30,9 @@ async def bonuses_menu(has_balance: bool):
     return inline_markup
 
 
-async def back_to_bonuses(enote_id: bool):
+async def back_to_bonuses_or_menu(has_enote_id: bool):
     callback_data = "main_menu"
-    if enote_id:
+    if has_enote_id:
         callback_data = "bonuses"
     buttons = [
         [

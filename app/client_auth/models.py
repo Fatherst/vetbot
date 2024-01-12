@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models import Sum
 from asgiref.sync import sync_to_async
-from bonuses.models import DiscountCard, BonusTransaction
 
 
 class Client(models.Model):
@@ -65,7 +64,7 @@ class AnimalKind(models.Model):
 
 
 class BlockedClient(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, null=True, blank=True)
+    client = models.ForeignKey(Client, on_delete=models.PROTECT)
     reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -1,13 +1,13 @@
 from aiogram import types
-from .keyboards import admin_menu
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
-import random
-from .models import Admin
 from django.core.mail import send_mail
 from django.conf import settings
 from aiogram import Router
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
+import random
+from .models import Admin
+from .keyboards import admin_menu
 
 
 admin_router = Router()

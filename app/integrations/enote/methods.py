@@ -1,14 +1,14 @@
+import logging
 import aiohttp
 from django.conf import settings
 from aiohttp.client_exceptions import ClientResponseError
 from client_auth.models import Client
-import logging
 
 
 logger = logging.getLogger(__name__)
 
 
-async def enote_get_balance(client: Client):
+async def get_balance(client: Client):
     query_params = {
         "client_enote_id": client.enote_id,
         "department_enote_id": settings.ENOTE_BALANCE_DEPARTMENT,
@@ -21,7 +21,7 @@ async def enote_get_balance(client: Client):
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
-                settings.ENOTE_BALANCE_URL,
+                f"{settings.ENOTE_API_URL}/{balance}",
                 params=query_params,
                 headers=headers,
             ) as resp:

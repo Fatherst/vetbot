@@ -111,7 +111,13 @@ ENOTE_BASIC_AUTH = os.getenv("ENOTE_BASIC_AUTH")
 ENOTE_APIKEY = os.getenv("ENOTE_APIKEY")
 
 ENOTE_BALANCE_DEPARTMENT = os.getenv("ENOTE_BALANCE_DEPARTMENT")
-ENOTE_BALANCE_URL = os.getenv("ENOTE_BALANCE_URL")
+ENOTE_API_URL = os.getenv("ENOTE_API_URL")
+
+USE_EASY_SMS = os.getenv("USE_EASY_SMS")
+EASY_LOGIN = os.getenv("EASY_LOGIN")
+EASY_PASSWORD = os.getenv("EASY_PASSWORD")
+EASY_ORIGINATOR = os.getenv("EASY_ORIGINATOR")
+EASY_API_URL = os.getenv("EASY_API_URL")
 
 
 LOGGING = {
@@ -144,12 +150,8 @@ sentry_sdk.init(
     integrations=[
         DjangoIntegration(),
     ],
-    environment="dev",
     # Set traces_sample_rate to 1.0 to capture 100%
     # of transactions for performance monitoring.
     # We recommend adjusting this value in production.
     traces_sample_rate=1.0,
-    # If you wish to associate users to errors (assuming you are using
-    # django.contrib.auth) you may enable sending PII data.
-    send_default_pii=True,
 )
