@@ -27,4 +27,4 @@ async def easy_send_code(code: int, phone_number):
                 return True
     except Exception as error:
         logger.error(error)
-        return error
+        return False
