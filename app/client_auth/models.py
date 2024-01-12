@@ -1,7 +1,6 @@
 from django.db import models
 from django.db.models import Sum
 from asgiref.sync import sync_to_async
-from bonuses.models import DiscountCard, BonusTransaction
 
 
 class Client(models.Model):
