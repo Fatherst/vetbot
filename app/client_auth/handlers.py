@@ -7,6 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F
 from aiogram.filters import Command, Filter
+from django.conf import settings
 from integrations.easysms.methods import easy_send_code
 from client_auth import keyboards
 from .models import Client
@@ -88,11 +89,12 @@ async def process_client_phone(
         )
         await state.clear()
     else:
-        # code = random.randrange(1001, 9999)
         code = 1
         await state.update_data(code=code)
-        #code_sent = await easy_send_code(code, '7'+user_phone_number[1:])
         code_sent = True
+        if not settings.EASY_INTEGRATION_DISABLED:
+            code = random.randrange(1001, 9999)
+            code_sent = await easy_send_code(code, "7" + user_phone_number[1:])
         if code_sent:
             await state.update_data(phone_number=user_phone_number)
             await message.answer(
