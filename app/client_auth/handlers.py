@@ -92,10 +92,10 @@ async def process_client_phone(
         code = 1
         await state.update_data(code=code)
         code_sent = True
-        if not settings.EASY_INTEGRATION_DISABLED:
+        if settings.EASY_INTEGRATION_ABLED:
             code = random.randrange(1001, 9999)
             code_sent = await easy_send_code(code, "7" + user_phone_number[1:])
-        if code_sent:
+        if code_sent==True:
             await state.update_data(phone_number=user_phone_number)
             await message.answer(
                 text="Приветствую!\n\n"
@@ -106,7 +106,8 @@ async def process_client_phone(
         else:
             await message.answer(
                 text="Приветствую!\n\n"
-                "Не получилось прислать код на указанный номер телефона, попробуйте прислать телефон ещё раз",
+                "При попытке отправки кода произошла ошибка, мы работаем над её устранением, "
+                "попробуйте позже",
                 reply_markup=await keyboards.get_contact(),
             )
 
