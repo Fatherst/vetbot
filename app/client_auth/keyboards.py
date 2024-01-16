@@ -4,6 +4,7 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
     KeyboardButton,
 )
+from bonuses.models import Program
 
 
 async def get_contact():
@@ -33,9 +34,6 @@ async def main_menu(old_client: bool):
         buttons.extend(
             [
                 [
-                    InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
-                ],
-                [
                     InlineKeyboardButton(
                         text="Мои записи 📝", callback_data="appointments"
                     ),
@@ -47,13 +45,20 @@ async def main_menu(old_client: bool):
                 ],
             ]
         )
+        if await Program.objects.filter(is_active=True).afirst():
+            buttons.append(
+                [
+                    InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
+                ],
+            )
     else:
-        buttons.append(
-            [
-                InlineKeyboardButton(
-                    text="Программа лояльности", callback_data="loyalty"
-                ),
-            ],
-        )
+        if await Program.objects.filter(is_active=True).afirst():
+            buttons.append(
+                [
+                    InlineKeyboardButton(
+                        text="Программа лояльности", callback_data="loyalty"
+                    ),
+                ],
+            )
     inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
     return inline_markup

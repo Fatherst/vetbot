@@ -1,4 +1,6 @@
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import UniqueConstraint, Q
 
 
 class DiscountCardCategory(models.Model):
@@ -62,7 +64,99 @@ class BonusTransaction(models.Model):
         verbose_name_plural = "Транзакции по бонусной карте"
 
 
-class RecommendBonus(models.Model):
-    amount = models.IntegerField()
-    description = models.TextField()
-    referred_id = models.IntegerField()
+class Program(models.Model):
+    name = models.CharField(max_length=150, unique=True, verbose_name="Имя программы")
+    description = models.TextField(
+        verbose_name="Описание программы",
+        help_text="Эта информация будет показана клиентам",
+    )
+    registration_bonus_amount = models.PositiveIntegerField(
+        verbose_name="Бонус за регистрацию"
+    )
+    new_client_bonus_amount = models.PositiveIntegerField(
+        verbose_name="Бонус за нового клиента"
+    )
+    review_bonus_amount = models.PositiveIntegerField(verbose_name="Бонус за отзыв")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    is_active = models.BooleanField(default=False, verbose_name="Активна")
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["is_active"],
+                condition=Q(is_active=True),
+                name="Только одна программа может быть активна",
+            )
+        ]
+        verbose_name = "Программа лояльности"
+        verbose_name_plural = "Программы лояльности"
+
+
+class Status(models.Model):
+    program = models.ForeignKey(
+        Program,
+        on_delete=models.PROTECT,
+        related_name="statuses",
+        verbose_name="Программа",
+    )
+    name = models.CharField(
+        max_length=150,
+        verbose_name="Название статуса",
+        help_text="Эта информация будет показана клиентам",
+    )
+    cashback_amount = models.PositiveIntegerField(verbose_name="Кэшбек")
+    start_amount = models.PositiveIntegerField(
+        verbose_name="Начальное значение статуса"
+    )
+    end_amount = models.PositiveIntegerField(
+        blank=True, null=True, verbose_name="Конечное значение статуса"
+    )
+
+    def clean(self):
+        status_without_end = Status.objects.filter(
+            program=self.program, end_amount=None
+        ).first()
+        if status_without_end and self.start_amount >= status_without_end.start_amount:
+            raise ValidationError(
+                {
+                    "start_amount": "Начальное значение статуса не может быть больше или равным "
+                    "начальному значению статуса с нулевым конечным значением"
+                }
+            )
+        overlaps = Status.objects.filter(program=self.program, end_amount__isnull=False)
+        if self.end_amount:
+            overlaps = overlaps.exclude(
+                start_amount__gt=self.end_amount, end_amount__lt=self.start_amount
+            )
+        else:
+            overlaps = overlaps.filter(
+                start_amount__lte=self.start_amount, end_amount__gte=self.start_amount
+            )
+
+        if overlaps.exists():
+            raise ValidationError(
+                {
+                    "start_amount": "Есть пересечения интервалов значения с другим"
+                    " статусом в той же программе"
+                }
+            )
+        if not self.end_amount and status_without_end:
+            raise ValidationError(
+                {
+                    "end_amount": "Пустое конечное значение может быть только один раз в программе"
+                }
+            )
+        if self.end_amount and self.end_amount <= self.start_amount:
+            raise ValidationError(
+                {"end_amount": "Конечное значение должно быть больше начального"}
+            )
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=["program", "name"],
+                name="unique_name_per_program",
+            )
+        ]
+        verbose_name = "Статус программы лояльности"
+        verbose_name_plural = "Статусы программы лояльности"
