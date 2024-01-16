@@ -20,7 +20,10 @@ class PhoneFilter(Filter):
     mask = r"([78][0-9]{10})"
 
     async def __call__(self, message: types.Message) -> bool:
-        row_phone_number = message.text
+        if message.text:
+            row_phone_number = message.text
+        else:
+            row_phone_number = message.contact.phone_number
         phone_number = re.sub(r"\D", "", row_phone_number)
         phone_mask = re.compile(self.mask)
         return re.fullmatch(phone_mask, phone_number)
@@ -122,6 +125,17 @@ async def handle_correct_text_contact(message: types.Message, state: FSMContext)
     )
 
 
+@client_router.message(
+    PhoneStates.phone, PhoneFilter(), F.content_type.in_({"contact"})
+)
+async def handle_contact(message: types.Message, state: FSMContext):
+    await process_client_phone(
+        state=state,
+        user_phone_number=message.contact.phone_number,
+        message=message,
+    )
+
+
 @client_router.message(PhoneStates.phone, F.text, lambda x: x != PhoneFilter())
 async def handle_wrong_text_contact(message: types.Message):
     await message.reply(
@@ -129,12 +143,12 @@ async def handle_wrong_text_contact(message: types.Message):
     )
 
 
-@client_router.message(PhoneStates.phone, F.content_type.in_({"contact"}))
-async def handle_contact(message: types.Message, state: FSMContext):
-    await process_client_phone(
-        state=state,
-        user_phone_number=message.contact.phone_number,
-        message=message,
+@client_router.message(
+    PhoneStates.phone, lambda x: x != PhoneFilter(), F.content_type.in_({"contact"})
+)
+async def handle_wrong_contact(message: types.Message):
+    await message.reply(
+        text="Пришли,пожалуйста, российский номер\nПопробуй ещё раз или напиши /start"
     )
 
 

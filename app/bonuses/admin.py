@@ -1,6 +1,12 @@
 from django.contrib import admin
 
-from .models import DiscountCard, DiscountCardCategory, BonusTransaction
+from .models import (
+    DiscountCard,
+    DiscountCardCategory,
+    BonusTransaction,
+    Program,
+    Status,
+)
 
 
 @admin.register(DiscountCard)
@@ -30,3 +36,31 @@ class CardCategoryAdmin(admin.ModelAdmin):
 class BonusTransactionAdmin(admin.ModelAdmin):
     list_display = ("id", "enote_id", "sum", "discount_card", "datetime")
     search_fields = ["enote_id"]
+
+
+@admin.register(Program)
+class ProgramAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+        "description",
+        "registration_bonus_amount",
+        "new_client_bonus_amount",
+        "is_active",
+        "review_bonus_amount",
+        "created_at",
+    )
+    search_fields = ["name"]
+
+
+@admin.register(Status)
+class StatusAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+        "program",
+        "cashback_amount",
+        "start_amount",
+        "end_amount",
+    )
+    search_fields = ["name"]
