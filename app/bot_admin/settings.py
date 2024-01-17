@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     "client_auth.apps.ClientBotConfig",
     "endpoints.apps.EndpointsConfig",
     "bonuses.apps.BonusesConfig",
+    "appointment.apps.AppointmentConfig",
 ]
 
 MIDDLEWARE = [

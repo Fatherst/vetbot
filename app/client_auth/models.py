@@ -85,10 +85,9 @@ class Patient(models.Model):
     time_of_death = models.DateTimeField(
         null=True, blank=True, verbose_name="Время смерти"
     )
-    weight = models.FloatField(null=True, blank=True, verbose_name="Вес")
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
     kind = models.ForeignKey(
-        AnimalKind, on_delete=models.PROTECT, verbose_name="Вид", null=True, blank=True
+        AnimalKind, on_delete=models.PROTECT, verbose_name="Вид"
     )
     client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
 
