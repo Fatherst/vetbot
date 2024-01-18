@@ -1,9 +1,5 @@
-import requests
 from ninja import Router
 import re
-import aiohttp
-from django.core.files.base import ContentFile
-from asgiref.sync import sync_to_async
 import logging
 from .schemas import (
     ClientEnote,
@@ -15,9 +11,10 @@ from .schemas import (
     Doctor,
     Appointment,
     EnotePatient,
+    WeighingEnote,
 )
 from bonuses import models as bonus_models
-from client_auth.models import Client, AnimalKind, Patient
+from client_auth.models import Client, AnimalKind, Patient, Weighing
 from appointment import models as appointment_models
 
 
@@ -33,12 +30,17 @@ async def create_or_update_client(enote_client: ClientEnote) -> Result:
         contact_information = enote_client.contact_information
         phone = None
         email = None
+        client = None
         for contact in contact_information:
             if contact.type == "PHONE_NUMBER":
                 phone = re.sub(r"\D", "", contact.value)
             elif contact.type == "EMAIL":
                 email = contact.value
-        client = await Client.objects.filter(phone_number__contains=phone[1:]).afirst()
+        ###Тут проверка на существование телефона, иначе будет ошибка при проверке __contains
+        if phone:
+            client = await Client.objects.filter(
+                phone_number__contains=phone[1:]
+            ).afirst()
         if client and not client.enote_id:
             client.enote_id = enote_client.enote_id
             await client.asave()
@@ -262,10 +264,9 @@ async def process_appointments(request, appointments: list[Appointment]) -> Resp
 async def create_or_update_patient(patient: EnotePatient) -> Result:
     try:
         deleted = patient.state == "DELETED"
-        client = await Client.objects.filter(enote_id=patient.client_enote_id).afirst()
-        kind = await AnimalKind.objects.filter(enote_id=patient.kind_enote_id).afirst()
+        client = await Client.objects.aget(enote_id=patient.client_enote_id)
+        kind = await AnimalKind.objects.aget(enote_id=patient.kind_enote_id)
         defaults = {
-            "status": patient.status,
             "kind": kind,
             "client": client,
             "birth_date": patient.birth_date,
@@ -292,5 +293,36 @@ async def create_or_update_patient(patient: EnotePatient) -> Result:
 async def process_patients(request, patients: list[EnotePatient]) -> Response:
     patients_response = Response(response=[])
     for patient in patients:
-        patients_response.response.append(await create_or_update_appointment(patient))
+        patients_response.response.append(await create_or_update_patient(patient))
     return patients_response
+
+
+async def create_or_update_weighing(weighing: WeighingEnote) -> Result:
+    try:
+        patient = await Patient.objects.aget(enote_id=weighing.patient_enote_id)
+        defaults = {
+            "patient": patient,
+            "weight": weighing.weight,
+            "date": weighing.date,
+        }
+        _, created = await Weighing.objects.aupdate_or_create(
+            enote_id=weighing.enote_id, defaults=defaults
+        )
+        return Result(
+            enote_id=weighing.enote_id,
+            result=True,
+        )
+    except Exception as error:
+        return Result(
+            enote_id=weighing.enote_id,
+            result=False,
+            error_message=str(error),
+        )
+
+
+@client_router.post("patients/weight", response=Response, by_alias=True)
+async def process_weighings(request, weighings: list[WeighingEnote]) -> Response:
+    weighings_response = Response(response=[])
+    for weighing in weighings:
+        weighings_response.response.append(await create_or_update_weighing(weighing))
+    return weighings_response

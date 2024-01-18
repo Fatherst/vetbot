@@ -32,7 +32,7 @@ class EnotePatient(Schema):
     client_enote_id: str = Field(alias="clientEnoteId")
     is_approximate_birth_date: bool = Field(None, alias="isApproximateBirthDate")
     is_castrated: bool = Field(None, alias="isCastrated")
-    time_of_death: str = Field(None, alias="timeOfDeath")
+    time_of_death: Optional[str] = Field(None, alias="timeOfDeath")
     attributes: list[dict] = None
 
 
@@ -128,6 +128,14 @@ class Appointment(Schema):
     description: str = Field(None, alias="appointmentDescription")
     start_time: str = Field(None, alias="startTime")
     end_time: str = Field(None, alias="endTime")
+
+
+class WeighingEnote(Schema):
+    enote_id: str = Field(alias="enoteId")
+    state: str = Field(None, alias="objectState")
+    patient_enote_id: str = Field(alias="patientEnoteId")
+    weight: str = None
+    date: str = Field(None, alias="weighingDate")
 
 
 class Result(Schema):
