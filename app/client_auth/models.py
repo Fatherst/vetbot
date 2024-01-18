@@ -86,11 +86,32 @@ class Patient(models.Model):
         null=True, blank=True, verbose_name="Время смерти"
     )
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
-    kind = models.ForeignKey(
-        AnimalKind, on_delete=models.PROTECT, verbose_name="Вид"
-    )
+    kind = models.ForeignKey(AnimalKind, on_delete=models.PROTECT, verbose_name="Вид")
     client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
 
     class Meta:
         verbose_name = "Пациент"
         verbose_name_plural = "Пациенты"
+
+
+class Weighing(models.Model):
+    enote_id = models.CharField(
+        max_length=150,
+        verbose_name="ID в еноте",
+        db_index=True,
+        unique=True,
+    )
+    patient = models.ForeignKey(
+        Patient,
+        on_delete=models.PROTECT,
+        verbose_name="Пациент",
+        related_name="weighings",
+    )
+    weight = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Вес")
+    date = models.DateTimeField(
+        null=True, blank=True, verbose_name="Дата взвешивания"
+    )
+
+    class Meta:
+        verbose_name = "Взвешивание"
+        verbose_name_plural = "Взвешивания"
