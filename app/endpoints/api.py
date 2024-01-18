@@ -8,9 +8,12 @@ from .schemas import (
     Kind,
     DiscountCardCategory,
     DiscountCard,
+    Doctor,
+    Appointment,
 )
-from bonuses import models
-from client_auth.models import Client, AnimalKind
+from bonuses import models as bonus_models
+from client_auth.models import Client, AnimalKind, Patient
+from appointment import models as appointment_models
 
 
 logger = logging.getLogger(__name__)
@@ -95,14 +98,14 @@ async def create_or_update_card_categories(
 ) -> Result:
     try:
         if category.state == "DELETED":
-            await models.DiscountCardCategory.objects.filter(
+            await bonus_models.DiscountCardCategory.objects.filter(
                 enote_id=category.enote_id
             ).adelete()
             return Result(enote_id=category.enote_id, result=True)
         defaults = {
             "name": category.name,
         }
-        _, created = await models.DiscountCardCategory.objects.aupdate_or_create(
+        _, created = await bonus_models.DiscountCardCategory.objects.aupdate_or_create(
             enote_id=category.enote_id, defaults=defaults
         )
         return Result(
@@ -135,7 +138,7 @@ async def create_or_update_card(card: DiscountCard) -> Result:
         client = None
         category = None
         client = await Client.objects.filter(enote_id=card.client_enote_id).afirst()
-        category = await models.DiscountCardCategory.objects.filter(
+        category = await bonus_models.DiscountCardCategory.objects.filter(
             enote_id=card.category_enote_id
         ).afirst()
         defaults = {
@@ -144,7 +147,7 @@ async def create_or_update_card(card: DiscountCard) -> Result:
             "category": category,
             "deleted": deleted,
         }
-        _, created = await models.DiscountCard.objects.aupdate_or_create(
+        _, created = await bonus_models.DiscountCard.objects.aupdate_or_create(
             enote_id=card.enote_id, defaults=defaults
         )
         return Result(
@@ -158,10 +161,85 @@ async def create_or_update_card(card: DiscountCard) -> Result:
             error_message=str(error),
         )
 
-
 @client_router.post("discount_cards", response=Response, by_alias=True)
 async def process_cards(request, cards: list[DiscountCard]) -> Response:
     cards_response = Response(response=[])
     for card in cards:
         cards_response.response.append(await create_or_update_card(card))
     return cards_response
+
+async def create_or_update_doctor(doctor_enote: Doctor) -> Result:
+    try:
+        deleted = doctor_enote.state == "DELETED"
+        specializations = []
+        for specialization in doctor_enote.specialization:
+            spec, created = await appointment_models.Specialization.objects.aupdate_or_create(
+                enote_id=specialization.enote_id, name=specialization.title)
+            specializations.append(spec)
+        defaults = {
+            "first_name": doctor_enote.first_name,
+            "middle_name": doctor_enote.middle_name,
+            "last_name": doctor_enote.last_name,
+            "photo": doctor_enote.photo_url,
+            "fired_date": doctor_enote.fired_date,
+            "deleted": deleted,
+        }
+        doctor, created = await appointment_models.Doctor.objects.aupdate_or_create(
+            enote_id=doctor_enote.enote_id, defaults=defaults
+        )
+        if specializations:
+            await doctor.specializations.aset(specializations)
+            await doctor.asave()
+        return Result(
+            enote_id=doctor_enote.enote_id,
+            result=True,
+        )
+    except Exception as error:
+        return Result(
+            enote_id=doctor_enote.enote_id,
+            result=False,
+            error_message=str(error),
+        )
+@client_router.post("doctors", response=Response, by_alias=True)
+async def process_doctors(request, doctors: list[Doctor]) -> Response:
+    doctors_response = Response(response=[])
+    for doctor in doctors:
+        doctors_response.response.append(await create_or_update_doctor(doctor))
+    return doctors_response
+
+
+
+async def create_or_update_appointment(appointment: Appointment) -> Result:
+    try:
+        deleted = appointment.state == "DELETED"
+        patient = await Patient.objects.filter(enote_id=appointment.patient_enote_id).afirst()
+        doctor = await appointment_models.Doctor.objects.filter(
+            enote_id=appointment.doctor_enote_id).afirst()
+        defaults = {
+            "status": appointment.status,
+            "patient": patient,
+            "doctor": doctor,
+            "date_time": appointment.start_time,
+            "deleted": deleted,
+        }
+        _, created = await appointment_models.Appointment.objects.aupdate_or_create(
+            enote_id=appointment.enote_id, defaults=defaults
+        )
+        return Result(
+            enote_id=appointment.enote_id,
+            result=True,
+        )
+    except Exception as error:
+        return Result(
+            enote_id=appointment.enote_id,
+            result=False,
+            error_message=str(error),
+        )
+
+@client_router.post("appointments", response=Response, by_alias=True)
+async def process_appointments(request, appointments: list[Appointment]) -> Response:
+    appointments_response = Response(response=[])
+    for appointment in appointments:
+        appointments_response.response.append(await create_or_update_appointment(appointment))
+    return appointments_response
+
