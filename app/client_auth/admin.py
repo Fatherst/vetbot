@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Client, BlockedClient, Patient, AnimalKind
+from .models import Client, BlockedClient, Patient, AnimalKind, Weighing
 
 
 @admin.register(Client)
@@ -48,5 +48,16 @@ class AnimalKindAdmin(admin.ModelAdmin):
         "id",
         "enote_id",
         "name",
+    )
+    search_fields = ["enote_id"]
+
+@admin.register(Weighing)
+class WeighingAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "enote_id",
+        "date",
+        "patient",
+        "weight",
     )
     search_fields = ["enote_id"]
