@@ -14,7 +14,26 @@ class Kind(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
     name: str = Field(None)
-    kind_id: str = Field(alias="KindId")
+    kind_id: str = Field("", alias="KindId")
+
+
+class EnotePatient(Schema):
+    enote_id: str = Field(alias="enoteId")
+    state: str = Field(None, alias="objectState")
+    name: str
+    sex: str
+    birth_date: str = Field(alias="birthDate")
+    chip: str = None
+    brand: str = None
+    photo: str = None
+    card_number: str = Field(None, alias="cardNumber")
+    breed_enote_id: str = Field(alias="breedEnoteId")
+    kind_enote_id: str = Field(alias="kindEnoteId")
+    client_enote_id: str = Field(alias="clientEnoteId")
+    is_approximate_birth_date: bool = Field(None, alias="isApproximateBirthDate")
+    is_castrated: bool = Field(None, alias="isCastrated")
+    time_of_death: str = Field(None, alias="timeOfDeath")
+    attributes: list[dict] = None
 
 
 class ClientEnote(Schema):
@@ -60,9 +79,9 @@ class DoctorAttribute(Schema):
 class Doctor(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
-    first_name: str = Field("", alias="firstName")
+    first_name: str = Field(alias="firstName")
     middle_name: str = Field("", alias="middleName")
-    last_name: str = Field("", alias="lastName")
+    last_name: str = Field(alias="lastName")
     specialization: list[Specialization]
     position: str = None
     rank: str = Field("", alias="scientificRank")
@@ -77,10 +96,12 @@ class AppointmentService(Schema):
     price: str = None
     description: str = None
 
+
 class ClientContactInfo(Schema):
     type: str = None
     title: str = None
     value: str = None
+
 
 class AppointmentClientInfo(Schema):
     client_name: str = Field(alias="clientName")
@@ -91,22 +112,23 @@ class AppointmentClientInfo(Schema):
 class Appointment(Schema):
     enote_id: str = Field(alias="appointmentEnoteId")
     state: str = Field(None, alias="objectState")
-    date: str = Field(alias="appointmentDate")
-    new_client: bool = Field(alias="newClient")
-    direct_visit: bool = Field(alias="directVisit")
-    type: str = Field(alias="appointmentType")
-    status: str = Field(alias="appointmentStatus")
-    awaiting_confirmation: bool = Field(alias="awaitingConfirmation")
+    date: str = Field(None, alias="appointmentDate")
+    new_client: bool = Field(None, alias="newClient")
+    direct_visit: bool = Field(None, alias="directVisit")
+    type: str = Field(None, alias="appointmentType")
+    status: str = Field(None, alias="appointmentStatus")
+    awaiting_confirmation: bool = Field(None, alias="awaitingConfirmation")
     department_enote_id: str = Field(alias="departmentEnoteId")
-    doctor_enote_id: str = Field(alias="doctorEnoteId")
-    visit_kind_id: str  = Field(alias="visitKindId")
+    doctor_enote_id: str = Field(None, alias="doctorEnoteId")
+    visit_kind_id: str = Field(alias="visitKindId")
     service: AppointmentService = None
     client_enote_id: str = Field(alias="clientEnoteId")
     patient_enote_id: str = Field(alias="patientEnoteId")
-    client_info: AppointmentClientInfo = Field(alias="clientInformation")
-    description: str = Field(alias="appointmentDescription")
-    start_time: str = Field(alias="startTime")
-    end_time: str = Field(alias="endTime")
+    client_info: AppointmentClientInfo = Field(None, alias="clientInformation")
+    description: str = Field(None, alias="appointmentDescription")
+    start_time: str = Field(None, alias="startTime")
+    end_time: str = Field(None, alias="endTime")
+
 
 class Result(Schema):
     enote_id: str = Field(alias="enoteId")

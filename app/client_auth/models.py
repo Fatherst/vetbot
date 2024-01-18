@@ -86,9 +86,7 @@ class Patient(models.Model):
         null=True, blank=True, verbose_name="Время смерти"
     )
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
-    kind = models.ForeignKey(
-        AnimalKind, on_delete=models.PROTECT, verbose_name="Вид"
-    )
+    kind = models.ForeignKey(AnimalKind, on_delete=models.PROTECT, verbose_name="Вид")
     client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
 
     class Meta:
