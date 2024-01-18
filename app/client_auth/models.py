@@ -92,3 +92,26 @@ class Patient(models.Model):
     class Meta:
         verbose_name = "Пациент"
         verbose_name_plural = "Пациенты"
+
+
+class Weighing(models.Model):
+    enote_id = models.CharField(
+        max_length=150,
+        verbose_name="ID в еноте",
+        db_index=True,
+        unique=True,
+    )
+    patient = models.ForeignKey(
+        Patient,
+        on_delete=models.PROTECT,
+        verbose_name="Пациент",
+        related_name="weighings",
+    )
+    weight = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Вес")
+    date = models.DateTimeField(
+        null=True, blank=True, verbose_name="Дата взвешивания"
+    )
+
+    class Meta:
+        verbose_name = "Взвешивание"
+        verbose_name_plural = "Взвешивания"
