@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import UniqueConstraint, Q
+from client_auth.models import Client
 
 
 class DiscountCardCategory(models.Model):
@@ -160,3 +161,43 @@ class Status(models.Model):
         ]
         verbose_name = "Статус программы лояльности"
         verbose_name_plural = "Статусы программы лояльности"
+
+
+class BonusAccural(models.Model):
+    class ReasonChoices(models.TextChoices):
+        BIRTHDAY = (
+            "BIRTHDAY",
+            "День рождения пациента",
+        )
+        FIRST_BONUS = (
+            "FIRST_BONUS",
+            "Бонус за регистрацию",
+        )
+        REFERAL_SENDER = (
+            "REFERAL_SENDER",
+            "Бонус за приглашенного клиента",
+        )
+        REFERAL_GETTER = (
+            "REFERAL_GETTER",
+            "Бонус за получение приглашения",
+        )
+
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.PROTECT,
+        verbose_name="Клиент",
+        related_name="bonus_accurals",
+    )
+    amount = models.PositiveIntegerField(verbose_name="Сумма")
+    reason = models.CharField(
+        choices=ReasonChoices.choices,
+        max_length=200,
+        verbose_name="Причина начисления",
+    )
+    accured = models.BooleanField(default=False, verbose_name="Начислено")
+    created_at = models.DateTimeField(verbose_name="Время создания", auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name="Время изменения", auto_now=True)
+
+    class Meta:
+        verbose_name = "Начисление бонусов"
+        verbose_name_plural = "Начисления бонусов"
