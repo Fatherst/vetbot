@@ -169,7 +169,7 @@ class BonusAccural(models.Model):
             "BIRTHDAY",
             "День рождения пациента",
         )
-        FIRST_BONUS = (
+        REGISTRATION = (
             "FIRST_BONUS",
             "Бонус за регистрацию",
         )
@@ -180,6 +180,10 @@ class BonusAccural(models.Model):
         REFERAL_GETTER = (
             "REFERAL_GETTER",
             "Бонус за получение приглашения",
+        )
+        MANUAL = (
+            "MANUAL",
+            "Ручное начисление",
         )
 
     client = models.ForeignKey(
@@ -195,8 +199,8 @@ class BonusAccural(models.Model):
         verbose_name="Причина начисления",
     )
     accured = models.BooleanField(default=False, verbose_name="Начислено")
-    created_at = models.DateTimeField(verbose_name="Время создания", auto_now_add=True)
-    modified_at = models.DateTimeField(verbose_name="Время изменения", auto_now=True)
+    created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name="Дата изменения", auto_now=True)
 
     class Meta:
         verbose_name = "Начисление бонусов"
