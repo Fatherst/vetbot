@@ -51,6 +51,7 @@ class AnimalKindAdmin(admin.ModelAdmin):
     )
     search_fields = ["enote_id"]
 
+
 @admin.register(Weighing)
 class WeighingAdmin(admin.ModelAdmin):
     list_display = (

@@ -108,9 +108,7 @@ class Weighing(models.Model):
         related_name="weighings",
     )
     weight = models.DecimalField(max_digits=5, decimal_places=2, verbose_name="Вес")
-    date = models.DateTimeField(
-        null=True, blank=True, verbose_name="Дата взвешивания"
-    )
+    date = models.DateTimeField(null=True, blank=True, verbose_name="Дата взвешивания")
 
     class Meta:
         verbose_name = "Взвешивание"
