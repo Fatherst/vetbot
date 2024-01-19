@@ -170,7 +170,7 @@ class BonusAccural(models.Model):
             "День рождения пациента",
         )
         REGISTRATION = (
-            "FIRST_BONUS",
+            "REGISTRATION",
             "Бонус за регистрацию",
         )
         REFERAL_SENDER = (
