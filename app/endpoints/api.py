@@ -77,7 +77,9 @@ async def process_clients(request, clients: list[Client]) -> Response:
 async def create_or_update_kind(enote_kind: Kind) -> Result:
     try:
         if enote_kind.state == "DELETED":
-            await client_models.AnimalKind.objects.filter(enote_id=enote_kind.enote_id).adelete()
+            await client_models.AnimalKind.objects.filter(
+                enote_id=enote_kind.enote_id
+            ).adelete()
             return Result(enote_id=enote_kind.enote_id, result=True)
         defaults = {
             "name": enote_kind.name,
@@ -144,7 +146,9 @@ async def create_or_update_card(card: DiscountCard) -> Result:
         deleted = True if card.state == "DELETED" else False
         client = None
         category = None
-        client = await client_models.Client.objects.filter(enote_id=card.client_enote_id).afirst()
+        client = await client_models.Client.objects.filter(
+            enote_id=card.client_enote_id
+        ).afirst()
         category = await bonus_models.DiscountCardCategory.objects.filter(
             enote_id=card.category_enote_id
         ).afirst()
@@ -225,7 +229,9 @@ async def process_doctors(request, doctors: list[Doctor]) -> Response:
 async def create_or_update_appointment(appointment: Appointment) -> Result:
     try:
         deleted = appointment.state == "DELETED"
-        patient = await client_models.Patient.objects.aget(enote_id=appointment.patient_enote_id)
+        patient = await client_models.Patient.objects.aget(
+            enote_id=appointment.patient_enote_id
+        )
         doctor = await appointment_models.Doctor.objects.aget(
             enote_id=appointment.doctor_enote_id
         )
@@ -264,8 +270,12 @@ async def process_appointments(request, appointments: list[Appointment]) -> Resp
 async def create_or_update_patient(patient: Patient) -> Result:
     try:
         deleted = patient.state == "DELETED"
-        client = await client_models.Client.objects.aget(enote_id=patient.client_enote_id)
-        kind = await client_models.AnimalKind.objects.aget(enote_id=patient.kind_enote_id)
+        client = await client_models.Client.objects.aget(
+            enote_id=patient.client_enote_id
+        )
+        kind = await client_models.AnimalKind.objects.aget(
+            enote_id=patient.kind_enote_id
+        )
         defaults = {
             "kind": kind,
             "client": client,
@@ -304,7 +314,9 @@ async def create_or_update_weighing(weighing: Weighing) -> Result:
                 enote_id=weighing.enote_id
             ).adelete()
             return Result(enote_id=weighing.enote_id, result=True)
-        patient = await client_models.Patient.objects.aget(enote_id=weighing.patient_enote_id)
+        patient = await client_models.Patient.objects.aget(
+            enote_id=weighing.patient_enote_id
+        )
         defaults = {
             "patient": patient,
             "weight": weighing.weight,
