@@ -300,9 +300,6 @@ async def process_patients(request, patients: list[Patient]) -> Response:
 async def create_or_update_weighing(weighing: Weighing) -> Result:
     try:
         if weighing.state == "DELETED":
-            # await Weighing.objects.filter(
-            #     enote_id=weighing.enote_id
-            # ).adelete()
             await client_models.Weighing.objects.filter(
                 enote_id=weighing.enote_id
             ).adelete()
