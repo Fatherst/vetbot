@@ -17,7 +17,7 @@ class Kind(Schema):
     kind_id: str = Field("", alias="KindId")
 
 
-class EnotePatient(Schema):
+class Patient(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
     name: str
@@ -33,10 +33,10 @@ class EnotePatient(Schema):
     is_approximate_birth_date: bool = Field(None, alias="isApproximateBirthDate")
     is_castrated: bool = Field(None, alias="isCastrated")
     time_of_death: Optional[str] = Field(None, alias="timeOfDeath")
-    attributes: list[dict] = None
+    attributes: Optional[list[dict]] = None
 
 
-class ClientEnote(Schema):
+class Client(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
     is_confirmed: bool = Field(None, alias="isConfirmed")
@@ -87,7 +87,7 @@ class Doctor(Schema):
     rank: str = Field("", alias="scientificRank")
     photo_url: str = Field("", alias="photoUrl")
     fired_date: Optional[str] = Field(None, alias="layoffDate")
-    attributes: list[DoctorAttribute]
+    attributes: Optional[list[DoctorAttribute]]
 
 
 class AppointmentService(Schema):
@@ -124,13 +124,13 @@ class Appointment(Schema):
     service: AppointmentService = None
     client_enote_id: str = Field(alias="clientEnoteId")
     patient_enote_id: str = Field(alias="patientEnoteId")
-    client_info: AppointmentClientInfo = Field(None, alias="clientInformation")
+    client_info: Optional[AppointmentClientInfo] = Field(None, alias="clientInformation")
     description: str = Field(None, alias="appointmentDescription")
     start_time: str = Field(None, alias="startTime")
     end_time: str = Field(None, alias="endTime")
 
 
-class WeighingEnote(Schema):
+class Weighing(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
     patient_enote_id: str = Field(alias="patientEnoteId")
