@@ -94,7 +94,7 @@ async def create_or_update_kind(enote_kind: Kind) -> Result:
         )
 
 
-@client_router.post("kinds", response=Response)
+@client_router.post("kinds", response=Response, by_alias=True)
 async def process_kinds(request, kinds: list[Kind]) -> Response:
     kinds_response = Response(response=[])
     for kind in kinds:
