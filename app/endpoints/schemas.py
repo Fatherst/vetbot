@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from typing import Optional
+from typing import Optional, Union
 
 
 class ContactInformation(Schema):
@@ -82,7 +82,7 @@ class Doctor(Schema):
     first_name: str = Field(alias="firstName")
     middle_name: str = Field("", alias="middleName")
     last_name: str = Field(alias="lastName")
-    specialization: list[Specialization]
+    specialization: Optional[Union[list[Specialization], str]]
     position: str = None
     rank: str = Field("", alias="scientificRank")
     photo_url: str = Field("", alias="photoUrl")
