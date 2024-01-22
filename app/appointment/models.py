@@ -1,5 +1,5 @@
 from django.db import models
-from client_auth.models import Patient
+from client_auth.models import Patient, Client
 
 
 class Specialization(models.Model):
@@ -89,7 +89,10 @@ class Appointment(models.Model):
         default=StatusChoices.PLANNED,
     )
     patient = models.ForeignKey(
-        Patient, on_delete=models.PROTECT, verbose_name="Пациент"
+        Patient, on_delete=models.PROTECT, verbose_name="Пациент", null=True, blank=True
+    )
+    client = models.ForeignKey(
+        Client, default=None, on_delete=models.PROTECT, verbose_name="Клиент"
     )
     doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT, verbose_name="Доктор")
     date_time = models.DateTimeField(verbose_name="Время записи")

@@ -229,26 +229,36 @@ async def process_doctors(request, doctors: list[Doctor]) -> Response:
 async def create_or_update_appointment(appointment: Appointment) -> Result:
     try:
         deleted = appointment.state == "DELETED"
-        patient = await client_models.Patient.objects.aget(
+        patient = await client_models.Patient.objects.filter(
             enote_id=appointment.patient_enote_id
-        )
-        doctor = await appointment_models.Doctor.objects.aget(
+        ).afirst()
+        doctor = await appointment_models.Doctor.objects.filter(
             enote_id=appointment.doctor_enote_id
-        )
-        defaults = {
-            "status": appointment.status,
-            "patient": patient,
-            "doctor": doctor,
-            "date_time": appointment.start_time,
-            "deleted": deleted,
-        }
-        _, created = await appointment_models.Appointment.objects.aupdate_or_create(
-            enote_id=appointment.enote_id, defaults=defaults
-        )
-        return Result(
-            enote_id=appointment.enote_id,
-            result=True,
-        )
+        ).afirst()
+        client = await client_models.Client.objects.filter(
+            enote_id=appointment.client_enote_id
+        ).afirst()
+        if client:
+            defaults = {
+                "status": appointment.status,
+                "patient": patient,
+                "doctor": doctor,
+                "client": client,
+                "date_time": appointment.start_time,
+                "deleted": deleted,
+            }
+            _, created = await appointment_models.Appointment.objects.aupdate_or_create(
+                enote_id=appointment.enote_id, defaults=defaults
+            )
+            return Result(
+                enote_id=appointment.enote_id,
+                result=True,
+            )
+        else:
+            return Result(
+                enote_id=appointment.enote_id,
+                result=True,
+            )
     except Exception as error:
         return Result(
             enote_id=appointment.enote_id,
