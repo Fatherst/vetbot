@@ -121,7 +121,7 @@ class Appointment(Schema):
     department_enote_id: str = Field(alias="departmentEnoteId")
     doctor_enote_id: str = Field(None, alias="doctorEnoteId")
     visit_kind_id: str = Field(alias="visitKindId")
-    service: AppointmentService = None
+    service: Optional[AppointmentService] = None
     client_enote_id: str = Field(alias="clientEnoteId")
     patient_enote_id: str = Field(alias="patientEnoteId")
     client_info: Optional[AppointmentClientInfo] = Field(
