@@ -239,21 +239,30 @@ async def create_or_update_appointment(appointment: Appointment) -> Result:
             enote_id=appointment.client_enote_id
         )
         if client:
-            defaults = {
-                "status": appointment.status,
-                "patient": patient,
-                "doctor": doctor,
-                "client": client,
-                "date_time": appointment.start_time,
-                "deleted": deleted,
-            }
-            _, created = await appointment_models.Appointment.objects.aupdate_or_create(
-                enote_id=appointment.enote_id, defaults=defaults
-            )
-            return Result(
-                enote_id=appointment.enote_id,
-                result=True,
-            )
+            if client.enote_id:
+                defaults = {
+                    "status": appointment.status,
+                    "patient": patient,
+                    "doctor": doctor,
+                    "client": client,
+                    "date_time": appointment.start_time,
+                    "deleted": deleted,
+                }
+                (
+                    _,
+                    created,
+                ) = await appointment_models.Appointment.objects.aupdate_or_create(
+                    enote_id=appointment.enote_id, defaults=defaults
+                )
+                return Result(
+                    enote_id=appointment.enote_id,
+                    result=True,
+                )
+            else:
+                return Result(
+                    enote_id=appointment.enote_id,
+                    result=True,
+                )
         else:
             return Result(
                 enote_id=appointment.enote_id,

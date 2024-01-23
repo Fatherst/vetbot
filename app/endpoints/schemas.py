@@ -119,7 +119,7 @@ class Appointment(Schema):
     status: str = Field(None, alias="appointmentStatus")
     awaiting_confirmation: bool = Field(None, alias="awaitingConfirmation")
     department_enote_id: str = Field(alias="departmentEnoteId")
-    doctor_enote_id: str = Field(None, alias="doctorEnoteId")
+    doctor_enote_id: Optional[str] = Field(None, alias="doctorEnoteId")
     visit_kind_id: str = Field(alias="visitKindId")
     service: Optional[AppointmentService] = None
     client_enote_id: Optional[str] = Field(alias="clientEnoteId")

@@ -94,8 +94,9 @@ class Appointment(models.Model):
     client = models.ForeignKey(
         Client, default=None, on_delete=models.PROTECT, verbose_name="Клиент"
     )
-    doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT, verbose_name="Доктор",
-                               null=True,blank=True)
+    doctor = models.ForeignKey(
+        Doctor, on_delete=models.PROTECT, verbose_name="Доктор", null=True, blank=True
+    )
     date_time = models.DateTimeField(verbose_name="Время записи")
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
 
