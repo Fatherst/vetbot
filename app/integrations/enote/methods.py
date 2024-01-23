@@ -1,3 +1,4 @@
+import json
 import logging
 import aiohttp
 from django.conf import settings
@@ -12,7 +13,6 @@ logger = logging.getLogger(__name__)
 async def accrual_post(bonus: BonusAccural):
     print(bonus.client.enote_id)
     data = {
-        "discountCardEnoteId": bonus.client.enote_id,
         "department_enote_id": settings.ENOTE_BALANCE_DEPARTMENT,
         "discountOperationType": "ADD",
         "description": "Test",
@@ -20,10 +20,12 @@ async def accrual_post(bonus: BonusAccural):
             {
                 "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
                 "eventDate": "2023-03-10T09:10:00+03:00",
-                "sum": bonus.amount
+                "sum": 300
             }
         ]
     }
+    json_data = json.dumps(data)
+    print(json_data)
     headers = {
         "apikey": settings.ENOTE_APIKEY,
         "Authorization": settings.ENOTE_BASIC_AUTH,
@@ -32,11 +34,13 @@ async def accrual_post(bonus: BonusAccural):
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{settings.ENOTE_API_URL}/bonus_points",
-                data=data,
+                data=json_data,
                 headers=headers,
             ) as resp:
                 resp.raise_for_status()
                 body = await resp.json()
+                print(resp)
+                print(body)
                 return True
     except ClientResponseError as error:
         logger.error(error)

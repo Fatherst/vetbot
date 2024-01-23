@@ -11,8 +11,8 @@ from client_auth.management.commands.start_bot import launch_bot
 @receiver(post_save, sender=BonusAccural)
 def create_bonus_accural(instance, **kwargs):
     print(instance.client.tg_chat_id)
-    #accrued = asyncio.run(accrual_post(instance))
-    accrued = True
+    accrued = asyncio.run(accrual_post(instance))
+    #accrued = True
     print(accrued)
     if accrued:
         instance.accured = True
