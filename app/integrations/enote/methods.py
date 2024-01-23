@@ -12,8 +12,17 @@ logger = logging.getLogger(__name__)
 async def accrual_post(bonus: BonusAccural):
     print(bonus.client.enote_id)
     data = {
-        "client_enote_id": bonus.client.enote_id,
+        "discountCardEnoteId": bonus.client.enote_id,
         "department_enote_id": settings.ENOTE_BALANCE_DEPARTMENT,
+        "discountOperationType": "ADD",
+        "description": "Test",
+        "bonusPoints": [
+            {
+                "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
+                "eventDate": "2023-03-10T09:10:00+03:00",
+                "sum": bonus.amount
+            }
+        ]
     }
     headers = {
         "apikey": settings.ENOTE_APIKEY,
