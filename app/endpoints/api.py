@@ -235,9 +235,9 @@ async def create_or_update_appointment(appointment: Appointment) -> Result:
         doctor = await appointment_models.Doctor.objects.filter(
             enote_id=appointment.doctor_enote_id
         ).afirst()
-        client = await client_models.Client.objects.filter(
+        client = await client_models.Client.objects.aget(
             enote_id=appointment.client_enote_id
-        ).afirst()
+        )
         if client:
             defaults = {
                 "status": appointment.status,
