@@ -260,7 +260,8 @@ async def create_or_update_appointment(appointment: Appointment) -> Result:
         else:
             return Result(
                 enote_id=appointment.enote_id,
-                result=True,
+                result=False,
+                error_message="enoteId клиента не указан"
             )
     except Exception as error:
         return Result(
