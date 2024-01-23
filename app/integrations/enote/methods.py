@@ -31,7 +31,6 @@ async def accrual_post(bonus: BonusAccural):
         "Authorization": settings.ENOTE_BASIC_AUTH,
     }
     try:
-        print('sd')
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{settings.ENOTE_API_URL}/bonus_points",
@@ -39,7 +38,7 @@ async def accrual_post(bonus: BonusAccural):
                 headers=headers,
             ) as resp:
                 print('sz')
-                resp.raise_for_status()
+                #resp.raise_for_status()
                 body = await resp.json()
                 print(resp)
                 print(body)
