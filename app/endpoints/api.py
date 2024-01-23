@@ -1,3 +1,4 @@
+import django.db.models.base
 from ninja import Router
 import re
 import logging
@@ -16,6 +17,7 @@ from .schemas import (
 from bonuses import models as bonus_models
 from client_auth import models as client_models
 from appointment import models as appointment_models
+from django.db.models import ObjectDoesNotExist
 
 
 logger = logging.getLogger(__name__)
@@ -229,14 +231,20 @@ async def process_doctors(request, doctors: list[Doctor]) -> Response:
 async def create_or_update_appointment(appointment: Appointment) -> Result:
     try:
         deleted = appointment.state == "DELETED"
-        client = await client_models.Client.objects.filter(
-            enote_id=appointment.client_enote_id
-        ).afirst()
+        try:
+            client = await client_models.Client.objects.aget(
+                enote_id=appointment.client_enote_id
+            )
+        except ObjectDoesNotExist:
+            return Result(
+                enote_id=appointment.enote_id,
+                result=False,
+                error_message="Нет такого клиента",
+            )
         if not appointment.client_enote_id:
             return Result(
                 enote_id=appointment.enote_id,
                 result=True,
-                error_message="enoteId клиента не указан",
             )
         if not client:
             return Result(
