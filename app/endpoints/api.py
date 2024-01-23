@@ -1,4 +1,3 @@
-import django.db.models.base
 from ninja import Router
 import re
 import logging
