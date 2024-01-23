@@ -20,9 +20,9 @@ async def accrual_post(bonus: BonusAccural):
             {
                 "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
                 "eventDate": "2023-03-10T09:10:00+03:00",
-                "sum": 300
+                "sum": 300,
             }
-        ]
+        ],
     }
     json_data = json.dumps(data)
     print(json_data)
@@ -31,12 +31,14 @@ async def accrual_post(bonus: BonusAccural):
         "Authorization": settings.ENOTE_BASIC_AUTH,
     }
     try:
+        print('sd')
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 f"{settings.ENOTE_API_URL}/bonus_points",
                 data=json_data,
                 headers=headers,
             ) as resp:
+                print('sz')
                 resp.raise_for_status()
                 body = await resp.json()
                 print(resp)

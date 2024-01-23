@@ -10,10 +10,11 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from bot_admin.create_bot import bot
 
+
 async def launch_bot():
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
-    #bot = Bot(settings.BOT_API_TOKEN, parse_mode="HTML")
+    # bot = Bot(settings.BOT_API_TOKEN, parse_mode="HTML")
 
     dp.include_router(admin_router)
     dp.include_router(client_router)

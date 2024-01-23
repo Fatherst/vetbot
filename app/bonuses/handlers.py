@@ -14,7 +14,6 @@ from sentry_sdk import capture_message
 from bot_admin.create_bot import bot
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -82,4 +81,7 @@ async def loyalty_program(callback: types.CallbackQuery):
 
 async def message_after_accrual(client: Client, bot=bot):
     print(client)
-    await bot.send_message(346121240, 'sdxz',)
+    await bot.send_message(
+        346121240,
+        "sdxz",
+    )
