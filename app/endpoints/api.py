@@ -232,18 +232,17 @@ async def create_or_update_appointment(appointment: Appointment) -> Result:
         client = await client_models.Client.objects.filter(
             enote_id=appointment.client_enote_id
         ).afirst()
-        if not client:
-            return Result(
-                enote_id=appointment.enote_id,
-                result=False,
-                error_message="Нет такого клиента",
-            )
-
         if not appointment.client_enote_id:
             return Result(
                 enote_id=appointment.enote_id,
                 result=True,
                 error_message="enoteId клиента не указан",
+            )
+        if not client:
+            return Result(
+                enote_id=appointment.enote_id,
+                result=False,
+                error_message="Нет такого клиента",
             )
         patient = await client_models.Patient.objects.filter(
             enote_id=appointment.patient_enote_id
