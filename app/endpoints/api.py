@@ -229,40 +229,43 @@ async def process_doctors(request, doctors: list[Doctor]) -> Response:
 async def create_or_update_appointment(appointment: Appointment) -> Result:
     try:
         deleted = appointment.state == "DELETED"
+        client = await client_models.Client.objects.filter(
+            enote_id=appointment.client_enote_id
+        ).afirst()
+        if not client:
+            return Result(
+                enote_id=appointment.enote_id,
+                result=False,
+                error_message="Нет такого клиента",
+            )
+
+        if not appointment.client_enote_id:
+            return Result(
+                enote_id=appointment.enote_id,
+                result=True,
+                error_message="enoteId клиента не указан",
+            )
         patient = await client_models.Patient.objects.filter(
             enote_id=appointment.patient_enote_id
         ).afirst()
         doctor = await appointment_models.Doctor.objects.filter(
             enote_id=appointment.doctor_enote_id
         ).afirst()
-        client = await client_models.Client.objects.aget(
-            enote_id=appointment.client_enote_id
+        defaults = {
+            "status": appointment.status,
+            "patient": patient,
+            "doctor": doctor,
+            "client": client,
+            "date_time": appointment.start_time,
+            "deleted": deleted,
+        }
+        _, created = await appointment_models.Appointment.objects.aupdate_or_create(
+            enote_id=appointment.enote_id, defaults=defaults
         )
-        if client and client.enote_id:
-            defaults = {
-                "status": appointment.status,
-                "patient": patient,
-                "doctor": doctor,
-                "client": client,
-                "date_time": appointment.start_time,
-                "deleted": deleted,
-            }
-            (
-                _,
-                created,
-            ) = await appointment_models.Appointment.objects.aupdate_or_create(
-                enote_id=appointment.enote_id, defaults=defaults
-            )
-            return Result(
-                enote_id=appointment.enote_id,
-                result=True,
-            )
-        else:
-            return Result(
-                enote_id=appointment.enote_id,
-                result=False,
-                error_message="enoteId клиента не указан"
-            )
+        return Result(
+            enote_id=appointment.enote_id,
+            result=True,
+        )
     except Exception as error:
         return Result(
             enote_id=appointment.enote_id,
