@@ -28,10 +28,10 @@ async def accrual_post(bonus: BonusAccural):
             ) as resp:
                 resp.raise_for_status()
                 body = await resp.json()
-                return
+                return True
     except ClientResponseError as error:
         logger.error(error)
-        return
+        return False
 
 
 async def get_balance(client: Client):

@@ -11,6 +11,8 @@ from client_auth.models import Client
 from integrations.enote.methods import get_balance
 from bonuses.models import Status, Program
 from sentry_sdk import capture_message
+from bot_admin.create_bot import bot
+
 
 
 logger = logging.getLogger(__name__)
@@ -76,3 +78,8 @@ async def loyalty_program(callback: types.CallbackQuery):
         "которому Вы рекомендовали нашу Клинику.",
         reply_markup=await back_to_bonuses_or_menu(bool(client.enote_id)),
     )
+
+
+async def message_after_accrual(client: Client, bot=bot):
+    print(client)
+    await bot.send_message(346121240, 'sdxz',)
