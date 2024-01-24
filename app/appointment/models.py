@@ -92,7 +92,7 @@ class Appointment(models.Model):
         Patient, on_delete=models.PROTECT, verbose_name="Пациент", null=True, blank=True
     )
     client = models.ForeignKey(
-        Client, default=None, on_delete=models.PROTECT, verbose_name="Клиент"
+        Client, on_delete=models.PROTECT, verbose_name="Клиент"
     )
     doctor = models.ForeignKey(
         Doctor, on_delete=models.PROTECT, verbose_name="Доктор", null=True, blank=True
