@@ -229,16 +229,25 @@ async def process_doctors(request, doctors: list[Doctor]) -> Response:
 async def create_or_update_appointment(appointment: Appointment) -> Result:
     try:
         deleted = appointment.state == "DELETED"
-        patient = await client_models.Patient.objects.aget(
+        if not appointment.client_enote_id:
+            return Result(
+                enote_id=appointment.enote_id,
+                result=True,
+            )
+        client = await client_models.Client.objects.aget(
+            enote_id=appointment.client_enote_id
+        )
+        patient = await client_models.Patient.objects.filter(
             enote_id=appointment.patient_enote_id
-        )
-        doctor = await appointment_models.Doctor.objects.aget(
+        ).afirst()
+        doctor = await appointment_models.Doctor.objects.filter(
             enote_id=appointment.doctor_enote_id
-        )
+        ).afirst()
         defaults = {
             "status": appointment.status,
             "patient": patient,
             "doctor": doctor,
+            "client": client,
             "date_time": appointment.start_time,
             "deleted": deleted,
         }

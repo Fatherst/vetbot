@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from typing import Optional, Union
+from typing import Union
 
 
 class ContactInformation(Schema):
@@ -13,16 +13,16 @@ class ContactInformation(Schema):
 class Kind(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
-    name: str = Field(None)
-    kind_id: str = Field("", alias="KindId")
+    name: str = None
+    kind_id: str = Field(None, alias="KindId")
 
 
 class Patient(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
-    name: str
+    name: str = None
     sex: str
-    birth_date: str = Field(alias="birthDate")
+    birth_date: str = Field(None, alias="birthDate")
     chip: str = None
     brand: str = None
     photo: str = None
@@ -32,24 +32,24 @@ class Patient(Schema):
     client_enote_id: str = Field(alias="clientEnoteId")
     is_approximate_birth_date: bool = Field(None, alias="isApproximateBirthDate")
     is_castrated: bool = Field(None, alias="isCastrated")
-    time_of_death: Optional[str] = Field(None, alias="timeOfDeath")
-    attributes: Optional[list[dict]] = None
+    time_of_death: Union[str, None] = Field(None, alias="timeOfDeath")
+    attributes: Union[list[dict], None] = None
 
 
 class Client(Schema):
     enote_id: str = Field(alias="enoteId")
-    state: str = Field(None, alias="objectState")
-    is_confirmed: bool = Field(None, alias="isConfirmed")
-    first_name: str = Field("", alias="firstName")
-    middle_name: str = Field("", alias="middleName")
-    last_name: str = Field("", alias="lastName")
+    state: str = Field(alias="objectState")
+    is_confirmed: bool = Field(False, alias="isConfirmed")
+    first_name: str = Field(alias="firstName")
+    middle_name: str = Field(alias="middleName")
+    last_name: str = Field(alias="lastName")
     contact_information: list[ContactInformation] = None
-    attributes: Optional[list[dict]] = None
+    attributes: Union[list[dict], None] = None
 
 
 class DiscountCard(Schema):
     enote_id: str = Field(alias="enoteId")
-    state: str = Field(None, alias="objectState")
+    state: str = Field(alias="objectState")
     name: str = None
     client_enote_id: str = Field(None, alias="clientEnoteId")
     card_number: str = Field(None, alias="codeCard")
@@ -60,34 +60,34 @@ class DiscountCard(Schema):
 
 class DiscountCardCategory(Schema):
     enote_id: str = Field(alias="enoteId")
-    state: str = Field(None, alias="objectState")
+    state: str = Field(alias="objectState")
     name: str = None
 
 
 class Specialization(Schema):
-    enote_id: str = Field(alias="enoteId")
-    title: str
+    enote_id: str = Field(None, alias="enoteId")
+    title: str = None
 
 
 class DoctorAttribute(Schema):
-    type: str
-    title: str
-    presentation: str
-    value: str
+    type: str = None
+    title: str = None
+    presentation: str = None
+    value: str = None
 
 
 class Doctor(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
     first_name: str = Field(alias="firstName")
-    middle_name: str = Field("", alias="middleName")
+    middle_name: str = Field(None, alias="middleName")
     last_name: str = Field(alias="lastName")
-    specialization: Optional[Union[list[Specialization], str]]
+    specialization: Union[list[Specialization], str]
     position: str = None
-    rank: str = Field("", alias="scientificRank")
-    photo_url: str = Field("", alias="photoUrl")
-    fired_date: Optional[str] = Field(None, alias="layoffDate")
-    attributes: Optional[list[DoctorAttribute]]
+    rank: str = Field(None, alias="scientificRank")
+    photo_url: str = Field(None, alias="photoUrl")
+    fired_date: Union[str, None] = Field(None, alias="layoffDate")
+    attributes: Union[list[DoctorAttribute], None] = None
 
 
 class AppointmentService(Schema):
@@ -119,12 +119,12 @@ class Appointment(Schema):
     status: str = Field(None, alias="appointmentStatus")
     awaiting_confirmation: bool = Field(None, alias="awaitingConfirmation")
     department_enote_id: str = Field(alias="departmentEnoteId")
-    doctor_enote_id: str = Field(None, alias="doctorEnoteId")
+    doctor_enote_id: Union[str, None] = Field(None, alias="doctorEnoteId")
     visit_kind_id: str = Field(alias="visitKindId")
-    service: Optional[AppointmentService] = None
-    client_enote_id: str = Field(alias="clientEnoteId")
-    patient_enote_id: str = Field(alias="patientEnoteId")
-    client_info: Optional[AppointmentClientInfo] = Field(
+    service: Union[AppointmentService, None] = None
+    client_enote_id: Union[str, None] = Field(alias="clientEnoteId")
+    patient_enote_id: Union[str, None] = Field(alias="patientEnoteId")
+    client_info: Union[AppointmentClientInfo, None] = Field(
         None, alias="clientInformation"
     )
     description: str = Field(None, alias="appointmentDescription")
