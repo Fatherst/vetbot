@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 async def accrual_post(bonus: BonusAccural):
     print(bonus.client.enote_id)
     data = {
-        "department_enote_id": settings.ENOTE_BALANCE_DEPARTMENT,
         "discountOperationType": "ADD",
-        "description": "Test",
+        "departmentEnoteId": "14bc1738-5781-43f7-9b6d-3b1a9769fc9d",
+        "description": "Тест",
         "bonusPoints": [
             {
                 "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
@@ -37,11 +37,11 @@ async def accrual_post(bonus: BonusAccural):
                 data=json_data,
                 headers=headers,
             ) as resp:
-                print('sz')
-                #resp.raise_for_status()
+                print("sz")
                 body = await resp.json()
                 print(resp)
                 print(body)
+                resp.raise_for_status()
                 return True
     except ClientResponseError as error:
         logger.error(error)
