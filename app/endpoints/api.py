@@ -230,22 +230,16 @@ async def process_doctors(request, doctors: list[Doctor]) -> Response:
 async def create_or_update_appointment(appointment: Appointment) -> Result:
     try:
         deleted = appointment.state == "DELETED"
-        try:
-            client = await client_models.Client.objects.aget(
-                enote_id=appointment.client_enote_id
-            )
-        except ObjectDoesNotExist:
-            return Result(
-                enote_id=appointment.enote_id,
-                result=False,
-                error_message="Нет такого клиента",
-            )
         if not appointment.client_enote_id:
             return Result(
                 enote_id=appointment.enote_id,
                 result=True,
             )
-        if not client:
+        try:
+            client = await client_models.Client.objects.aget(
+                enote_id=appointment.client_enote_id
+            )
+        except ObjectDoesNotExist:
             return Result(
                 enote_id=appointment.enote_id,
                 result=False,
