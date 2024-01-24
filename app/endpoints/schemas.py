@@ -38,7 +38,7 @@ class Patient(Schema):
 
 class Client(Schema):
     enote_id: str = Field(alias="enoteId")
-    state: str = Field(None, alias="objectState")
+    state: str = Field(alias="objectState")
     is_confirmed: bool = Field(False, alias="isConfirmed")
     first_name: str = Field(alias="firstName")
     middle_name: str = Field(alias="middleName")
