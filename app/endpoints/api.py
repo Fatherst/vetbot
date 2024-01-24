@@ -16,7 +16,6 @@ from .schemas import (
 from bonuses import models as bonus_models
 from client_auth import models as client_models
 from appointment import models as appointment_models
-from django.db.models import ObjectDoesNotExist
 
 
 logger = logging.getLogger(__name__)
@@ -235,16 +234,9 @@ async def create_or_update_appointment(appointment: Appointment) -> Result:
                 enote_id=appointment.enote_id,
                 result=True,
             )
-        try:
-            client = await client_models.Client.objects.aget(
-                enote_id=appointment.client_enote_id
-            )
-        except ObjectDoesNotExist:
-            return Result(
-                enote_id=appointment.enote_id,
-                result=False,
-                error_message="Нет такого клиента",
-            )
+        client = await client_models.Client.objects.aget(
+            enote_id=appointment.client_enote_id
+        )
         patient = await client_models.Patient.objects.filter(
             enote_id=appointment.patient_enote_id
         ).afirst()

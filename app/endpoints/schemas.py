@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from typing import Optional, Union
+from typing import Union
 
 
 class ContactInformation(Schema):
@@ -13,7 +13,7 @@ class ContactInformation(Schema):
 class Kind(Schema):
     enote_id: str = Field(alias="enoteId")
     state: str = Field(None, alias="objectState")
-    name: str = Field(None)
+    name: str = None
     kind_id: str = Field(None, alias="KindId")
 
 
