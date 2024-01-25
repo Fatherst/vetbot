@@ -1,9 +1,5 @@
 from django.contrib import admin
-from .models import (
-    Specialization,
-    Doctor,
-    Appointment,
-)
+from .models import Specialization, Doctor, Appointment, Invoice
 
 
 @admin.register(Doctor)
@@ -47,4 +43,10 @@ class SpecializationAdmin(admin.ModelAdmin):
         "enote_id",
         "name",
     )
+    search_fields = ["enote_id"]
+
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ("id", "enote_id", "client", "date", "sum")
     search_fields = ["enote_id"]
