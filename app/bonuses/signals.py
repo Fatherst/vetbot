@@ -11,14 +11,19 @@ from client_auth.management.commands.start_bot import launch_bot
 
 @receiver(post_save, sender=BonusAccural)
 def create_bonus_accural(instance, **kwargs):
-    print(instance.client.tg_chat_id)
-    accrued = asyncio.run(accrual_post(instance))
-    # accrued = True
+    loop = asyncio.get_event_loop()
+    if loop is None or loop.is_closed():
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    accrued = loop.run_until_complete(accrual_post(instance))
     print(accrued)
     if accrued:
         instance.accured = True
-        asyncio.run(message_after_accrual(instance))
-        # async_to_sync(message_after_accrual(instance))
+        #asyncio.set_event_loop(loop)
+        loop.run_until_complete(message_after_accrual(instance))
+        #asyncio.ensure_future(message_after_accrual(instance))
+        # asyncio.run(message_after_accrual(instance))
+        #async_to_sync(message_after_accrual(instance))
         ###send_message_to_user
     ##else log
     ###Поставить в очередь в celery на следующий день
