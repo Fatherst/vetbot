@@ -393,3 +393,19 @@ async def process_invoices(request, invoices: list[Invoice]) -> Response:
     for invoice in invoices:
         invoices_response.response.append(await create_or_update_invoice(invoice))
     return invoices_response
+
+
+@client_router.get("csv/invoices")
+async def export_csv(request) -> Response:
+    invoices = Invoice.objects.all()
+    for invoice in invoices:
+        client_data = {
+            'ClientEnoteId': invoice.client.enote_id,
+            'Email': invoice.client.email,
+            'Phone_number': invoice.client.phone_number,
+        }
+
+        # Проверяем, является ли инвойс первым у клиента
+        is_first_invoice = not Invoice.objects.filter(
+            client=invoice.client, date__lt=invoice.date
+        ).exists()
