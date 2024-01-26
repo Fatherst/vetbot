@@ -140,6 +140,19 @@ class Weighing(Schema):
     date: str = Field(None, alias="weighingDate")
 
 
+class Invoice(Schema):
+    enote_id: str = Field(None, alias="enoteId")
+    state: str = Field(None, alias="objectState")
+    date: str = Field(None, alias="invoiceDate")
+    department_enote_id: str = Field(None, alias="departmentEnoteId")
+    client_enote_id: str = Field(None, alias="clientEnoteId")
+    patient_enote_id: str = Field(None, alias="patientEnoteId")
+    services: list = None
+    payments: list = None
+    payment_total: int = Field(None, alias="paymentTotal")
+    sum_total: int = Field(None, alias="sumTotal")
+
+
 class Result(Schema):
     enote_id: str = Field(alias="enoteId")
     result: bool
