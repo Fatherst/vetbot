@@ -110,10 +110,8 @@ class Invoice(models.Model):
         max_length=150, verbose_name="ID в еноте", db_index=True, unique=True
     )
     client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
-    date = models.DateTimeField(verbose_name="Время оплаты")
-    sum = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Сумма всех оплат"
-    )
+    date = models.DateTimeField(verbose_name="Дата")
+    sum = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма")
 
     class Meta:
         verbose_name = "Инвойс"

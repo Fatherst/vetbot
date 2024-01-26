@@ -362,6 +362,8 @@ async def create_or_update_invoice(invoice: Invoice) -> Result:
                 enote_id=invoice.enote_id
             ).adelete()
             return Result(enote_id=invoice.enote_id, result=True)
+        if not (invoice.client_enote_id and invoice.date and invoice.sum_total):
+            return Result(enote_id=invoice.enote_id, result=True)
         client = await client_models.Client.objects.aget(
             enote_id=invoice.client_enote_id
         )
