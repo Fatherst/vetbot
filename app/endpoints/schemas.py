@@ -149,8 +149,8 @@ class Invoice(Schema):
     patient_enote_id: str = Field(None, alias="patientEnoteId")
     services: list = None
     payments: list = None
-    payment_total: int = Field(None, alias="paymentTotal")
-    sum_total: int = Field(None, alias="sumTotal")
+    payment_total: float = Field(None, alias="paymentTotal")
+    sum_total: float = Field(None, alias="sumTotal")
 
 
 class Result(Schema):
