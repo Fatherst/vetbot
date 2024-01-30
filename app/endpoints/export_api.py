@@ -17,7 +17,7 @@ export_router = Router()
 
 
 @export_router.get("invoices")
-async def export_csv(request, period: int) -> HttpResponse:
+async def export_csv(request, period: int=5) -> HttpResponse:
     csv_buffer = io.StringIO()
     writer = csv.writer(csv_buffer)
     fieldnames = [
