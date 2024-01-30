@@ -17,7 +17,7 @@ export_router = Router()
 
 
 @export_router.get("invoices")
-async def export_csv(request) -> HttpResponse:
+async def export_csv(request, period: int) -> HttpResponse:
     csv_buffer = io.StringIO()
     writer = csv.writer(csv_buffer)
     fieldnames = [
@@ -29,7 +29,7 @@ async def export_csv(request) -> HttpResponse:
         "Новый клиент",
     ]
     writer.writerow(fieldnames)
-    start_date = datetime.now() - timedelta(days=int(settings.CSV_PERIOD))
+    start_date = datetime.now() - timedelta(days=period)
     # Получаем данные из базы данных
     invoices = await sync_to_async(list)(
         appointment_models.Invoice.objects.filter(
