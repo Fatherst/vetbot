@@ -3,7 +3,7 @@ import io
 from datetime import datetime
 from django.utils import timezone
 import pytz
-
+from django.conf import settings
 from asgiref.sync import sync_to_async
 from django.http import HttpResponse, StreamingHttpResponse
 from ninja import Router
@@ -32,7 +32,12 @@ async def export_csv(request) -> HttpResponse:
         "Новый клиент",
     ]
     writer.writerow(fieldnames)
-    start_date = datetime(2024, 1, 8, tzinfo=pytz.timezone('Europe/Moscow'))
+    start_date = datetime(
+        settings.START_DATE_YEAR,
+        settings.START_DATE_MONTH,
+        settings.START_DATE_DAY,
+        tzinfo=pytz.timezone("Europe/Moscow"),
+    )
     # Получаем данные из базы данных
     invoices = await sync_to_async(list)(
         appointment_models.Invoice.objects.filter(
@@ -52,14 +57,6 @@ async def export_csv(request) -> HttpResponse:
         if phone_number[0] == "8":
             phone_number = f"7{phone_number[1:]}"
         email = invoice.client.email
-        # csv_data = {
-        #     "Дата и время оплаты": invoice.date.strftime("%d.%m.%Y %H:%M"),
-        #     "Id клиента в системе Enote": invoice.client.enote_id,
-        #     "Эл.почта клиента": email,
-        #     "Мобильный телефон клиента": phone_number,
-        #     "Общая итоговая сумма оплаты": invoice.sum,
-        #     "Новый клиент": "Да" if is_first_invoice else "Нет",
-        # }
         csv_data = [
             invoice.date.strftime("%d.%m.%Y %H:%M"),
             invoice.client.enote_id,
@@ -72,6 +69,7 @@ async def export_csv(request) -> HttpResponse:
     csv_content = csv_buffer.getvalue()
     csv_buffer.close()
     response = HttpResponse(csv_content, content_type="text/csv")
-    response["Content-Disposition"] = (f'attachment; filename="invoices_'
-                                       f'{timezone.now().strftime("%Y_%m_%d")}.csv"')
+    response["Content-Disposition"] = (
+        f'attachment; filename="invoices_' f'{timezone.now().strftime("%Y_%m_%d")}.csv"'
+    )
     return response

@@ -13,7 +13,10 @@ class ClientBasicAuth(HttpBasicAuth):
 
 class ExportBasicAuth(HttpBasicAuth):
     async def authenticate(self, request, username, password):
-        if username == settings.EXPORT_API_USERNAME and password == settings.EXPORT_API_PASSWORD:
+        if (
+            username == settings.EXPORT_API_USERNAME
+            and password == settings.EXPORT_API_PASSWORD
+        ):
             return username
 
 
