@@ -18,8 +18,15 @@ export_router = Router()
 
 @export_router.get("invoices")
 async def export_csv(request, period: int = 5) -> HttpResponse:
-    csv_buffer = io.StringIO()
-    writer = csv.writer(csv_buffer)
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={
+            "Content-Disposition": 'attachment; filename="invoices_'
+            f'{timezone.now().strftime("%Y_%m_%d")}.csv"'
+        },
+    )
+    writer = csv.writer(response)
+
     fieldnames = [
         "Дата и время оплаты",
         "Id клиента в системе Enote",
@@ -58,10 +65,4 @@ async def export_csv(request, period: int = 5) -> HttpResponse:
             "Да" if is_first_invoice else "Нет",
         ]
         writer.writerow(csv_data)
-    csv_content = csv_buffer.getvalue()
-    csv_buffer.close()
-    response = HttpResponse(csv_content, content_type="text/csv")
-    response["Content-Disposition"] = (
-        f'attachment; filename="invoices_' f'{timezone.now().strftime("%Y_%m_%d")}.csv"'
-    )
     return response
