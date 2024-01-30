@@ -1,14 +1,12 @@
 import csv
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.utils import timezone
-import pytz
 from django.conf import settings
 from asgiref.sync import sync_to_async
-from django.http import HttpResponse, StreamingHttpResponse
+from django.http import HttpResponse
 from ninja import Router
 import logging
-
 from appointment import models as appointment_models
 
 
@@ -22,7 +20,6 @@ export_router = Router()
 async def export_csv(request) -> HttpResponse:
     csv_buffer = io.StringIO()
     writer = csv.writer(csv_buffer)
-
     fieldnames = [
         "Дата и время оплаты",
         "Id клиента в системе Enote",
@@ -32,12 +29,7 @@ async def export_csv(request) -> HttpResponse:
         "Новый клиент",
     ]
     writer.writerow(fieldnames)
-    start_date = datetime(
-        settings.START_DATE_YEAR,
-        settings.START_DATE_MONTH,
-        settings.START_DATE_DAY,
-        tzinfo=pytz.timezone("Europe/Moscow"),
-    )
+    start_date = datetime.now() - timedelta(days=int(settings.CSV_PERIOD))
     # Получаем данные из базы данных
     invoices = await sync_to_async(list)(
         appointment_models.Invoice.objects.filter(
