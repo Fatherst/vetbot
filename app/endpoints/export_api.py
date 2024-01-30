@@ -53,7 +53,7 @@ async def export_csv(request, period: int = 5) -> HttpResponse:
             ).exists
         )()
         phone_number = invoice.client.phone_number
-        if phone_number[0] == "8":
+        if phone_number and phone_number[0] == "8":
             phone_number = f"7{phone_number[1:]}"
         email = invoice.client.email
         csv_data = [
