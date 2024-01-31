@@ -57,7 +57,9 @@ async def export_csv(request, period: int = 5) -> HttpResponse:
             phone_number = f"7{phone_number[1:]}"
         email = invoice.client.email
         print(email)
-        if email and not re.match(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', email):
+        if email and not re.match(
+            r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b", email
+        ):
             email = None
         csv_data = [
             invoice.date.strftime("%d.%m.%Y %H:%M"),
