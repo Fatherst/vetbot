@@ -1,8 +1,7 @@
 import csv
-import io
+import re
 from datetime import datetime, timedelta
 from django.utils import timezone
-from django.conf import settings
 from asgiref.sync import sync_to_async
 from django.http import HttpResponse
 from ninja import Router
@@ -52,10 +51,14 @@ async def export_csv(request, period: int = 5) -> HttpResponse:
                 client=invoice.client, date__lt=invoice.date
             ).exists
         )()
+
         phone_number = invoice.client.phone_number
         if phone_number and phone_number[0] == "8":
             phone_number = f"7{phone_number[1:]}"
         email = invoice.client.email
+        print(email)
+        if email and not re.match(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', email):
+            email = None
         csv_data = [
             invoice.date.strftime("%d.%m.%Y %H:%M"),
             invoice.client.enote_id,
