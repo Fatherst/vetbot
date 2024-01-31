@@ -1,5 +1,5 @@
 from ninja import NinjaAPI
-from ninja.security import HttpBasicAuth
+from ninja.security import HttpBasicAuth, APIKeyQuery
 from django.conf import settings
 from endpoints.api import client_router
 from endpoints.export_api import export_router
@@ -11,13 +11,13 @@ class ClientBasicAuth(HttpBasicAuth):
             return username
 
 
-class ExportBasicAuth(HttpBasicAuth):
-    async def authenticate(self, request, username, password):
+class ExportBasicAuth(APIKeyQuery):
+    param_name = "apikey"
+    async def authenticate(self, request, key):
         if (
-            username == settings.EXPORT_API_USERNAME
-            and password == settings.EXPORT_API_PASSWORD
+            key == settings.EXPORT_API_USERNAME
         ):
-            return username
+            return key
 
 
 api = NinjaAPI()
