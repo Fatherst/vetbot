@@ -1,5 +1,5 @@
 from django.db import models
-from client_auth.models import Patient
+from client_auth.models import Patient, Client
 
 
 class Specialization(models.Model):
@@ -89,12 +89,30 @@ class Appointment(models.Model):
         default=StatusChoices.PLANNED,
     )
     patient = models.ForeignKey(
-        Patient, on_delete=models.PROTECT, verbose_name="Пациент"
+        Patient, on_delete=models.PROTECT, verbose_name="Пациент", null=True, blank=True
     )
-    doctor = models.ForeignKey(Doctor, on_delete=models.PROTECT, verbose_name="Доктор")
+    client = models.ForeignKey(
+        Client, on_delete=models.PROTECT, verbose_name="Клиент", null=True
+    )
+    doctor = models.ForeignKey(
+        Doctor, on_delete=models.PROTECT, verbose_name="Доктор", null=True, blank=True
+    )
     date_time = models.DateTimeField(verbose_name="Время записи")
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
 
     class Meta:
         verbose_name = "Запись на приём"
         verbose_name_plural = "Записи на приём"
+
+
+class Invoice(models.Model):
+    enote_id = models.CharField(
+        max_length=150, verbose_name="ID в еноте", db_index=True, unique=True
+    )
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
+    date = models.DateTimeField(verbose_name="Дата")
+    sum = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Сумма")
+
+    class Meta:
+        verbose_name = "Инвойс"
+        verbose_name_plural = "Инвойсы"

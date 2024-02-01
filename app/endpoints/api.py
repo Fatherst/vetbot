@@ -1,3 +1,11 @@
+import csv
+import io
+from datetime import datetime
+from django.utils import timezone
+import pytz
+
+from asgiref.sync import sync_to_async
+from django.http import HttpResponse, StreamingHttpResponse
 from ninja import Router
 import re
 import logging
@@ -12,6 +20,7 @@ from .schemas import (
     Appointment,
     Patient,
     Weighing,
+    Invoice,
 )
 from bonuses import models as bonus_models
 from client_auth import models as client_models
@@ -94,7 +103,7 @@ async def create_or_update_kind(enote_kind: Kind) -> Result:
         )
 
 
-@client_router.post("kinds", response=Response)
+@client_router.post("kinds", response=Response, by_alias=True)
 async def process_kinds(request, kinds: list[Kind]) -> Response:
     kinds_response = Response(response=[])
     for kind in kinds:
@@ -229,16 +238,25 @@ async def process_doctors(request, doctors: list[Doctor]) -> Response:
 async def create_or_update_appointment(appointment: Appointment) -> Result:
     try:
         deleted = appointment.state == "DELETED"
-        patient = await client_models.Patient.objects.aget(
+        if not appointment.client_enote_id:
+            return Result(
+                enote_id=appointment.enote_id,
+                result=True,
+            )
+        client = await client_models.Client.objects.aget(
+            enote_id=appointment.client_enote_id
+        )
+        patient = await client_models.Patient.objects.filter(
             enote_id=appointment.patient_enote_id
-        )
-        doctor = await appointment_models.Doctor.objects.aget(
+        ).afirst()
+        doctor = await appointment_models.Doctor.objects.filter(
             enote_id=appointment.doctor_enote_id
-        )
+        ).afirst()
         defaults = {
             "status": appointment.status,
             "patient": patient,
             "doctor": doctor,
+            "client": client,
             "date_time": appointment.start_time,
             "deleted": deleted,
         }
@@ -343,3 +361,43 @@ async def process_weighings(request, weighings: list[Weighing]) -> Response:
     for weighing in weighings:
         weighings_response.response.append(await create_or_update_weighing(weighing))
     return weighings_response
+
+
+async def create_or_update_invoice(invoice: Invoice) -> Result:
+    try:
+        if invoice.state == "DELETED":
+            await appointment_models.Invoice.objects.filter(
+                enote_id=invoice.enote_id
+            ).adelete()
+            return Result(enote_id=invoice.enote_id, result=True)
+        if not (invoice.client_enote_id and invoice.date and invoice.sum_total):
+            return Result(enote_id=invoice.enote_id, result=True)
+        client = await client_models.Client.objects.aget(
+            enote_id=invoice.client_enote_id
+        )
+        defaults = {
+            "client": client,
+            "date": invoice.date,
+            "sum": invoice.sum_total,
+        }
+        _, created = await appointment_models.Invoice.objects.aupdate_or_create(
+            enote_id=invoice.enote_id, defaults=defaults
+        )
+        return Result(
+            enote_id=invoice.enote_id,
+            result=True,
+        )
+    except Exception as error:
+        return Result(
+            enote_id=invoice.enote_id,
+            result=False,
+            error_message=str(error),
+        )
+
+
+@client_router.post("invoices", response=Response, by_alias=True)
+async def process_invoices(request, invoices: list[Invoice]) -> Response:
+    invoices_response = Response(response=[])
+    for invoice in invoices:
+        invoices_response.response.append(await create_or_update_invoice(invoice))
+    return invoices_response
