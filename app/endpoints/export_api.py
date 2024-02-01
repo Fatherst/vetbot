@@ -27,12 +27,12 @@ async def export_csv(request, period: int = 5) -> HttpResponse:
     writer = csv.writer(response)
 
     fieldnames = [
-        "Дата и время оплаты",
-        "Id клиента в системе Enote",
-        "Эл.почта клиента",
-        "Мобильный телефон клиента",
-        "Общая итоговая сумма оплаты",
-        "Новый клиент",
+        "create_date_time",
+        "id",
+        "emails",
+        "phones",
+        "revenue",
+        "order_status",
     ]
     writer.writerow(fieldnames)
     start_date = datetime.now() - timedelta(days=period)
@@ -66,7 +66,7 @@ async def export_csv(request, period: int = 5) -> HttpResponse:
             email,
             phone_number,
             invoice.sum,
-            "Да" if is_first_invoice else "Нет",
+            "IN_PROGRESS" if is_first_invoice else "PAID",
         ]
         writer.writerow(csv_data)
     return response
