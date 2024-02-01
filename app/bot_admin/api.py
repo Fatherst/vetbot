@@ -15,7 +15,7 @@ class ExportBasicAuth(APIKeyQuery):
     param_name = "apikey"
     async def authenticate(self, request, key):
         if (
-            key == settings.EXPORT_API_USERNAME
+            key == settings.EXPORT_API_KEY
         ):
             return key
 
