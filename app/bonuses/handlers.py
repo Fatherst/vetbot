@@ -80,7 +80,6 @@ async def loyalty_program(callback: types.CallbackQuery):
 
 
 async def message_after_accrual(accrual: BonusAccural, bot=bot):
-    print(accrual.client)
     await bot.send_message(
         accrual.client.tg_chat_id,
         f"Вам начислено {accrual.amount} бонусов",

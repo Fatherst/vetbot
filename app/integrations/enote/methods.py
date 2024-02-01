@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 async def accrual_post(bonus: BonusAccural):
-    print(bonus.client.enote_id)
     data = {
         "discountOperationType": "ADD",
         "departmentEnoteId": "14bc1738-5781-43f7-9b6d-3b1a9769fc9d",
@@ -25,7 +24,6 @@ async def accrual_post(bonus: BonusAccural):
         ],
     }
     json_data = json.dumps(data)
-    print(json_data)
     headers = {
         "apikey": settings.ENOTE_APIKEY,
         "Authorization": settings.ENOTE_BASIC_AUTH,
@@ -37,10 +35,7 @@ async def accrual_post(bonus: BonusAccural):
                 data=json_data,
                 headers=headers,
             ) as resp:
-                print("sz")
                 body = await resp.json()
-                print(resp)
-                print(body)
                 resp.raise_for_status()
                 return True
     except ClientResponseError as error:
