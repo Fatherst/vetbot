@@ -198,7 +198,7 @@ class BonusAccrual(models.Model):
         max_length=200,
         verbose_name="Причина начисления",
     )
-    accured = models.BooleanField(default=False, verbose_name="Начислено")
+    accrued = models.BooleanField(default=False, verbose_name="Начислено")
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name="Дата изменения", auto_now=True)
 

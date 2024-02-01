@@ -76,6 +76,6 @@ class BonusAccuralAdmin(admin.ModelAdmin):
         "reason",
         "created_at",
         "modified_at",
-        "accured",
+        "accrued",
     )
     search_fields = ["client"]
