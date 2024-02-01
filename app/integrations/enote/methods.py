@@ -4,13 +4,13 @@ import aiohttp
 from django.conf import settings
 from aiohttp.client_exceptions import ClientResponseError
 from client_auth.models import Client
-from bonuses.models import BonusAccural
+from bonuses.models import BonusAccrual
 
 
 logger = logging.getLogger(__name__)
 
 
-async def accrual_post(bonus: BonusAccural):
+async def accrual_enote(bonus: BonusAccrual):
     data = {
         "discountOperationType": "ADD",
         "departmentEnoteId": "14bc1738-5781-43f7-9b6d-3b1a9769fc9d",
@@ -18,8 +18,8 @@ async def accrual_post(bonus: BonusAccural):
         "bonusPoints": [
             {
                 "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
-                "eventDate": "2023-03-10T09:10:00+03:00",
-                "sum": 300,
+                "eventDate": f"{bonus.modified_at}" if bonus.modified_at else f"{bonus.created_at}",
+                "sum": bonus.amount,
             }
         ],
     }

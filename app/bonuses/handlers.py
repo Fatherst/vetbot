@@ -9,7 +9,7 @@ from .keyboards import (
 )
 from client_auth.models import Client
 from integrations.enote.methods import get_balance
-from bonuses.models import Status, Program, BonusAccural
+from bonuses.models import Status, Program, BonusAccrual
 from sentry_sdk import capture_message
 from bot_admin.create_bot import bot
 
@@ -79,8 +79,3 @@ async def loyalty_program(callback: types.CallbackQuery):
     )
 
 
-async def message_after_accrual(accrual: BonusAccural, bot=bot):
-    await bot.send_message(
-        accrual.client.tg_chat_id,
-        f"Вам начислено {accrual.amount} бонусов",
-    )

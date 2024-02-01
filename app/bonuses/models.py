@@ -163,7 +163,7 @@ class Status(models.Model):
         verbose_name_plural = "Статусы программы лояльности"
 
 
-class BonusAccural(models.Model):
+class BonusAccrual(models.Model):
     class ReasonChoices(models.TextChoices):
         BIRTHDAY = (
             "BIRTHDAY",
