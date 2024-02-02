@@ -51,33 +51,33 @@ def create_bonus_accural(instance, **kwargs):
 #     print('here')
 #     asyncio.run(async_send_message_after_accrual(instance))
 
-@receiver(post_save, sender=BonusAccrual)
-def create_bonus_accural(instance, **kwargs):
-    # accrued = asyncio.run(accrual_enote(instance))
-    accrued = accrual_enote(instance)
-    print(accrued)
-    accrued = True
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    if accrued:
-        print('pre')
-        BonusAccrual.objects.filter(id=instance.id).update(accrued=True)
-        try:
-            print('sd')
-            loop = asyncio.get_event_loop()
-            send = asyncio.run_coroutine_threadsafe(bot.send_message(
-                instance.client.tg_chat_id,
-                f"Вам начислено {instance.amount} бонусов",
-            ), loop=loop)
-            send.result()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            send = asyncio.run_coroutine_threadsafe(bot.send_message(
-                instance.client.tg_chat_id,
-                f"Вам начислено {instance.amount} бонусов",
-            ), loop=loop)
-            send.result()
+# @receiver(post_save, sender=BonusAccrual)
+# def create_bonus_accural(instance, **kwargs):
+#     # accrued = asyncio.run(accrual_enote(instance))
+#     accrued = accrual_enote(instance)
+#     print(accrued)
+#     accrued = True
+#     loop = asyncio.new_event_loop()
+#     asyncio.set_event_loop(loop)
+#     if accrued:
+#         print('pre')
+#         BonusAccrual.objects.filter(id=instance.id).update(accrued=True)
+#         try:
+#             print('sd')
+#             loop = asyncio.get_event_loop()
+#             send = asyncio.run_coroutine_threadsafe(bot.send_message(
+#                 instance.client.tg_chat_id,
+#                 f"Вам начислено {instance.amount} бонусов",
+#             ), loop=loop)
+#             send.result()
+#         except RuntimeError:
+#             loop = asyncio.new_event_loop()
+#             asyncio.set_event_loop(loop)
+#             send = asyncio.run_coroutine_threadsafe(bot.send_message(
+#                 instance.client.tg_chat_id,
+#                 f"Вам начислено {instance.amount} бонусов",
+#             ), loop=loop)
+#             send.result()
     ##else
     ###Поставить в очередь в celery на следующий день
 
