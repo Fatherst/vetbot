@@ -8,10 +8,8 @@ from .keyboards import (
     bonuses_menu,
 )
 from client_auth.models import Client
-from integrations.enote.methods import get_balance
 from bonuses.models import Status, Program, BonusAccrual
 from sentry_sdk import capture_message
-from bot_admin.create_bot import bot
 
 
 logger = logging.getLogger(__name__)

@@ -10,64 +10,35 @@ import requests
 logger = logging.getLogger(__name__)
 
 
-# async def accrual_enote(bonus: BonusAccrual):
-#     data = {
-#         "discountOperationType": "ADD",
-#         "departmentEnoteId": "14bc1738-5781-43f7-9b6d-3b1a9769fc9d",
-#         "description": "Тест",
-#         "bonusPoints": [
-#             {
-#                 "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
-#                 "eventDate": f"{bonus.modified_at}" if bonus.modified_at else f"{bonus.created_at}",
-#                 "sum": bonus.amount,
-#             }
-#         ],
-#     }
-#     json_data = json.dumps(data)
-#     headers = {
-#         "apikey": settings.ENOTE_APIKEY,
-#         "Authorization": settings.ENOTE_BASIC_AUTH,
-#     }
-#     try:
-#         async with aiohttp.ClientSession() as session:
-#             async with session.post(
-#                 f"{settings.ENOTE_API_URL}/bonus_points",
-#                 data=json_data,
-#                 headers=headers,
-#             ) as resp:
-#                 body = await resp.json()
-#                 resp.raise_for_status()
-#                 return True
-#     except ClientResponseError as error:
-#         logger.error(error)
-#         return False
-
-
-def accrual_enote(bonus: BonusAccrual):
-    data = {
-        "discountOperationType": "ADD",
-        "departmentEnoteId": "14bc1738-5781-43f7-9b6d-3b1a9769fc9d",
-        "description": f"{bonus.reason}",
-        "bonusPoints": [
-            {
-                "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
-                "eventDate": f"{bonus.modified_at}"
-                if bonus.modified_at
-                else f"{bonus.created_at}",
-                "sum": bonus.amount,
-            }
-        ],
-    }
-    json_data = json.dumps(data)
-    headers = {
-        "apikey": settings.ENOTE_APIKEY,
-        "Authorization": settings.ENOTE_BASIC_AUTH,
-    }
-    resp = requests.post(
-        url=f"{settings.ENOTE_API_URL}/bonus_points", headers=headers, data=json_data
-    )
-    print(resp.__dict__)
-    return True
+def add_bonus_points(bonus: BonusAccrual):
+    try:
+        data = {
+            "discountOperationType": "ADD",
+            "departmentEnoteId": settings.ENOTE_BALANCE_DEPARTMENT,
+            "description": bonus.reason,
+            "bonusPoints": [
+                {
+                    "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
+                    "eventDate": f"{bonus.created_at}",
+                    "sum": bonus.amount,
+                }
+            ],
+        }
+        json_data = json.dumps(data)
+        headers = {
+            "apikey": settings.ENOTE_APIKEY,
+            "Authorization": settings.ENOTE_BASIC_AUTH,
+        }
+        resp = requests.post(
+            url=f"{settings.ENOTE_API_URL}/bonus_points",
+            headers=headers,
+            data=json_data,
+        )
+        resp.raise_for_status()
+        return True
+    except ClientResponseError as error:
+        logger.error(error)
+        return False
 
 
 async def get_balance(client: Client):
