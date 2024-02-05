@@ -77,5 +77,3 @@ async def loyalty_program(callback: types.CallbackQuery):
         "которому Вы рекомендовали нашу Клинику.",
         reply_markup=await back_to_bonuses_or_menu(bool(client.enote_id)),
     )
-
-

@@ -42,15 +42,18 @@ logger = logging.getLogger(__name__)
 #         logger.error(error)
 #         return False
 
+
 def accrual_enote(bonus: BonusAccrual):
     data = {
         "discountOperationType": "ADD",
         "departmentEnoteId": "14bc1738-5781-43f7-9b6d-3b1a9769fc9d",
-        "description": "Тест",
+        "description": f"{bonus.reason}",
         "bonusPoints": [
             {
                 "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
-                "eventDate": f"{bonus.modified_at}" if bonus.modified_at else f"{bonus.created_at}",
+                "eventDate": f"{bonus.modified_at}"
+                if bonus.modified_at
+                else f"{bonus.created_at}",
                 "sum": bonus.amount,
             }
         ],
@@ -60,10 +63,12 @@ def accrual_enote(bonus: BonusAccrual):
         "apikey": settings.ENOTE_APIKEY,
         "Authorization": settings.ENOTE_BASIC_AUTH,
     }
-    resp = requests.post(url=f"{settings.ENOTE_API_URL}/bonus_points",
-                  headers=headers,data=json_data)
+    resp = requests.post(
+        url=f"{settings.ENOTE_API_URL}/bonus_points", headers=headers, data=json_data
+    )
     print(resp.__dict__)
     return True
+
 
 async def get_balance(client: Client):
     query_params = {
