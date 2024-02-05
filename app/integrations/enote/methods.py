@@ -1,11 +1,11 @@
 import json
 import logging
 import aiohttp
+import requests
 from django.conf import settings
 from aiohttp.client_exceptions import ClientResponseError
 from client_auth.models import Client
 from bonuses.models import BonusAccrual
-import requests
 
 logger = logging.getLogger(__name__)
 
