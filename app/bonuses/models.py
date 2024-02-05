@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import UniqueConstraint, Q
 from client_auth.models import Client
+from model_utils import FieldTracker
 
 
 class DiscountCardCategory(models.Model):
@@ -201,6 +202,8 @@ class BonusAccrual(models.Model):
     accrued = models.BooleanField(default=False, verbose_name="Начислено")
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name="Дата изменения", auto_now=True)
+
+    tracker = FieldTracker()
 
     class Meta:
         verbose_name = "Начисление бонусов"
