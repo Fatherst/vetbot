@@ -69,6 +69,7 @@ class StatusAdmin(admin.ModelAdmin):
 
 @admin.register(BonusAccrual)
 class BonusAccuralAdmin(admin.ModelAdmin):
+    readonly_fields = ["accrued"]
     list_display = (
         "id",
         "client",
