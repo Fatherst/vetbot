@@ -2,7 +2,7 @@ from django.dispatch import receiver
 from django.db.models.signals import pre_save, post_save
 from integrations.enote.methods import add_bonus_points
 from bonuses.models import BonusAccrual
-from integrations.telegram.methods import send_message_after_accrual
+from integrations.telegram.methods import send_message_universal
 
 
 @receiver(pre_save, sender=BonusAccrual)
@@ -19,4 +19,6 @@ def update_bonus_accrual(instance, **kwargs):
 @receiver(post_save, sender=BonusAccrual)
 def send_notification(instance, **kwargs):
     if instance.accrued and instance.tracker.has_changed("accrued"):
-        send_message_after_accrual(instance)
+        send_message_universal(instance.client.tg_chat_id,
+                               text=f'Вам начислено следующее количество бонусов:'
+                                    f' {instance.amount}')

@@ -11,24 +11,24 @@ logger = logging.getLogger(__name__)
 
 
 def add_bonus_points(bonus: BonusAccrual):
+    data = {
+        "discountOperationType": "ADD",
+        "departmentEnoteId": settings.ENOTE_BALANCE_DEPARTMENT,
+        "description": bonus.reason,
+        "bonusPoints": [
+            {
+                "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
+                "eventDate": f"{bonus.created_at}",
+                "sum": bonus.amount,
+            }
+        ],
+    }
+    json_data = json.dumps(data)
+    headers = {
+        "apikey": settings.ENOTE_APIKEY,
+        "Authorization": settings.ENOTE_BASIC_AUTH,
+    }
     try:
-        data = {
-            "discountOperationType": "ADD",
-            "departmentEnoteId": settings.ENOTE_BALANCE_DEPARTMENT,
-            "description": bonus.reason,
-            "bonusPoints": [
-                {
-                    "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
-                    "eventDate": f"{bonus.created_at}",
-                    "sum": bonus.amount,
-                }
-            ],
-        }
-        json_data = json.dumps(data)
-        headers = {
-            "apikey": settings.ENOTE_APIKEY,
-            "Authorization": settings.ENOTE_BASIC_AUTH,
-        }
         resp = requests.post(
             url=f"{settings.ENOTE_API_URL}/bonus_points",
             headers=headers,
