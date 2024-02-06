@@ -4,11 +4,11 @@ from dotenv import load_dotenv
 import os
 import logging
 import sys
+from django.conf import settings
 
 
 logging.basicConfig(level=logging.INFO)
 storage = MemoryStorage()
 load_dotenv()
-BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
-bot = Bot(BOT_API_TOKEN)
+bot = Bot(settings.BOT_API_TOKEN, parse_mode="HTML")
 dp = Dispatcher(storage=storage)

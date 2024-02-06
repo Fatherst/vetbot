@@ -6,7 +6,7 @@ from .models import (
     BonusTransaction,
     Program,
     Status,
-    BonusAccural,
+    BonusAccrual,
 )
 
 
@@ -67,15 +67,16 @@ class StatusAdmin(admin.ModelAdmin):
     search_fields = ["name"]
 
 
-@admin.register(BonusAccural)
-class BonusAccuralAdmin(admin.ModelAdmin):
+@admin.register(BonusAccrual)
+class BonusAccrualAdmin(admin.ModelAdmin):
+    readonly_fields = ["accrued", "modified_at", "created_at"]
     list_display = (
         "id",
         "client",
         "amount",
         "reason",
-        "accured",
         "created_at",
         "modified_at",
+        "accrued",
     )
     search_fields = ["client"]

@@ -8,8 +8,7 @@ from .keyboards import (
     bonuses_menu,
 )
 from client_auth.models import Client
-from integrations.enote.methods import get_balance
-from bonuses.models import Status, Program
+from bonuses.models import Program
 from sentry_sdk import capture_message
 
 
