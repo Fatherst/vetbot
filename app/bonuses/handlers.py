@@ -8,7 +8,7 @@ from .keyboards import (
     bonuses_menu,
 )
 from client_auth.models import Client
-from bonuses.models import Status, Program, BonusAccrual
+from bonuses.models import Program
 from sentry_sdk import capture_message
 
 

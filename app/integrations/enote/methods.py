@@ -18,7 +18,7 @@ def add_bonus_points(bonus: BonusAccrual):
         "bonusPoints": [
             {
                 "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
-                "eventDate": f"{bonus.created_at}",
+                "eventDate": str(bonus.created_at),
                 "sum": bonus.amount,
             }
         ],

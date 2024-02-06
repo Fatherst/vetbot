@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def send_message_universal(chat_id, text):
+def send_message(chat_id: int, text: str):
     try:
         requests.get(
             f"https://api.telegram.org/bot{settings.BOT_API_TOKEN}/sendMessage",
@@ -16,4 +16,3 @@ def send_message_universal(chat_id, text):
         )
     except Exception as error:
         logger.error(error)
-        return error
