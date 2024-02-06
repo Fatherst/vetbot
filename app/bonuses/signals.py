@@ -12,8 +12,6 @@ def accrue_bonuses(created, instance, **kwargs):
         if enote_accrued:
             instance.accrued = True
             instance.save()
-        else:
-            pass
 
 
 @receiver(post_save, sender=BonusAccrual)
