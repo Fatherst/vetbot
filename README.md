@@ -39,6 +39,11 @@ python3 app/manage.py runserver 8000
 python3 app/manage.py start_bot
 ```
 
+9. Запустите celery и celery beat:
+```
+celery -A bot_admin worker --beat --scheduler django --loglevel=info --detach
+```
+
 ## Как запустить локально через docker
 ```
 docker-compose -f docker-compose.dev.yml up -d --build
