@@ -3,6 +3,8 @@ from pathlib import Path
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 from dotenv import load_dotenv
+from celery.schedules import crontab
+
 
 load_dotenv()
 
@@ -18,6 +20,8 @@ INSTALLED_APPS = [
     "endpoints.apps.EndpointsConfig",
     "bonuses.apps.BonusesConfig",
     "appointment.apps.AppointmentConfig",
+    "django_celery_beat",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -116,6 +120,13 @@ ENOTE_APIKEY = os.getenv("ENOTE_APIKEY")
 ENOTE_BALANCE_DEPARTMENT = os.getenv("ENOTE_BALANCE_DEPARTMENT")
 ENOTE_API_URL = os.getenv("ENOTE_API_URL")
 
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_DB_INDEX = os.getenv("REDIS_DB_INDEX")
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_INDEX}"
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_RESULT_BACKEND = "django-db"
+
 USE_EASY_SMS = os.getenv("USE_EASY_SMS", False) == "True"
 EASY_LOGIN = os.getenv("EASY_LOGIN")
 EASY_PASSWORD = os.getenv("EASY_PASSWORD")
@@ -144,6 +155,14 @@ LOGGING = {
     },
     "loggers": {
         "root": {"level": "DEBUG", "handlers": ["file"]},
+    },
+}
+
+
+CELERY_BEAT_SCHEDULE = {
+    "process_not_accrued_bonuses": {
+        "task": "bonuses.tasks.process_not_accrued_bonuses",
+        "schedule": crontab(hour="*/4"),
     },
 }
 

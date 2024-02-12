@@ -12,4 +12,6 @@ python manage.py collectstatic --noinput
 python manage.py migrate --noinput
 python manage.py createsuperuser --no-input
 
+celery -A bot_admin worker --beat --scheduler django --loglevel=info --detach
+
 gunicorn --bind 0.0.0.0:8000 bot_admin.asgi -w 4 -k uvicorn.workers.UvicornWorker
