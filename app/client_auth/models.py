@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models import Sum
 from asgiref.sync import sync_to_async
+from model_utils import FieldTracker
 
 
 class Client(models.Model):

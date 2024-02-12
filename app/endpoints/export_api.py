@@ -24,7 +24,7 @@ async def export_csv(request, period: int = 5) -> HttpResponse:
             f'{timezone.now().strftime("%Y_%m_%d")}.csv"'
         },
     )
-    writer = csv.writer(response, delimiter=';')
+    writer = csv.writer(response, delimiter=";")
 
     fieldnames = [
         "create_date_time",

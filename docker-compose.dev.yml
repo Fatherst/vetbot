@@ -38,6 +38,10 @@ services:
       - ./.env
     restart: always
 
+  redis:
+    restart: always
+    image: redis:alpine
+
   nginx:
     image: nginx:1.19.2
     volumes:

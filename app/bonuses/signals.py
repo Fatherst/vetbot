@@ -1,18 +1,14 @@
 from django.dispatch import receiver
-from django.db.models.signals import post_save, pre_save
-from integrations.enote.methods import add_bonus_points
+from django.db.models.signals import post_save
 from bonuses.models import BonusAccrual
 from integrations.telegram.methods import send_message
+from .tasks import accrual_bonuses_by_enote
 
 
 @receiver(post_save, sender=BonusAccrual)
 def accrue_bonuses(created, instance, **kwargs):
     if created:
-        enote_accrued = add_bonus_points(instance)
-        if enote_accrued:
-            accrual = BonusAccrual.objects.get(id=instance.id)
-            accrual.accrued = True
-            accrual.save()
+        accrual_bonuses_by_enote.delay(instance.id)
 
 
 @receiver(post_save, sender=BonusAccrual)
