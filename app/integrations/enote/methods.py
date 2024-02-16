@@ -3,23 +3,24 @@ import logging
 import aiohttp
 import requests
 from django.conf import settings
+from typing import Union
 from aiohttp.client_exceptions import ClientResponseError
-from client_auth.models import Client
-from bonuses.models import BonusAccrual
 
 logger = logging.getLogger(__name__)
 
 
-def add_bonus_points(bonus: BonusAccrual):
+def add_bonus_points(
+    discount_card_enote_id: str, reason: str, amount: int, created_at: str
+) -> bool:
     data = {
         "discountOperationType": "ADD",
         "departmentEnoteId": settings.ENOTE_BALANCE_DEPARTMENT,
-        "description": bonus.reason,
+        "description": reason,
         "bonusPoints": [
             {
-                "discountCardEnoteId": "a6867c31-cf7b-4e1e-92de-9f521a41392a",
-                "eventDate": str(bonus.created_at),
-                "sum": bonus.amount,
+                "discountCardEnoteId": discount_card_enote_id,
+                "eventDate": created_at,
+                "sum": amount,
             }
         ],
     }
@@ -41,16 +42,15 @@ def add_bonus_points(bonus: BonusAccrual):
         return False
 
 
-async def get_balance(client: Client):
+async def get_balance(client_enote_id) -> Union[tuple, bool]:
     query_params = {
-        "client_enote_id": client.enote_id,
+        "client_enote_id": client_enote_id,
         "department_enote_id": settings.ENOTE_BALANCE_DEPARTMENT,
     }
     headers = {
         "apikey": settings.ENOTE_APIKEY,
         "Authorization": settings.ENOTE_BASIC_AUTH,
     }
-    balance = None
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(
@@ -60,8 +60,15 @@ async def get_balance(client: Client):
             ) as resp:
                 resp.raise_for_status()
                 body = await resp.json()
-                balance = body["clientBonusPoints"]
-                return balance
+                income_1 = body["totalClientIncome"][0]
+                income_2 = body["totalClientIncome"][1]
+                if income_1["paymentMethod"] == "BONUS":
+                    bonus_balance = income_1["total"]
+                    money_balance = income_2["total"]
+                else:
+                    bonus_balance = income_2["total"]
+                    money_balance = income_1["total"]
+                return (bonus_balance, money_balance)
     except ClientResponseError as error:
         logger.error(error)
-        return balance
+        return False

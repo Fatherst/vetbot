@@ -1,7 +1,10 @@
 from django.db import models
-from django.db.models import Sum
-from asgiref.sync import sync_to_async
+import logging
 from model_utils import FieldTracker
+from integrations.enote.methods import get_balance
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 class Client(models.Model):
@@ -31,17 +34,25 @@ class Client(models.Model):
     )
     deleted = models.BooleanField(default=False, verbose_name="Удалён")
 
+    tracker = FieldTracker()
+
     @property
     async def balance(self):
-        card = await self.discount_cards.afirst()
-        if not card:
-            return 0
-        balance = await sync_to_async(
-            lambda: card.bonus_transactions.aggregate(total_balance=Sum("sum"))[
-                "total_balance"
-            ]
-        )()
+        balance = await get_balance(self.enote_id)
         return balance
+
+    @property
+    def discount_card(self):
+        active_discount_cards = self.discount_cards.filter(deleted=False).filter(
+            category__enote_id=settings.CATEGORY_ENOTE_ID
+        )
+        if active_discount_cards.count() == 1:
+            return active_discount_cards.first()
+        logger.error(
+            f"Возникла ошибка с клиентом {self.first_name} {self.last_name} enote_id:"
+            f" {self.enote_id}. Больше одной / нет карт для начисления бонусов "
+        )
+        return False
 
     class Meta:
         verbose_name = "Клиент"

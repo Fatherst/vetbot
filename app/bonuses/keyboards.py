@@ -4,7 +4,7 @@ from aiogram.types import (
 )
 
 
-async def bonuses_menu(has_balance: bool):
+async def bonuses_menu():
     buttons = [
         [
             InlineKeyboardButton(
@@ -12,20 +12,15 @@ async def bonuses_menu(has_balance: bool):
             ),
         ],
         [
+            InlineKeyboardButton(
+                text="Получить 1000 бонусов за рекомендацию 💲",
+                callback_data="recommend",
+            ),
+        ],
+        [
             InlineKeyboardButton(text="Назад 🔙", callback_data="main_menu"),
         ],
     ]
-
-    if has_balance:
-        buttons.insert(
-            1,
-            [
-                InlineKeyboardButton(
-                    text="Получить 1000 бонусов за рекомендацию 💲",
-                    callback_data="recommend",
-                ),
-            ],
-        )
     inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
     return inline_markup
 
