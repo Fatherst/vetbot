@@ -166,6 +166,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "bonuses.tasks.process_not_accrued_bonuses",
         "schedule": crontab(hour="*/4"),
     },
+    "process_patients_birthdays": {
+        "task": "bonuses.tasks.process_patients_birthdays",
+        "schedule": crontab(minute="0", hour="9"),
+    },
 }
 
 
