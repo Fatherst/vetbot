@@ -211,3 +211,19 @@ class BonusAccrual(models.Model):
     class Meta:
         verbose_name = "Начисление бонусов"
         verbose_name_plural = "Начисления бонусов"
+
+
+class Recommendation(models.Model):
+    promocode = models.CharField(verbose_name="Промокод", unique=True)
+    issued = models.BooleanField(verbose_name="Выдано", default=False)
+    client = models.ForeignKey(
+        Client, on_delete=models.PROTECT, verbose_name="Пригласивший клиент"
+    )
+    created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
+    modified_at = models.DateTimeField(verbose_name="Дата изменения", auto_now=True)
+
+    tracker = FieldTracker()
+
+    class Meta:
+        verbose_name = "Рекомендация"
+        verbose_name_plural = "Рекомендации"

@@ -7,6 +7,7 @@ from .models import (
     Program,
     Status,
     BonusAccrual,
+    Recommendation,
 )
 
 
@@ -80,3 +81,15 @@ class BonusAccrualAdmin(admin.ModelAdmin):
         "accrued",
     )
     search_fields = ["client"]
+
+
+@admin.register(Recommendation)
+class RecommendationAdmin(admin.ModelAdmin):
+    readonly_fields = ["created_at", "modified_at"]
+    list_display = ("id", "promocode", "issued", "client", "created_at", "modified_at")
+    search_fields = ["client", "promocode"]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.issued:
+            return super().get_readonly_fields(request, obj=obj) + ["issued"]
+        return super().get_readonly_fields(request, obj=obj)
