@@ -13,8 +13,8 @@ async def bonuses_menu():
         ],
         [
             InlineKeyboardButton(
-                text="Получить 1000 бонусов за рекомендацию 💲",
-                callback_data="recommend",
+                text="Получить бонусы за рекомендацию 💲",
+                callback_data="recommend_from_bonuses",
             ),
         ],
         [
@@ -25,13 +25,20 @@ async def bonuses_menu():
     return inline_markup
 
 
-async def back_to_bonuses_or_menu(has_enote_id: bool):
-    callback_data = "main_menu"
-    if has_enote_id:
-        callback_data = "bonuses"
+async def back_to_bonuses():
     buttons = [
         [
-            InlineKeyboardButton(text="Назад 🔙", callback_data=callback_data),
+            InlineKeyboardButton(text="Назад 🔙", callback_data="bonuses"),
+        ],
+    ]
+    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
+    return inline_markup
+
+
+async def back_to_menu():
+    buttons = [
+        [
+            InlineKeyboardButton(text="Назад 🔙", callback_data="main_menu"),
         ],
     ]
     inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)

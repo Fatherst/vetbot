@@ -42,33 +42,32 @@ def add_bonus_points(
         return False
 
 
-async def get_balance(client_enote_id) -> Union[tuple, bool]:
+def get_balance(client_enote_id, card_enote_id) -> Union[tuple, bool]:
     query_params = {
         "client_enote_id": client_enote_id,
         "department_enote_id": settings.ENOTE_BALANCE_DEPARTMENT,
+        "discount_card_enote_id": card_enote_id,
     }
     headers = {
         "apikey": settings.ENOTE_APIKEY,
         "Authorization": settings.ENOTE_BASIC_AUTH,
     }
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"{settings.ENOTE_API_URL}/balance",
-                params=query_params,
-                headers=headers,
-            ) as resp:
-                resp.raise_for_status()
-                body = await resp.json()
-                income_1 = body["totalClientIncome"][0]
-                income_2 = body["totalClientIncome"][1]
-                if income_1["paymentMethod"] == "BONUS":
-                    bonus_balance = income_1["total"]
-                    money_balance = income_2["total"]
-                else:
-                    bonus_balance = income_2["total"]
-                    money_balance = income_1["total"]
-                return (bonus_balance, money_balance)
+        resp = requests.get(
+            url=f"{settings.ENOTE_API_URL}/balance",
+            params=query_params,
+            headers=headers,
+        )
+        resp.raise_for_status()
+        body = resp.json()
+        income_1 = body["totalClientIncome"][0]
+        income_2 = body["totalClientIncome"][1]
+        if income_1["paymentMethod"] == "BONUS":
+            money_balance = income_2["total"]
+        else:
+            money_balance = income_1["total"]
+        bonus_balance = body["discountCardsBalances"][0]["total"]
+        return (bonus_balance, money_balance)
     except ClientResponseError as error:
         logger.error(error)
         return False

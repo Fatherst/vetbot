@@ -1,15 +1,18 @@
 import logging
+import string
+import random
 from aiogram import Router, F
 from aiogram import types
 from asgiref.sync import sync_to_async
 from django.db.models import Q
 from .keyboards import (
-    back_to_bonuses_or_menu,
     bonuses_menu,
+    back_to_menu,
+    back_to_bonuses,
 )
 from client_auth.keyboards import main_menu
 from client_auth.models import Client
-from bonuses.models import Program
+from bonuses.models import Program, BonusAccrual, Recommendation
 from sentry_sdk import capture_message
 
 
@@ -22,7 +25,7 @@ bonuses_router = Router()
 @bonuses_router.callback_query(F.data == "bonuses")
 async def bonuses_program(callback: types.CallbackQuery):
     client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
-    balance_and_spending = await client.balance
+    balance_and_spending = await sync_to_async(lambda: client.balance)()
     program = await Program.objects.filter(is_active=True).afirst()
     if not balance_and_spending:
         capture_message("Не удалось получить информацию о балансе и расходах клиента.")
@@ -63,6 +66,9 @@ async def loyalty_program(callback: types.CallbackQuery):
     text = "В рамках программы лояльности Клиника начисляет Клиентам бонусные баллы (кешбэк), которые можно"
     f" использовать для оплаты услуг Клиники.\n\n{program.description}\n\nРазмер кешбэка зависит от статуса"
     " Клиента в программе лояльности:"
+    reply_markup = await back_to_menu()
+    if client.enote_id:
+        reply_markup = await back_to_bonuses()
     for status in statuses:
         if status.end_amount:
             text += (
@@ -78,5 +84,33 @@ async def loyalty_program(callback: types.CallbackQuery):
         text=f"{text}"
         f"\n\nКроме этого, Клиника подарит {program.new_client_bonus_amount} бонусных баллов за каждого нового Клиента, "
         "которому Вы рекомендовали нашу Клинику.",
-        reply_markup=await back_to_bonuses_or_menu(bool(client.enote_id)),
+        reply_markup=reply_markup,
+    )
+
+
+async def create_promocode() -> str:
+    while True:
+        promocode = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        is_unique = (
+            await Recommendation.objects.filter(promocode=promocode).aexists() is False
+        )
+        if is_unique:
+            return promocode
+
+
+@bonuses_router.callback_query(
+    F.data.in_({"recommend_from_bonuses", "recommend_from_menu"})
+)
+async def get_promocode(callback: types.CallbackQuery):
+    promocode = await create_promocode()
+    client = await Client.objects.aget(tg_chat_id=callback.from_user.id)
+    await Recommendation.objects.acreate(promocode=promocode, client=client)
+    if callback.data == "recommend_from_menu":
+        reply_markup = await back_to_menu()
+    else:
+        reply_markup = await back_to_bonuses()
+    await callback.message.edit_text(
+        text=f"Ваш промокод {promocode}\nПередайте его клиенту, который собирается прийти в "
+        "клинику",
+        reply_markup=reply_markup,
     )

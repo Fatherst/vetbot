@@ -1,5 +1,7 @@
 from django.db import models
 import logging
+from asgiref.sync import sync_to_async
+import asyncio
 from model_utils import FieldTracker
 from integrations.enote.methods import get_balance
 from django.conf import settings
@@ -37,11 +39,6 @@ class Client(models.Model):
     tracker = FieldTracker()
 
     @property
-    async def balance(self):
-        balance = await get_balance(self.enote_id)
-        return balance
-
-    @property
     def discount_card(self):
         active_discount_cards = self.discount_cards.filter(deleted=False).filter(
             category__enote_id=settings.CATEGORY_ENOTE_ID
@@ -53,6 +50,14 @@ class Client(models.Model):
             f" {self.enote_id}. Больше одной / нет карт для начисления бонусов "
         )
         return False
+
+    @property
+    def balance(self):
+        card = self.discount_card
+        if not card:
+            return None
+        balance = get_balance(self.enote_id, card.enote_id)
+        return balance
 
     class Meta:
         verbose_name = "Клиент"
