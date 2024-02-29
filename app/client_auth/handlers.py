@@ -80,43 +80,44 @@ async def send_greeting(message: types.Message, state: FSMContext):
 async def process_client_phone(
     state: FSMContext, user_phone_number: str, message: types.Message
 ):
-    """Проверку на то, есть ли пользователь я вообще убрал, теперь только проверка на черный список"""
-    black_list = []
-    user_phone_number = re.sub(r"\D", "", user_phone_number)
-    client = await Client.objects.filter(
-        phone_number__contains=user_phone_number[1:]
-    ).afirst()
-    if client in black_list:
-        await message.answer(
-            text="Здравствуйте! Благодарим за обращение. На данный момент услуга недоступна.",
-        )
-        await state.clear()
-    else:
-        logger.info("USE_EASY_SMS")
-        logger.info(settings.USE_EASY_SMS)
-        code = 1
-        code_sent = True
-        if settings.USE_EASY_SMS:
-            code = random.randrange(1001, 9999)
-            code_sent = await easy_send_code(code, "7" + user_phone_number[1:])
-        logger.info("code")
-        logger.info(code)
-        if code_sent:
-            await state.update_data(code=code)
-            await state.update_data(phone_number=user_phone_number)
+    try:
+        """Проверку на то, есть ли пользователь я вообще убрал, теперь только проверка на черный список"""
+        black_list = []
+        user_phone_number = re.sub(r"\D", "", user_phone_number)
+        client = await Client.objects.filter(
+            phone_number__contains=user_phone_number[1:]
+        ).afirst()
+        if client in black_list:
             await message.answer(
-                text="Приветствую!\n\n"
-                "Напишите код из 4-х цифр, который придёт на ваш телефон",
-                reply_markup=types.ReplyKeyboardRemove(),
+                text="Здравствуйте! Благодарим за обращение. На данный момент услуга недоступна.",
             )
-            await state.set_state(PhoneStates.code)
+            await state.clear()
         else:
-            await message.answer(
-                text="Приветствую!\n\n"
-                "При попытке отправки кода произошла ошибка, мы работаем над её устранением, "
-                "попробуйте позже",
-                reply_markup=await keyboards.get_contact(),
-            )
+            print("USE_EASY_SMS = ", settings.USE_EASY_SMS)
+            code = 1
+            code_sent = True
+            if settings.USE_EASY_SMS:
+                code = random.randrange(1001, 9999)
+                code_sent = await easy_send_code(code, "7" + user_phone_number[1:])
+            print("code = ", code)
+            if code_sent:
+                await state.update_data(code=code)
+                await state.update_data(phone_number=user_phone_number)
+                await message.answer(
+                    text="Приветствую!\n\n"
+                    "Напишите код из 4-х цифр, который придёт на ваш телефон",
+                    reply_markup=types.ReplyKeyboardRemove(),
+                )
+                await state.set_state(PhoneStates.code)
+            else:
+                await message.answer(
+                    text="Приветствую!\n\n"
+                    "При попытке отправки кода произошла ошибка, мы работаем над её устранением, "
+                    "попробуйте позже",
+                    reply_markup=await keyboards.get_contact(),
+                )
+    except Exception as e:
+        logger.exception(2)
 
 
 @client_router.message(PhoneStates.phone, F.text, PhoneFilter())
@@ -159,8 +160,7 @@ async def handle_wrong_contact(message: types.Message):
 @client_router.message(PhoneStates.code, F.text)
 async def handle_code(message: types.Message, state: FSMContext):
     data = await state.get_data()
-    logger.info("user data")
-    logger.info(data)
+    print("user data = ", str(data))
     if str(data["code"]) == message.text:
         defaults = {
             "tg_chat_id": message.from_user.id,
