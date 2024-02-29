@@ -117,7 +117,8 @@ deploy:
     - echo "${APP_CONFIG}" >> .kubernetes/production/.env
     - VERSION=1
     - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/**/*.yaml
-    - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}-prod/g" ./.kubernetes/**/*.yaml
+    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/common/bot/*.yaml
+    - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}/g" ./.kubernetes/common/bot/*.yaml
     - kubectl create namespace vetbot --dry-run=client --output="yaml" | kubectl apply -f -
     - kubectl -n vetbot apply -k .kubernetes/production/
   when: manual
