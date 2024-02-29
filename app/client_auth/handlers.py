@@ -92,11 +92,15 @@ async def process_client_phone(
         )
         await state.clear()
     else:
+        logger.info("USE_EASY_SMS")
+        logger.info(settings.USE_EASY_SMS)
         code = 1
         code_sent = True
         if settings.USE_EASY_SMS:
             code = random.randrange(1001, 9999)
             code_sent = await easy_send_code(code, "7" + user_phone_number[1:])
+        logger.info("code")
+        logger.info(code)
         if code_sent:
             await state.update_data(code=code)
             await state.update_data(phone_number=user_phone_number)
@@ -155,6 +159,8 @@ async def handle_wrong_contact(message: types.Message):
 @client_router.message(PhoneStates.code, F.text)
 async def handle_code(message: types.Message, state: FSMContext):
     data = await state.get_data()
+    logger.info("user data")
+    logger.info(data)
     if str(data["code"]) == message.text:
         defaults = {
             "tg_chat_id": message.from_user.id,
