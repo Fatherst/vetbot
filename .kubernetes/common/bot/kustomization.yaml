@@ -1,9 +1,13 @@
-apiVersion: "kustomize.config.k8s.io/v1beta1"
-kind: "Kustomization"
+apiVersion: 'kustomize.config.k8s.io/v1beta1'
+kind: 'Kustomization'
 resources:
-  - "deployment-bot.yaml"
+  - 'deployment.yaml'
+  - 'ingress.yaml'
+  - 'network-policy.yaml'
+  - 'pod-disruption-budget.yaml'
+  - 'service.yaml'
 secretGenerator:
-  - name: "bot-vetbot-secrets"
+  - name: 'vetbot-secret'
     envs:
-      - ".env"
-    type: "Opaque"
+      - '.env'
+    type: 'Opaque'
