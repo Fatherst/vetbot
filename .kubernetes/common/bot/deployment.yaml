@@ -32,6 +32,13 @@ spec:
             - secretRef:
                 name: 'vetbot-secret'
           command: ["python", "manage.py", "start_bot"]
+          resources:
+            limits:
+              cpu: "0.5"
+              memory: 500Mi
+            requests:
+              cpu: "0.5"
+              memory: 500Mi
         - name: 'web'
           image: 'registry.divlab.tech/tg_bots/vet_bot:<TAG>'
           imagePullPolicy: Always
@@ -45,11 +52,11 @@ spec:
               name: var-volume
           resources:
             limits:
-              cpu: 200m
-              memory: 150Mi
+              cpu: "2"
+              memory: 2000Mi
             requests:
-              cpu: 200m
-              memory: 150Mi
+              cpu: "2"
+              memory: 2000Mi
       volumes:
         - name: var-volume
           emptyDir: {}
