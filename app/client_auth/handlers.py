@@ -45,8 +45,11 @@ async def prepare_authentication_response(
 ) -> AuthResult:
     client = await Client.objects.filter(tg_chat_id=user_id).afirst()
     if client:
-        if client.first_name:
-            greeting = f"{client.first_name}, приветствую\n\n<b>Выберите, что вас интересует ⤵</b>"
+        if client.first_name and client.middle_name and client.last_name:
+            greeting = (f"<b>{client.last_name} {client.first_name} {client.middle_name}</b>, "
+                        f"приветствую\n\n<b>Выберите, "
+                        f"что вас интересует "
+                        f"⤵</b>")
         else:
             greeting = "Приветствую\n\n<b>Выберите, что вас интересует ⤵</b>"
         return AuthResult(
