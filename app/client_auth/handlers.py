@@ -11,6 +11,7 @@ from django.conf import settings
 from integrations.easysms.methods import easy_send_code
 from client_auth import keyboards
 from .models import Client
+from sentry_sdk import capture_message
 
 logger = logging.getLogger(__name__)
 client_router = Router()
@@ -107,6 +108,7 @@ async def process_client_phone(
             text = f"Авторизация по смс отключена, код {code}. Отправьте его"
         logger.info(f"code = {code}")
         if code_sent:
+            capture_message(f"Ваш код - {code}")
             await state.update_data(code=code)
             await state.update_data(phone_number=user_phone_number)
             await message.answer(
