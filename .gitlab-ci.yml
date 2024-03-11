@@ -6,7 +6,10 @@ stages:
 
 .build:
   tags:
-    - divan
+    - docker-shell
+  image:
+    name: docker:20.10.20-alpine3.16
+    entrypoint: [""]
   stage: build
   variables:
     BUILD_IMAGE: '$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME'
@@ -20,13 +23,30 @@ stages:
     - docker --config ~/.$CI_PROJECT_PATH_SLUG push $BUILD_IMAGE:$BUILD_TAG
 
 .k8s:
+  image:
+    name: alpine/k8s:1.26.14
+    entrypoint: [""]
   tags:
-    - divan
+    - docker-shell
   allow_failure: true
   variables:
     K8S_API_ENDPOINT: '$K8S_API_ENDPOINT'
     K8S_SECRET_ACCESS_KEY: '$K8S_SECRET_ACCESS_KEY'
+    ENV_NAME: ""
+    SERVICE_NAME: ""
+    VALUES_FILENAME: values.yaml
+    VALUES_FILENAME_WITH_ENV: final_values.yaml
+    HELM_REPO: divlab-helm
+    HELM_CHART: divlab-chart
+    HELM_CHART_VERSION: 1.1.0
+    BUILD_IMAGE: '$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME'
   before_script:
+    - OVERRIDE_MERGED_VALUES_FILENAME="ci-cd/${ENV_NAME}/${SERVICE_NAME}/${VALUES_FILENAME}"
+    - envsubst <$OVERRIDE_MERGED_VALUES_FILENAME >$VALUES_FILENAME_WITH_ENV
+    - helm repo add --username gitlab-ci-token
+      --password "$CI_JOB_TOKEN"
+      "${HELM_REPO}" "${CI_SERVER_URL}/api/v4/projects/299/packages/helm/stable"
+    - helm repo update
     - kubectl config set-cluster apps --insecure-skip-tls-verify=true --server="$K8S_API_ENDPOINT"
     - kubectl config set-credentials ci --token="$K8S_SECRET_ACCESS_KEY"
     - kubectl config set-context ci --cluster=apps --user=ci
@@ -64,46 +84,90 @@ build:main:
         BUILD_TAG_SHA: '$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-prod'
         BUILD_TAG: 'latest'
 
-review:
+review_bot:
   extends:
     - .k8s
   stage: review
-  image: alpine/k8s:1.26.14
+  variables:
+    ENV_NAME: "development"
+    SERVICE_NAME: 'bot'
   environment:
-    name: review/$CI_COMMIT_REF_NAME
+    name: $ENVIRONMENT_NAME
     url: https://$CI_MERGE_REQUEST_ID.vetbot.hhw.ru
     on_stop: stop_review
   script:
-    - SUB_DOMAIN=$CI_MERGE_REQUEST_ID
-    - VERSION=1
-    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/**/*.yaml
-    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/common/bot/*.yaml
-    - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}/g" ./.kubernetes/common/bot/*.yaml
-    - sed -i "s/<SUB_DOMAIN>/${SUB_DOMAIN}/g" ./.kubernetes/**/*.yaml
-    - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],${SUB_DOMAIN}.vetbot.hhw.ru" >> .kubernetes/development/.env
-    - echo "${DB_CONFIG}" >> .kubernetes/common/DB/.env
-    - echo "${APP_CONFIG}" >> .kubernetes/development/.env
-    - kubectl create namespace vetbot-${CI_COMMIT_REF_SLUG} --dry-run=client --output="yaml" | kubectl apply -f -
-    - kubectl -n vetbot-${CI_COMMIT_REF_SLUG} apply -k .kubernetes/development/
+    - VERSION=1.1.0
+    - helm upgrade
+      --install $SERVICE_NAME "$HELM_REPO/$HELM_CHART"
+      --namespace "${CI_COMMIT_REF_SLUG}-vet-bot" --create-namespace
+      --values "$VALUES_FILENAME_WITH_ENV"
+      --set-file secret.file=$APP_CONFIG_NEW
+      --version "$HELM_CHART_VERSION"
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        ENVIRONMENT_NAME: 'review/$CI_COMMIT_REF_SLUG'
+        BUILD_TAG: '$CI_COMMIT_REF_SLUG'
+      changes:
+        paths:
+          - $SERVICE_NAME/**/*
+          - ci-cd/*/$SERVICE_NAME/*
 
-stop_review:
-  stage: clear
+review_db:
   extends:
     - .k8s
+  stage: review
+  variables:
+    ENV_NAME: "development"
+    SERVICE_NAME: 'db'
+  environment:
+    name: $ENVIRONMENT_NAME
+    url: https://$CI_MERGE_REQUEST_ID.vetbot.hhw.ru
+    on_stop: stop_review
+  script:
+    - VERSION=1.0.0
+    - helm upgrade
+      --install $SERVICE_NAME "$HELM_REPO/$HELM_CHART"
+      --namespace "${CI_COMMIT_REF_SLUG}-vet-bot" --create-namespace
+      --values "$VALUES_FILENAME_WITH_ENV"
+      --set-file secret.file=$DB_CONFIG_NEW
+      --version "$HELM_CHART_VERSION"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        ENVIRONMENT_NAME: 'review/$CI_COMMIT_REF_SLUG'
+      changes:
+        paths:
+          - $SERVICE_NAME/**/*
+          - ci-cd/*/$SERVICE_NAME/*
+
+stop_review:
+  image:
+    name: alpine/k8s:1.26.14
+    entrypoint: [""]
+  tags:
+    - docker-shell
+  stage: clear
   variables:
     GIT_STRATEGY: none
   environment:
-    name: review/$CI_COMMIT_REF_NAME
+    name: $ENVIRONMENT_NAME
     action: stop
+  before_script:
+    - kubectl config set-cluster apps --insecure-skip-tls-verify=true --server="$K8S_API_ENDPOINT"
+    - kubectl config set-credentials ci --token="$K8S_SECRET_ACCESS_KEY"
+    - kubectl config set-context ci --cluster=apps --user=ci
+    - kubectl config use-context ci
   script:
-    - kubectl delete namespace vetbot-${CI_COMMIT_REF_SLUG}
+    - kubectl delete namespace ${CI_COMMIT_REF_SLUG}-vet-bot
   dependencies:
-    - review
+    - review_bot
+    - review_db
   when: manual
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      variables:
+        ENVIRONMENT_NAME: 'review/$CI_COMMIT_REF_SLUG'
 
 deploy:
   stage: deploy
