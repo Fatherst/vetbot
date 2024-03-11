@@ -1,0 +1,50 @@
+# Default значения
+
+appVersion: 1.0.0
+replicaCount: 1
+
+nameOverride: $SERVICE_NAME
+
+podAnnotations: {}
+
+pod:
+  containers:
+  - name: $SERVICE_NAME-db
+    port: 5432
+    image:
+      repository: postgres
+      pullPolicy: Always
+      tag: "16.2"
+    env: ""
+    # ENV_URL: 123.test
+    # ENV_BASE: test-base
+    resources:
+      requests:
+        memory: "250Mi"
+        cpu: "250m"
+      limits:
+        memory: "250Mi"
+        cpu: "250m"
+    volumeMounts:
+      - name: "$SERVICE_NAME-db-storage"
+        mountPath: "/var/lib/postgresql/data"
+
+pvc:
+  enabled: true
+  volume:
+  - name: "postgres-storage"
+    storage: 2Gi
+
+volumes:
+  enabled: true
+  volume:
+  - name: $SERVICE_NAME-db-storage
+    claimName: postgres-storage
+
+service:
+  type: ClusterIP
+  TargetPort: 5432
+  Port: 5432
+
+ingress:
+  enabled: false
