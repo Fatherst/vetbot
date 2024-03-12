@@ -1,6 +1,5 @@
 import json
 import logging
-import aiohttp
 import requests
 from django.conf import settings
 from typing import Union

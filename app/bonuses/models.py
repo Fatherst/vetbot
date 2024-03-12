@@ -85,6 +85,12 @@ class Program(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     is_active = models.BooleanField(default=False, verbose_name="Активна")
 
+    async def retrieve_status(self, money_spent):
+        return await self.statuses.filter(
+            Q(start_amount__lte=money_spent)
+            & (Q(end_amount__gte=money_spent) | Q(end_amount__isnull=True))
+        ).afirst()
+
     class Meta:
         constraints = [
             UniqueConstraint(
@@ -130,14 +136,13 @@ class Status(models.Model):
             )
         overlaps = Status.objects.filter(program=self.program, end_amount__isnull=False)
         if self.end_amount:
-            overlaps = overlaps.exclude(
-                start_amount__gt=self.end_amount, end_amount__lt=self.start_amount
+            overlaps = overlaps.exclude(start_amount__gte=self.end_amount).exclude(
+                end_amount__lte=self.start_amount
             )
         else:
             overlaps = overlaps.filter(
                 start_amount__lte=self.start_amount, end_amount__gte=self.start_amount
             )
-
         if overlaps.exists():
             raise ValidationError(
                 {

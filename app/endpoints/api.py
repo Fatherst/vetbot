@@ -1,11 +1,5 @@
-import csv
-import io
-from datetime import datetime
-from django.utils import timezone
-import pytz
-
-from asgiref.sync import sync_to_async
-from django.http import HttpResponse, StreamingHttpResponse
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from ninja import Router
 import re
 import logging
@@ -44,7 +38,11 @@ async def create_or_update_client(enote_client: Client) -> Result:
             if contact.type == "PHONE_NUMBER":
                 phone = re.sub(r"\D", "", contact.value)
             elif contact.type == "EMAIL":
-                email = contact.value
+                try:
+                    validate_email(contact.value)
+                    email = contact.value
+                except ValidationError:
+                    pass
         ###Тут проверка на существование телефона, иначе будет ошибка при проверке __contains
         if phone:
             client = await client_models.Client.objects.filter(
