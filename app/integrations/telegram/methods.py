@@ -12,7 +12,8 @@ def send_message(chat_id: int, text: str, reply_markup):
             params={
                 "chat_id": chat_id,
                 "text": text,
-                "reply_markup": reply_markup
+                "reply_markup": reply_markup,
+                "parse_mode": "HTML"
             },
         )
     except Exception as error:
