@@ -36,6 +36,12 @@ class Doctor(models.Model):
     fired_date = models.DateField(null=True, blank=True, verbose_name="Дата увольнения")
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
 
+    def __str__(self):
+        full_name = f"{self.last_name} {self.first_name}"
+        if self.middle_name:
+            full_name += f" {self.middle_name}"
+        return full_name
+
     class Meta:
         verbose_name = "Врач"
         verbose_name_plural = "Врачи"

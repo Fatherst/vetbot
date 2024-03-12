@@ -6,12 +6,13 @@ from aiogram import types
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram import Router, F
+from asgiref.sync import sync_to_async
 from aiogram.filters import Command, Filter
 from django.conf import settings
+from sentry_sdk import capture_message
 from integrations.easysms.methods import easy_send_code
 from client_auth import keyboards
 from .models import Client
-from sentry_sdk import capture_message
 
 logger = logging.getLogger(__name__)
 client_router = Router()
@@ -46,13 +47,25 @@ async def prepare_authentication_response(
 ) -> AuthResult:
     client = await Client.objects.filter(tg_chat_id=user_id).afirst()
     if client:
-        if client.first_name and client.middle_name and client.last_name:
-            greeting = (f"<b>{client.last_name} {client.first_name} {client.middle_name}</b>, "
-                        f"приветствую\n\n<b>Выберите, "
-                        f"что вас интересует "
-                        f"⤵</b>")
+        if client.enote_id:
+            full_name = await sync_to_async(lambda: client.full_name)()
+            if full_name:
+                greeting = f"<b>{full_name}</b>, "
+            else:
+                greeting = "<b>Уважаемый клиент</b>, "
+            greeting += (
+                "поздравляем, Вы идентифицированы в нашем Центре!\n\n<b>Выберите, "
+                "что вас интересует "
+                "⤵</b>"
+            )
         else:
-            greeting = "Приветствую\n\n<b>Выберите, что вас интересует ⤵</b>"
+            greeting = (
+                "Здравствуйте!\n\nВыберите, что вас интересует ⤵️\n\nПрямо сейчас Вы "
+                "можете:\n- Записаться на прием.\n- Узнать больше о нашем "
+                "центре.\n- "
+                "Познакомиться с условиями программы лояльности.\n- Посмотреть состав "
+                "нашей дружной команды."
+            )
         return AuthResult(
             greeting,
             False,
@@ -100,8 +113,10 @@ async def process_client_phone(
         if settings.USE_EASY_SMS:
             code = random.randrange(1001, 9999)
             code_sent = await easy_send_code(code, "7" + user_phone_number[1:])
-            text = "Приветствую!\n\n" \
-                   "Напишите код из 4-х цифр, который придёт на ваш телефон"
+            text = (
+                "Приветствую!\n\n"
+                "Напишите код из 4-х цифр, который придёт на ваш телефон"
+            )
         else:
             code = 1
             code_sent = True

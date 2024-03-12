@@ -1,7 +1,5 @@
 from django.db import models
 import logging
-from asgiref.sync import sync_to_async
-import asyncio
 from model_utils import FieldTracker
 from integrations.enote.methods import get_balance
 from django.conf import settings
@@ -59,6 +57,23 @@ class Client(models.Model):
         balance = get_balance(self.enote_id, card.enote_id)
         return balance
 
+    @property
+    def full_name(self):
+        if self.first_name and self.last_name:
+            last_name_first_name = f"{self.last_name} {self.first_name}"
+            if self.middle_name:
+                full_name = f"{last_name_first_name} {self.middle_name}"
+            else:
+                full_name = f"{last_name_first_name}"
+            return full_name
+        return None
+
+    def __str__(self):
+        if self.full_name:
+            return self.full_name
+        else:
+            return f"Клиент {self.pk}"
+
     class Meta:
         verbose_name = "Клиент"
         verbose_name_plural = "Клиенты"
@@ -78,6 +93,12 @@ class AnimalKind(models.Model):
     class Meta:
         verbose_name = "Вид"
         verbose_name_plural = "Виды"
+
+    def __str__(self):
+        if self.name:
+            return self.name
+        else:
+            return self.pk
 
 
 class BlockedClient(models.Model):
@@ -112,6 +133,12 @@ class Patient(models.Model):
     client = models.ForeignKey(
         Client, on_delete=models.PROTECT, verbose_name="Клиент", related_name="patients"
     )
+
+    def __str__(self):
+        if self.name:
+            return self.name
+        else:
+            return self.pk
 
     class Meta:
         verbose_name = "Пациент"

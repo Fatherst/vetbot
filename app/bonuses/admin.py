@@ -17,11 +17,12 @@ class CardAdmin(admin.ModelAdmin):
         "id",
         "enote_id",
         "card_number",
-        "client_id",
+        "client",
         "category_id",
         "deleted",
     )
     search_fields = ["enote_id", "client__id"]
+    list_display_links = ["enote_id"]
 
 
 @admin.register(DiscountCardCategory)
@@ -80,6 +81,7 @@ class BonusAccrualAdmin(admin.ModelAdmin):
         "modified_at",
         "accrued",
     )
+    list_display_links = ["client"]
     search_fields = ["client"]
 
 
@@ -88,6 +90,7 @@ class RecommendationAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "modified_at"]
     list_display = ("id", "promocode", "issued", "client", "created_at", "modified_at")
     search_fields = ["client", "promocode"]
+    list_display_links = ["promocode"]
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.issued:

@@ -39,6 +39,7 @@ class PatientAdmin(admin.ModelAdmin):
         "kind",
         "client",
     )
+    list_display_links = ["name"]
     search_fields = ["enote_id"]
 
 
@@ -61,4 +62,5 @@ class WeighingAdmin(admin.ModelAdmin):
         "patient",
         "weight",
     )
+    list_display_links = ["enote_id"]
     search_fields = ["enote_id"]

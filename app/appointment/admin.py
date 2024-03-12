@@ -49,4 +49,5 @@ class SpecializationAdmin(admin.ModelAdmin):
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ("id", "enote_id", "client", "date", "sum")
+    list_display_links = ["enote_id"]
     search_fields = ["enote_id"]
