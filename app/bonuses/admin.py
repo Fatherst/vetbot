@@ -18,9 +18,10 @@ class CardAdmin(admin.ModelAdmin):
         "enote_id",
         "card_number",
         "client",
-        "category_id",
+        "category",
         "deleted",
     )
+    autocomplete_fields = ["client"]
     search_fields = ["enote_id", "client__id"]
     list_display_links = ["enote_id"]
 
@@ -39,6 +40,7 @@ class CardCategoryAdmin(admin.ModelAdmin):
 class BonusTransactionAdmin(admin.ModelAdmin):
     list_display = ("id", "enote_id", "sum", "discount_card", "datetime")
     search_fields = ["enote_id"]
+    autocomplete_fields = ["discount_card"]
 
 
 @admin.register(Program)
@@ -66,6 +68,7 @@ class StatusAdmin(admin.ModelAdmin):
         "start_amount",
         "end_amount",
     )
+    autocomplete_fields = ["program"]
     search_fields = ["name"]
 
 
@@ -81,8 +84,9 @@ class BonusAccrualAdmin(admin.ModelAdmin):
         "modified_at",
         "accrued",
     )
+    autocomplete_fields = ["client"]
     list_display_links = ["client"]
-    search_fields = ["client"]
+    search_fields = ["client__last_name"]
 
 
 @admin.register(Recommendation)
@@ -91,6 +95,7 @@ class RecommendationAdmin(admin.ModelAdmin):
     list_display = ("id", "promocode", "issued", "client", "created_at", "modified_at")
     search_fields = ["client", "promocode"]
     list_display_links = ["promocode"]
+    autocomplete_fields = ["client"]
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.issued:

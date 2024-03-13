@@ -110,6 +110,9 @@ class Appointment(models.Model):
         verbose_name = "Запись на приём"
         verbose_name_plural = "Записи на приём"
 
+    def __str__(self):
+        return f"Запись на: {self.date_time}"
+
 
 class Invoice(models.Model):
     enote_id = models.CharField(
