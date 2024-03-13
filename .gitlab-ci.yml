@@ -96,7 +96,7 @@ review_bot:
     url: https://$CI_MERGE_REQUEST_ID.vetbot.hhw.ru
     on_stop: stop_review
   script:
-    - VERSION=1.1.0
+    - VERSION=1.1.1
     - helm upgrade
       --install $SERVICE_NAME "$HELM_REPO/$HELM_CHART"
       --namespace "${CI_COMMIT_REF_SLUG}-vet-bot" --create-namespace
