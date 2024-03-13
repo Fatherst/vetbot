@@ -45,19 +45,19 @@ pod:
       - "sh"
       - "-c"
       - "python manage.py start_bot"
-    lifecycle:
-      postStart:
-        exec:
-          command: 
-            - "/bin/sh"
-            - "-c"
-            - "echo Container started"
-      preStop:
-        exec:
-          command: 
-            - "/bin/sh"
-            - "-c"
-            - "echo Container stopping"
+#    lifecycle:
+#      postStart:
+#        exec:
+#          command: 
+#            - "/bin/sh"
+#            - "-c"
+#            - "echo Container started"
+#      preStop:
+#        exec:
+#          command: 
+#            - "/bin/sh"
+#            - "-c"
+#            - "echo Container stopping"
   - name: $SERVICE_NAME-redis
     image:
       repository: redis
