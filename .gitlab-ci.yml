@@ -107,7 +107,7 @@ review_bot:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       variables:
         ENVIRONMENT_NAME: 'review/$CI_COMMIT_REF_SLUG'
-        BUILD_TAG: '$CI_COMMIT_REF_SLUG'
+        BUILD_TAG_SHA: '$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA'
       changes:
         paths:
           - $SERVICE_NAME/**/*
