@@ -14,6 +14,7 @@ class ClientAdmin(admin.ModelAdmin):
         "phone_number",
         "tg_chat_id",
     )
+    ordering = ["last_name"]
     search_fields = ["enote_id", "last_name", "phone_number"]
 
 
@@ -39,6 +40,7 @@ class PatientAdmin(admin.ModelAdmin):
         "kind",
         "client",
     )
+    autocomplete_fields = ["client"]
     list_display_links = ["name"]
     search_fields = ["enote_id"]
 
@@ -62,5 +64,6 @@ class WeighingAdmin(admin.ModelAdmin):
         "patient",
         "weight",
     )
+    autocomplete_fields = ["patient"]
     list_display_links = ["enote_id"]
     search_fields = ["enote_id"]

@@ -110,6 +110,9 @@ class BlockedClient(models.Model):
         verbose_name = "Заблокированный клиент"
         verbose_name_plural = "Заблокированные клиенты"
 
+    def __str__(self):
+        return self.client
+
 
 class Patient(models.Model):
     enote_id = models.CharField(
@@ -164,3 +167,6 @@ class Weighing(models.Model):
     class Meta:
         verbose_name = "Взвешивание"
         verbose_name_plural = "Взвешивания"
+
+    def __str__(self):
+        return f"Взвешивание пациента {self.patient}"

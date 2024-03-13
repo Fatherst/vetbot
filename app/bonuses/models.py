@@ -20,6 +20,11 @@ class DiscountCardCategory(models.Model):
         verbose_name = "Категория дисконтных карт"
         verbose_name_plural = "Категории дисконтных карт"
 
+    def __str__(self):
+        if self.name:
+            return self.name
+        return f"Категория {self.pk}"
+
 
 class DiscountCard(models.Model):
     enote_id = models.CharField(
@@ -52,6 +57,9 @@ class DiscountCard(models.Model):
         verbose_name = "Дисконтная карта"
         verbose_name_plural = "Дисконтные карты"
 
+    def __str__(self):
+        return f"Дисконтная карта клиента {self.client}"
+
 
 class BonusTransaction(models.Model):
     enote_id = models.CharField(max_length=150, unique=True, db_index=True)
@@ -64,6 +72,9 @@ class BonusTransaction(models.Model):
     class Meta:
         verbose_name = "Транзакция по бонусной карте"
         verbose_name_plural = "Транзакции по бонусной карте"
+
+    def __str__(self):
+        return f"Транзакция на карту клиента {self.discount_card.client}"
 
 
 class Program(models.Model):
@@ -101,6 +112,9 @@ class Program(models.Model):
         ]
         verbose_name = "Программа лояльности"
         verbose_name_plural = "Программы лояльности"
+
+    def __str__(self):
+        return self.name
 
 
 class Status(models.Model):
@@ -171,6 +185,9 @@ class Status(models.Model):
         verbose_name = "Статус программы лояльности"
         verbose_name_plural = "Статусы программы лояльности"
 
+    def __str__(self):
+        return self.name
+
 
 class BonusAccrual(models.Model):
     class ReasonChoices(models.TextChoices):
@@ -217,6 +234,9 @@ class BonusAccrual(models.Model):
         verbose_name = "Начисление бонусов"
         verbose_name_plural = "Начисления бонусов"
 
+    def __str__(self):
+        return f"Начисление клиенту: {self.client}"
+
 
 class Recommendation(models.Model):
     promocode = models.CharField(verbose_name="Промокод", unique=True)
@@ -232,3 +252,6 @@ class Recommendation(models.Model):
     class Meta:
         verbose_name = "Рекомендация"
         verbose_name_plural = "Рекомендации"
+
+    def __str__(self):
+        return f"Рекомендация с промокодом: {self.promocode}"
