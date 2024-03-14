@@ -1,7 +1,7 @@
 import random
 
 from admin_auth import keyboards
-from admin_auth.models import Admin
+#from admin_auth.models import Admin
 from bot.bot_init import bot
 from bot.states import AdminAuthStates
 from django.conf import settings
@@ -12,6 +12,7 @@ from telebot import types
 
 @bot.message_handler(commands=["admin"])
 async def admin_command(message: types.Message):
+    return
     bot.delete_state(user_id=message.chat.id)
     admin = Admin.objects.filter(tg_chat_id=message.from_user.id).first()
     if admin:
