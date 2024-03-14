@@ -1,11 +1,11 @@
 from django.db import models
+from django.contrib.auth.models import User
 
-from django.contrib.auth.models import AbstractUser
 
-
-class Admin(AbstractUser):
+class Admin(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     tg_chat_id = models.IntegerField(
-        null=True, blank=True, verbose_name="Telegram Id", unique=True
+        verbose_name="Telegram Id", unique=True
     )
 
     class Meta:
