@@ -108,11 +108,7 @@ class AnimalKind(models.Model):
         if self.name:
             return self.name
         else:
-<<<<<<< HEAD
             return f"Вид животного {self.pk}"
-=======
-            return self.pk
->>>>>>> webhooks
 
 
 class BlockedClient(models.Model):
