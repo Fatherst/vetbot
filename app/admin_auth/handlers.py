@@ -5,7 +5,7 @@ from admin_auth import keyboards
 from bot.bot_init import bot
 from bot.states import AdminAuthStates
 from django.conf import settings
-from django.contrib.auth.models import User
+f#rom django.contrib.auth.models import User
 from django.core.mail import send_mail
 from telebot import types
 
@@ -35,6 +35,7 @@ async def admin_command(message: types.Message):
 
 @bot.message_handler(state=AdminAuthStates.email)
 def handle_admin_email(message: types.Message):
+    return
     email = message.text
     user = User.objects.filter(email=email).first()
     if user:
@@ -60,6 +61,7 @@ def handle_admin_email(message: types.Message):
 
 @bot.message_handler(state=AdminAuthStates.code)
 def handle_admin_email_code(message: types.Message):
+    return
     with bot.retrieve_data(user_id=message.chat.id) as data:
         user_id = data["user_id"]
         code = str(data["code"])
