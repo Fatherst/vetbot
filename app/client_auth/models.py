@@ -1,10 +1,8 @@
-from django.db import models
-import logging
-from model_utils import FieldTracker
-from integrations.enote.methods import get_balance
+from bot.bot_init import logger
 from django.conf import settings
-
-logger = logging.getLogger(__name__)
+from django.db import models
+from integrations.enote.methods import ClientBalance, get_balance
+from model_utils import FieldTracker
 
 
 class Client(models.Model):
@@ -38,24 +36,36 @@ class Client(models.Model):
 
     @property
     def discount_card(self):
-        active_discount_cards = self.discount_cards.filter(deleted=False).filter(
-            category__enote_id=settings.CATEGORY_ENOTE_ID
+        discount_cards = self.discount_cards.filter(
+            deleted=False, category__enote_id=settings.CATEGORY_ENOTE_ID
         )
-        if active_discount_cards.count() == 1:
-            return active_discount_cards.first()
+        if discount_cards.count() == 1:
+            return discount_cards.first()
         logger.error(
-            f"Возникла ошибка с клиентом {self.first_name} {self.last_name} enote_id:"
-            f" {self.enote_id}. Больше одной / нет карт для начисления бонусов "
+            f"Возникла ошибка с клиентом {self.id}: Больше одной/нет карт "
+            "для начисления бонусов"
         )
         return False
 
     @property
-    def balance(self):
-        card = self.discount_card
-        if not card:
-            return None
-        balance = get_balance(self.enote_id, card.enote_id)
-        return balance
+    def balance(self) -> ClientBalance:
+        if self.discount_card:
+            return get_balance(self.enote_id, self.discount_card.enote_id)
+        return ClientBalance(money_spent=0, bonus_balance=0)
+
+    @property
+    def full_name(self):
+        if self.first_name and self.last_name:
+            full_name = f"{self.last_name} {self.first_name}"
+            full_name += f" {self.middle_name}" if self.middle_name else ""
+            return full_name
+        return None
+
+    def __str__(self):
+        if self.full_name:
+            return self.full_name
+        else:
+            return f"Клиент {self.pk}"
 
     @property
     def full_name(self):
@@ -98,13 +108,17 @@ class AnimalKind(models.Model):
         if self.name:
             return self.name
         else:
+<<<<<<< HEAD
+            return f"Вид животного {self.pk}"
+=======
             return self.pk
+>>>>>>> webhooks
 
 
 class BlockedClient(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.PROTECT)
-    reason = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
+    reason = models.TextField(blank=True, null=True, verbose_name="Причина")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:
         verbose_name = "Заблокированный клиент"
@@ -126,7 +140,7 @@ class Patient(models.Model):
     time_of_death = models.DateTimeField(
         null=True, blank=True, verbose_name="Время смерти"
     )
-    deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
+    deleted = models.BooleanField(default=False, verbose_name="Удалён")
     kind = models.ForeignKey(
         AnimalKind,
         on_delete=models.PROTECT,
@@ -141,7 +155,11 @@ class Patient(models.Model):
         if self.name:
             return self.name
         else:
+<<<<<<< HEAD
+            return f"Пациент {self.pk}"
+=======
             return self.pk
+>>>>>>> webhooks
 
     class Meta:
         verbose_name = "Пациент"

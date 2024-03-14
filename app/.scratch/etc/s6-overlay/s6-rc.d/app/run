@@ -1,4 +1,4 @@
 #!/command/execlineb -P
 with-contenv
 cd /opt/app
-/opt/app/run_asgi.sh
+/opt/app/entrypoint.sh

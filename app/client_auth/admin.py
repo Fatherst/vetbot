@@ -1,69 +1,54 @@
+from client_auth import filters, models
 from django.contrib import admin
-from .models import Client, BlockedClient, Patient, AnimalKind, Weighing
 
 
-@admin.register(Client)
+class PatientInline(admin.TabularInline):
+    model = models.Patient
+    extra = 0
+
+
+@admin.register(models.Client)
 class ClientAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "enote_id",
         "first_name",
-        "middle_name",
         "last_name",
-        "email",
+        "middle_name",
         "phone_number",
         "tg_chat_id",
     )
-    ordering = ["last_name"]
-    search_fields = ["enote_id", "last_name", "phone_number"]
+    search_fields = ("enote_id", "last_name", "phone_number", "email")
+    list_filter = ("deleted", filters.WithTelegramIDFilter, filters.WithEnoteIDFilter)
+    inlines = (PatientInline,)
 
 
-@admin.register(BlockedClient)
+@admin.register(models.BlockedClient)
 class BlockedClientAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "reason",
-        "created_at",
-        "client_id",
-    )
+    list_display = ("client", "reason", "created_at")
+    autocomplete_fields = ("client",)
+    search_fields = ("client__last_name", "client__phone_number", "client__id")
 
 
-@admin.register(Patient)
+@admin.register(models.Patient)
 class PatientAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "enote_id",
-        "name",
-        "birth_date",
-        "time_of_death",
+    list_display = ("client", "name", "kind", "birth_date", "time_of_death")
+    search_fields = ("enote_id", "client", "name")
+    list_filter = (
         "deleted",
         "kind",
-        "client",
+        filters.DeadPatientFilter,
+        filters.AnimalKindFilter,
     )
-    autocomplete_fields = ["client"]
-    list_display_links = ["name"]
-    search_fields = ["enote_id"]
 
 
-@admin.register(AnimalKind)
+@admin.register(models.AnimalKind)
 class AnimalKindAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "enote_id",
-        "name",
-    )
-    search_fields = ["enote_id"]
+    list_display = ("id", "name")
+    search_fields = ("name", "enote_id")
 
 
-@admin.register(Weighing)
+@admin.register(models.Weighing)
 class WeighingAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "enote_id",
-        "date",
-        "patient",
-        "weight",
-    )
-    autocomplete_fields = ["patient"]
-    list_display_links = ["enote_id"]
-    search_fields = ["enote_id"]
+    list_display = ("id", "patient", "weight", "date")
+    search_fields = ("enote_id", "patient")
+    autocomplete_fields = ("patient",)

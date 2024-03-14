@@ -1,131 +1,132 @@
-import logging
-import string
 import random
-from aiogram import Router, F
-from aiogram import types
-from asgiref.sync import sync_to_async
-from sentry_sdk import capture_message
-from .keyboards import bonuses_menu, back_to_menu, back_to_bonuses
-from client_auth.keyboards import main_menu
-from client_auth.models import Client
+import string
+
+from bonuses import keyboards
 from bonuses.models import Program, Recommendation
-
-logger = logging.getLogger(__name__)
-
-
-bonuses_router = Router()
+from bot.bot_init import bot
+from client_auth.models import Client
+from telebot import types
 
 
-async def retrieve_greeting(full_name):
-    if full_name:
-        greeting = f"<b>{full_name}</b>, "
-    else:
-        greeting = "<b>Уважаемый клиент</b>, "
-    return greeting
-
-
-async def create_description(program: Program):
+def create_program_description(program: Program) -> str:
     text = (
-        "В рамках программы лояльности Клиника начисляет Клиентам бонусные баллы (кешбэк), "
-        f"которые можно использовать для оплаты услуг Клиники.\n\n{program.description}\n\nРазмер кешбэка зависит от статуса"
-        " Клиента в программе лояльности:"
+        "В рамках программы лояльности Клиника начисляет Клиентам бонусные "
+        "баллы (кешбэк), которые можно использовать для оплаты услуг Клиники.\n\n"
+        f"{program.description}\n\nРазмер кешбэка зависит от статуса "
+        "Клиента в программе лояльности:"
     )
     return text
 
 
-@bonuses_router.callback_query(F.data == "bonuses")
-async def bonuses_program(callback: types.CallbackQuery):
-    program = await Program.objects.filter(is_active=True).afirst()
-    client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
-    balance_and_spending = await sync_to_async(lambda: client.balance)()
-    full_name = await sync_to_async(lambda: client.full_name)()
-    greeting = await retrieve_greeting(full_name)
-    if not balance_and_spending:
-        text = await create_description(program)
-        capture_message("Не удалось получить информацию о балансе и расходах клиента.")
-        await callback.message.edit_text(
-            text=text, reply_markup=await main_menu(bool(client.enote_id))
-        )
-        return
-    balance, money_spent = balance_and_spending
-    status = await program.retrieve_status(money_spent)
-    balance_msg = f"Баланс Вашего бонусного счета: {balance} бонусных баллов.\n\n{program.description}"
-    if status:
-        msg = (
-            f"на данный момент Ваш статус в программе лояльности:\n\n<b>{status.name}</b>\n\nЭто "
-            f"значит, что Вы получаете {status.cashback_amount}% бонусными баллами с потраченной "
-            f"в Клинике суммы!\n\n{balance_msg}"
-        )
-    else:
-        capture_message("Неправильно указаны интервалы статусов программ")
-        msg = balance_msg
-    await callback.message.edit_text(
-        text=f"{greeting} {msg}",
-        reply_markup=await bonuses_menu(),
-    )
+def generate_statuses_description(program: Program) -> str:
+    program_description = create_program_description(program)
 
-
-@bonuses_router.callback_query(F.data == "loyalty")
-async def loyalty_program(callback: types.CallbackQuery):
-    client = await Client.objects.filter(tg_chat_id=callback.from_user.id).afirst()
-    program = await Program.objects.filter(is_active=True).afirst()
-    text = await create_description(program)
-    statuses = await sync_to_async(list)(program.statuses.order_by("start_amount"))
-    reply_markup = await back_to_menu()
-    if client.enote_id:
-        reply_markup = await back_to_bonuses()
-    for status in statuses:
+    status_description = ""
+    for status in program.statuses.order_by("start_amount"):
         if status.end_amount:
-            text += (
+            status_description += (
                 f"\n\n<b>{status.name} статус</b> - кешбэк {status.cashback_amount}%\n<i>Клиент "
                 f"оплатил услуг Клиники на {status.start_amount} - {status.end_amount} руб</i>"
             )
         else:
-            text += (
+            status_description += (
                 f"\n\n<b>{status.name} статус</b> - кешбэк {status.cashback_amount}%\n<i>Клиент "
                 f"оплатил услуг Клиники на {status.start_amount} и больше руб</i>"
             )
-    await callback.message.edit_text(
-        text=f"{text}"
-        f"\n\nКроме этого, Клиника подарит {program.new_client_bonus_amount} бонусных баллов за каждого нового Клиента, "
-        "которому Вы рекомендовали нашу Клинику.",
+
+    new_client_description = (
+        f"\n\nКроме этого, Клиника подарит {program.new_client_bonus_amount} бонусных "
+        "баллов за каждого нового Клиента, которому Вы рекомендовали нашу Клинику."
+    )
+    return program_description + status_description + new_client_description
+
+
+@bot.callback_query_handler(func=lambda c: c.data == "bonuses")
+def bonus_program(call: types.CallbackQuery):
+    program = Program.objects.filter(is_active=True).first()
+    client = Client.objects.get(tg_chat_id=call.from_user.id)
+
+    balance_info = client.balance
+    name = client.full_name if client.full_name else "Уважаемый клиент"
+    balance_message = (
+        f"Баланс Вашего бонусного счета: {balance_info.bonus_balance} "
+        "бонусных баллов.\n\n"
+    )
+    status_message = ""
+
+    status = program.retrieve_status(balance_info.money_spent)
+    if status:
+        status_message = (
+            f"на данный момент Ваш статус в программе лояльности:\n\n<b>{status.name}</b>"
+            f"\n\nЭто значит, что Вы получаете {status.cashback_amount}% бонусными "
+            "баллами с потраченной в Клинике суммы!\n\n"
+        )
+    text = f"<b>{name}</b>, {status_message}{balance_message}{program.description}"
+    bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=text,
+        reply_markup=keyboards.bonuses_menu(),
+    )
+
+
+@bot.callback_query_handler(func=lambda c: c.data == "loyalty")
+def program_status(call: types.CallbackQuery):
+    client = Client.objects.get(tg_chat_id=call.from_user.id)
+    program = Program.objects.filter(is_active=True).first()
+
+    if client.enote_id:
+        reply_markup = keyboards.back_to_bonuses()
+    else:
+        reply_markup = keyboards.back_to_main_menu()
+
+    bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=generate_statuses_description(program),
         reply_markup=reply_markup,
     )
 
 
-async def create_promocode() -> str:
+def create_promocode() -> str:
     while True:
-        promocode = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        is_unique = (
-            await Recommendation.objects.filter(promocode=promocode).aexists() is False
+        SIZE = 6
+        promocode = "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=SIZE)
         )
+        is_unique = not Recommendation.objects.filter(promocode=promocode).exists()
         if is_unique:
             return promocode
 
 
-@bonuses_router.callback_query(
-    F.data.in_({"recommend_from_bonuses", "recommend_from_menu"})
+@bot.callback_query_handler(
+    func=lambda c: c.data in ["recommend_from_bonuses", "recommend_from_menu"]
 )
-async def get_promocode(callback: types.CallbackQuery):
-    promocode = await create_promocode()
-    client = await Client.objects.aget(tg_chat_id=callback.from_user.id)
-    program = await Program.objects.filter(is_active=True).afirst()
-    await Recommendation.objects.acreate(promocode=promocode, client=client)
-    full_name = await sync_to_async(lambda: client.full_name)()
-    greeting = await retrieve_greeting(full_name)
-    if callback.data == "recommend_from_menu":
-        reply_markup = await back_to_menu()
+def get_promocode(call: types.CallbackQuery):
+    client = Client.objects.get(tg_chat_id=call.from_user.id)
+    program = Program.objects.filter(is_active=True).first()
+
+    promocode = create_promocode()
+    Recommendation.objects.create(promocode=promocode, client=client)
+
+    if call.data == "recommend_from_menu":
+        reply_markup = keyboards.back_to_main_menu()
     else:
-        reply_markup = await back_to_bonuses()
-    msg = (
-        f"{greeting}мы безмерно ценим, когда нас рекомендуют!\n\nПоэтому мы начислим {program.new_client_bonus_amount} "
-        f"бонусных баллов на Ваш счет в Клинике и {program.new_client_bonus_amount} приветственных баллов Вашему другу "
+        reply_markup = keyboards.back_to_bonuses()
+
+    name = client.full_name if client.full_name else "Уважаемый клиент"
+    text = (
+        f"<b>{name}</b>, мы безмерно ценим, когда нас рекомендуют!\n\nПоэтому мы начислим "
+        f"{program.new_client_bonus_amount} бонусных баллов на Ваш счет в Клинике "
+        f"и {program.new_client_bonus_amount} приветственных баллов Вашему другу "
         "или родственнику в знак благодарности за каждого нашего будущего Клиента, "
         "которому Вы порекомендуете наш Центр. \n\nЧтобы рекомендовать нас,перешлите "
         "промокод клиенту, который собирается прийти в клинику ⤵️\n\nВаш промокод: "
         f"{promocode}"
     )
-    await callback.message.edit_text(
-        text=msg,
+    bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=text,
         reply_markup=reply_markup,
     )

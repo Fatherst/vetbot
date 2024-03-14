@@ -95,13 +95,27 @@ class Appointment(models.Model):
         default=StatusChoices.PLANNED,
     )
     patient = models.ForeignKey(
-        Patient, on_delete=models.PROTECT, verbose_name="Пациент", null=True, blank=True
+        Patient,
+        on_delete=models.PROTECT,
+        verbose_name="Пациент",
+        null=True,
+        blank=True,
+        related_name="appointments",
     )
     client = models.ForeignKey(
-        Client, on_delete=models.PROTECT, verbose_name="Клиент", null=True
+        Client,
+        on_delete=models.PROTECT,
+        verbose_name="Клиент",
+        null=True,
+        related_name="appointments",
     )
     doctor = models.ForeignKey(
-        Doctor, on_delete=models.PROTECT, verbose_name="Доктор", null=True, blank=True
+        Doctor,
+        on_delete=models.PROTECT,
+        verbose_name="Доктор",
+        null=True,
+        blank=True,
+        related_name="appointments",
     )
     date_time = models.DateTimeField(verbose_name="Время записи")
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")

@@ -1,14 +1,10 @@
-import asyncio
 import json
 from django.dispatch import receiver
-import logging
 from django.db.models.signals import post_save
 from bonuses.models import BonusAccrual, Recommendation, Program
-from integrations.telegram.methods import send_message
-from .tasks import accrual_bonuses_by_enote
-from bonuses.handlers import retrieve_greeting
-
-logger = logging.getLogger(__name__)
+from bonuses.tasks import accrual_bonuses_by_enote
+from bot.bot_init import bot, logger
+from bonuses import keyboards
 
 
 @receiver(post_save, sender=BonusAccrual)
@@ -20,37 +16,26 @@ def accrue_bonuses(created, instance, **kwargs):
 @receiver(post_save, sender=BonusAccrual)
 def send_notification(instance, **kwargs):
     if instance.accrued and instance.tracker.has_changed("accrued"):
-        full_name = instance.client.full_name
-        greeting = asyncio.run(retrieve_greeting(full_name))
-        reason_messages = {
+        client = instance.client
+        name = client.full_name if client.full_name else "Уважаемый клиент"
+
+        REASONS = {
             "REGISTRATION": "Бонус за подключение к боту ветеринарного центра Друзья 🐈!",
             "BIRTHDAY": "Бонус на день рождения пациента!",
             "REFERAL_GETTER": "Бонус за принятие приглашения в клинику!",
-            "REFERAL_SENDER": "Бонус за приглашенного в клинику клиента!",
+            "REFERAL_SETTER": "Бонус за приглашенного в клинику клиента!",
             "MANUAL": "Вам были вручную начислены бонусы!",
         }
-        reason_message = reason_messages.get(
-            instance.reason, "Вам были начислены бонусы!"
-        )
-        reply_markup = {
-            "inline_keyboard": [
-                [
-                    {
-                        "text": "💲 Получить больше бонусов",
-                        "callback_data": "recommend_from_menu",
-                    }
-                ]
-            ]
-        }
-        msg = (
-            f"{greeting}Вам начислено {instance.amount} бонусных баллов\n\nВы можете "
+        DEFAULT_REASON = "Вам были начислены бонусы!"
+        reason_message = REASONS.get(instance.reason, DEFAULT_REASON)
+
+        text = (
+            f"<b>{name}</b>, Вам начислено {instance.amount} бонусных баллов\n\nВы можете "
             f"использовать их для оплаты услуг в нашем Центре\n\n1 бонусный балл = 1 "
             f"рубль\n\n{reason_message}"
         )
-        send_message(
-            instance.client.tg_chat_id,
-            text=msg,
-            reply_markup=json.dumps(reply_markup),
+        bot.send_message(
+            chat_id=client.tg_chat_id, text=text, reply_markup=keyboards.more_bonuses()
         )
 
 
@@ -63,9 +48,9 @@ def accrue_recommendation_bonus(instance, **kwargs):
             instance.issued = False
             instance.save()
             logger.error(error)
-            return
-        BonusAccrual.objects.create(
-            client=instance.client,
-            amount=active_program.new_client_bonus_amount,
-            reason="REFERAL_SENDER",
-        )
+        else:
+            BonusAccrual.objects.create(
+                client=instance.client,
+                amount=active_program.new_client_bonus_amount,
+                reason="REFERAL_SENDER",
+            )

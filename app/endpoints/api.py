@@ -1,33 +1,19 @@
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
-from ninja import Router
 import re
-import logging
-from .schemas import (
-    Client,
-    Result,
-    Response,
-    Kind,
-    DiscountCardCategory,
-    DiscountCard,
-    Doctor,
-    Appointment,
-    Patient,
-    Weighing,
-    Invoice,
-)
-from bonuses import models as bonus_models
-from client_auth import models as client_models
+
 from appointment import models as appointment_models
-
-
-logger = logging.getLogger(__name__)
+from bonuses import models as bonus_models
+from bot.bot_init import logger
+from client_auth import models as client_models
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from endpoints import schemas
+from ninja import Router
 
 
 client_router = Router()
 
 
-async def create_or_update_client(enote_client: Client) -> Result:
+async def create_or_update_client(enote_client: schemas.Client) -> schemas.Result:
     try:
         deleted = True if enote_client.state == "DELETED" else False
         contact_information = enote_client.contact_information
@@ -62,85 +48,87 @@ async def create_or_update_client(enote_client: Client) -> Result:
         _, created = await client_models.Client.objects.aupdate_or_create(
             enote_id=enote_client.enote_id, defaults=defaults
         )
-        return Result(
+        return schemas.Result(
             enote_id=enote_client.enote_id,
             result=True,
         )
     except Exception as error:
         logger.error(enote_client)
-        return Result(
+        return schemas.Result(
             enote_id=enote_client.enote_id, result=False, error_message=str(error)
         )
 
 
-@client_router.post("clients", response=Response, by_alias=True)
-async def process_clients(request, clients: list[Client]) -> Response:
-    clients_response = Response(response=[])
+@client_router.post("clients", response=schemas.Response, by_alias=True)
+async def process_clients(request, clients: list[schemas.Client]) -> schemas.Response:
+    clients_response = schemas.Response(response=[])
     for client in clients:
         clients_response.response.append(await create_or_update_client(client))
     return clients_response
 
 
-async def create_or_update_kind(enote_kind: Kind) -> Result:
+async def create_or_update_kind(enote_kind: schemas.Kind) -> schemas.Result:
     try:
         if enote_kind.state == "DELETED":
             await client_models.AnimalKind.objects.filter(
                 enote_id=enote_kind.enote_id
             ).adelete()
-            return Result(enote_id=enote_kind.enote_id, result=True)
+            return schemas.Result(enote_id=enote_kind.enote_id, result=True)
         defaults = {
             "name": enote_kind.name,
         }
         _, created = await client_models.AnimalKind.objects.aupdate_or_create(
             enote_id=enote_kind.enote_id, defaults=defaults
         )
-        return Result(enote_id=enote_kind.enote_id, result=True)
+        return schemas.Result(enote_id=enote_kind.enote_id, result=True)
     except Exception as error:
-        return Result(
+        return schemas.Result(
             enote_id=enote_kind.enote_id, result=False, error_message=str(error)
         )
 
 
-@client_router.post("kinds", response=Response, by_alias=True)
-async def process_kinds(request, kinds: list[Kind]) -> Response:
-    kinds_response = Response(response=[])
+@client_router.post("kinds", response=schemas.Response, by_alias=True)
+async def process_kinds(request, kinds: list[schemas.Kind]) -> schemas.Response:
+    kinds_response = schemas.Response(response=[])
     for kind in kinds:
         kinds_response.response.append(await create_or_update_kind(kind))
     return kinds_response
 
 
 async def create_or_update_card_categories(
-    category: DiscountCardCategory,
-) -> Result:
+    category: schemas.DiscountCardCategory,
+) -> schemas.Result:
     try:
         if category.state == "DELETED":
             await bonus_models.DiscountCardCategory.objects.filter(
                 enote_id=category.enote_id
             ).adelete()
-            return Result(enote_id=category.enote_id, result=True)
+            return schemas.Result(enote_id=category.enote_id, result=True)
         defaults = {
             "name": category.name,
         }
         _, created = await bonus_models.DiscountCardCategory.objects.aupdate_or_create(
             enote_id=category.enote_id, defaults=defaults
         )
-        return Result(
+        return schemas.Result(
             enote_id=category.enote_id,
             result=True,
         )
     except Exception as error:
-        return Result(
+        return schemas.Result(
             enote_id=category.enote_id,
             result=False,
             error_message=str(error),
         )
 
 
-@client_router.post("discount_cards/categories", response=Response, by_alias=True)
+@client_router.post(
+    "discount_cards/categories", response=schemas.Response, by_alias=True
+)
 async def process_card_categories(
-    request, categories: list[DiscountCardCategory]
-) -> Response:
-    cards_categories_response = Response(response=[])
+    request, categories: list[schemas.DiscountCardCategory]
+) -> schemas.Response:
+    cards_categories_response = schemas.Response(response=[])
     for category in categories:
         cards_categories_response.response.append(
             await create_or_update_card_categories(category)
@@ -148,7 +136,7 @@ async def process_card_categories(
     return cards_categories_response
 
 
-async def create_or_update_card(card: DiscountCard) -> Result:
+async def create_or_update_card(card: schemas.DiscountCard) -> schemas.Result:
     try:
         deleted = True if card.state == "DELETED" else False
         client = None
@@ -168,27 +156,27 @@ async def create_or_update_card(card: DiscountCard) -> Result:
         _, created = await bonus_models.DiscountCard.objects.aupdate_or_create(
             enote_id=card.enote_id, defaults=defaults
         )
-        return Result(
+        return schemas.Result(
             enote_id=card.enote_id,
             result=True,
         )
     except Exception as error:
-        return Result(
+        return schemas.Result(
             enote_id=card.enote_id,
             result=False,
             error_message=str(error),
         )
 
 
-@client_router.post("discount_cards", response=Response, by_alias=True)
-async def process_cards(request, cards: list[DiscountCard]) -> Response:
-    cards_response = Response(response=[])
+@client_router.post("discount_cards", response=schemas.Response, by_alias=True)
+async def process_cards(request, cards: list[schemas.DiscountCard]) -> schemas.Response:
+    cards_response = schemas.Response(response=[])
     for card in cards:
         cards_response.response.append(await create_or_update_card(card))
     return cards_response
 
 
-async def create_or_update_doctor(doctor_enote: Doctor) -> Result:
+async def create_or_update_doctor(doctor_enote: schemas.Doctor) -> schemas.Result:
     try:
         deleted = doctor_enote.state == "DELETED"
         specializations = []
@@ -213,31 +201,33 @@ async def create_or_update_doctor(doctor_enote: Doctor) -> Result:
         )
         if specializations:
             await doctor.specializations.aset(specializations)
-        return Result(
+        return schemas.Result(
             enote_id=doctor_enote.enote_id,
             result=True,
         )
     except Exception as error:
-        return Result(
+        return schemas.Result(
             enote_id=doctor_enote.enote_id,
             result=False,
             error_message=str(error),
         )
 
 
-@client_router.post("doctors", response=Response, by_alias=True)
-async def process_doctors(request, doctors: list[Doctor]) -> Response:
-    doctors_response = Response(response=[])
+@client_router.post("doctors", response=schemas.Response, by_alias=True)
+async def process_doctors(request, doctors: list[schemas.Doctor]) -> schemas.Response:
+    doctors_response = schemas.Response(response=[])
     for doctor in doctors:
         doctors_response.response.append(await create_or_update_doctor(doctor))
     return doctors_response
 
 
-async def create_or_update_appointment(appointment: Appointment) -> Result:
+async def create_or_update_appointment(
+    appointment: schemas.Appointment,
+) -> schemas.Result:
     try:
         deleted = appointment.state == "DELETED"
         if not appointment.client_enote_id:
-            return Result(
+            return schemas.Result(
                 enote_id=appointment.enote_id,
                 result=True,
             )
@@ -261,21 +251,23 @@ async def create_or_update_appointment(appointment: Appointment) -> Result:
         _, created = await appointment_models.Appointment.objects.aupdate_or_create(
             enote_id=appointment.enote_id, defaults=defaults
         )
-        return Result(
+        return schemas.Result(
             enote_id=appointment.enote_id,
             result=True,
         )
     except Exception as error:
-        return Result(
+        return schemas.Result(
             enote_id=appointment.enote_id,
             result=False,
             error_message=str(error),
         )
 
 
-@client_router.post("appointments", response=Response, by_alias=True)
-async def process_appointments(request, appointments: list[Appointment]) -> Response:
-    appointments_response = Response(response=[])
+@client_router.post("appointments", response=schemas.Response, by_alias=True)
+async def process_appointments(
+    request, appointments: list[schemas.Appointment]
+) -> schemas.Response:
+    appointments_response = schemas.Response(response=[])
     for appointment in appointments:
         appointments_response.response.append(
             await create_or_update_appointment(appointment)
@@ -283,7 +275,7 @@ async def process_appointments(request, appointments: list[Appointment]) -> Resp
     return appointments_response
 
 
-async def create_or_update_patient(patient: Patient) -> Result:
+async def create_or_update_patient(patient: schemas.Patient) -> schemas.Result:
     try:
         deleted = patient.state == "DELETED"
         client = await client_models.Client.objects.aget(
@@ -303,33 +295,35 @@ async def create_or_update_patient(patient: Patient) -> Result:
         _, created = await client_models.Patient.objects.aupdate_or_create(
             enote_id=patient.enote_id, defaults=defaults
         )
-        return Result(
+        return schemas.Result(
             enote_id=patient.enote_id,
             result=True,
         )
     except Exception as error:
-        return Result(
+        return schemas.Result(
             enote_id=patient.enote_id,
             result=False,
             error_message=str(error),
         )
 
 
-@client_router.post("patients", response=Response, by_alias=True)
-async def process_patients(request, patients: list[Patient]) -> Response:
-    patients_response = Response(response=[])
+@client_router.post("patients", response=schemas.Response, by_alias=True)
+async def process_patients(
+    request, patients: list[schemas.Patient]
+) -> schemas.Response:
+    patients_response = schemas.Response(response=[])
     for patient in patients:
         patients_response.response.append(await create_or_update_patient(patient))
     return patients_response
 
 
-async def create_or_update_weighing(weighing: Weighing) -> Result:
+async def create_or_update_weighing(weighing: schemas.Weighing) -> schemas.Result:
     try:
         if weighing.state == "DELETED":
             await client_models.Weighing.objects.filter(
                 enote_id=weighing.enote_id
             ).adelete()
-            return Result(enote_id=weighing.enote_id, result=True)
+            return schemas.Result(enote_id=weighing.enote_id, result=True)
         patient = await client_models.Patient.objects.aget(
             enote_id=weighing.patient_enote_id
         )
@@ -341,35 +335,37 @@ async def create_or_update_weighing(weighing: Weighing) -> Result:
         _, created = await client_models.Weighing.objects.aupdate_or_create(
             enote_id=weighing.enote_id, defaults=defaults
         )
-        return Result(
+        return schemas.Result(
             enote_id=weighing.enote_id,
             result=True,
         )
     except Exception as error:
-        return Result(
+        return schemas.Result(
             enote_id=weighing.enote_id,
             result=False,
             error_message=str(error),
         )
 
 
-@client_router.post("patients/weight", response=Response, by_alias=True)
-async def process_weighings(request, weighings: list[Weighing]) -> Response:
-    weighings_response = Response(response=[])
+@client_router.post("patients/weight", response=schemas.Response, by_alias=True)
+async def process_weighings(
+    request, weighings: list[schemas.Weighing]
+) -> schemas.Response:
+    weighings_response = schemas.Response(response=[])
     for weighing in weighings:
         weighings_response.response.append(await create_or_update_weighing(weighing))
     return weighings_response
 
 
-async def create_or_update_invoice(invoice: Invoice) -> Result:
+async def create_or_update_invoice(invoice: schemas.Invoice) -> schemas.Result:
     try:
         if invoice.state == "DELETED":
             await appointment_models.Invoice.objects.filter(
                 enote_id=invoice.enote_id
             ).adelete()
-            return Result(enote_id=invoice.enote_id, result=True)
+            return schemas.Result(enote_id=invoice.enote_id, result=True)
         if not (invoice.client_enote_id and invoice.date and invoice.sum_total):
-            return Result(enote_id=invoice.enote_id, result=True)
+            return schemas.Result(enote_id=invoice.enote_id, result=True)
         client = await client_models.Client.objects.aget(
             enote_id=invoice.client_enote_id
         )
@@ -381,21 +377,23 @@ async def create_or_update_invoice(invoice: Invoice) -> Result:
         _, created = await appointment_models.Invoice.objects.aupdate_or_create(
             enote_id=invoice.enote_id, defaults=defaults
         )
-        return Result(
+        return schemas.Result(
             enote_id=invoice.enote_id,
             result=True,
         )
     except Exception as error:
-        return Result(
+        return schemas.Result(
             enote_id=invoice.enote_id,
             result=False,
             error_message=str(error),
         )
 
 
-@client_router.post("invoices", response=Response, by_alias=True)
-async def process_invoices(request, invoices: list[Invoice]) -> Response:
-    invoices_response = Response(response=[])
+@client_router.post("invoices", response=schemas.Response, by_alias=True)
+async def process_invoices(
+    request, invoices: list[schemas.Invoice]
+) -> schemas.Response:
+    invoices_response = schemas.Response(response=[])
     for invoice in invoices:
         invoices_response.response.append(await create_or_update_invoice(invoice))
     return invoices_response

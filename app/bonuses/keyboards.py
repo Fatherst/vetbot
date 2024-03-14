@@ -1,45 +1,40 @@
-from aiogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-)
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-async def bonuses_menu():
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text="Условия программы лояльности 💝", callback_data="loyalty"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="Получить бонусы за рекомендацию 💲",
-                callback_data="recommend_from_bonuses",
-            ),
-        ],
-        [
-            InlineKeyboardButton(text="Назад 🔙", callback_data="main_menu"),
-        ],
-    ]
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return inline_markup
+def bonuses_menu() -> InlineKeyboardMarkup:
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text="Условия программы лояльности 💝", callback_data="loyalty"
+        ),
+        InlineKeyboardButton(
+            text="Получить бонусы за рекомендацию 💲",
+            callback_data="recommend_from_bonuses",
+        ),
+        InlineKeyboardButton(text="Назад 🔙", callback_data="main_menu"),
+    )
+    return markup
 
 
-async def back_to_bonuses():
-    buttons = [
-        [
-            InlineKeyboardButton(text="Назад 🔙", callback_data="bonuses"),
-        ],
-    ]
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return inline_markup
+def back_to_bonuses() -> InlineKeyboardMarkup:
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(text="Назад 🔙", callback_data="bonuses"),
+    )
+    return markup
 
 
-async def back_to_menu():
-    buttons = [
-        [
-            InlineKeyboardButton(text="Назад 🔙", callback_data="main_menu"),
-        ],
-    ]
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return inline_markup
+def back_to_main_menu():
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(InlineKeyboardButton(text="Назад 🔙", callback_data="main_menu"))
+    return markup
+
+
+def more_bonuses():
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text="💲 Получить больше бонусов", callback_data="recommend_from_menu"
+        )
+    )
+    return markup
