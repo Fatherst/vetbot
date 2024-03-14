@@ -2,6 +2,7 @@ import telebot
 from bot.bot_init import bot, logger
 from client_auth.handlers import *
 from bonuses.handlers import *
+from appointment.handlers import *
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
