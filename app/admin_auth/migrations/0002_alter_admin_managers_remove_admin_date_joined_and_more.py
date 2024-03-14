@@ -68,21 +68,9 @@ class Migration(migrations.Migration):
             model_name="admin",
             name="user",
             field=models.OneToOneField(
-<<<<<<< HEAD
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
                 to=settings.AUTH_USER_MODEL,
             ),
-=======
-                on_delete=django.db.models.deletion.CASCADE,
-                to=settings.AUTH_USER_MODEL,
-            ),
-            preserve_default=False,
-        ),
-        migrations.AlterField(
-            model_name="admin",
-            name="tg_chat_id",
-            field=models.IntegerField(unique=True, verbose_name="Telegram Id"),
->>>>>>> webhooks
         ),
     ]

@@ -108,11 +108,7 @@ class AnimalKind(models.Model):
         if self.name:
             return self.name
         else:
-<<<<<<< HEAD
             return f"Вид животного {self.pk}"
-=======
-            return self.pk
->>>>>>> webhooks
 
 
 class BlockedClient(models.Model):
@@ -155,11 +151,7 @@ class Patient(models.Model):
         if self.name:
             return self.name
         else:
-<<<<<<< HEAD
             return f"Пациент {self.pk}"
-=======
-            return self.pk
->>>>>>> webhooks
 
     class Meta:
         verbose_name = "Пациент"
