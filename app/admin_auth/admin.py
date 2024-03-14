@@ -6,11 +6,20 @@ from .models import Admin
 class AdminAdmin(admin.ModelAdmin):
     list_display = (
         "username",
-        "is_staff",
         "is_active",
-        "date_joined",
-        "first_name",
-        "last_name",
+        "full_name",
         "email",
         "tg_chat_id",
     )
+
+    def username(self, obj):
+        return obj.user.username
+
+    def full_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def is_active(self, obj):
+        return obj.user.is_active
+
+    def email(self, obj):
+        return obj.user.email
