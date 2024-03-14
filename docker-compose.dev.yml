@@ -15,20 +15,9 @@ services:
       - ./.env
     environment:
       SET_WEBHOOK: 1
-    entrypoint: ["/opt/app/run_asgi.sh"]
+    entrypoint: ["/opt/app/entrypoint.sh"]
     depends_on:
       - db
-  
-  bot:
-    build:
-      context: ./app
-      dockerfile: Dockerfile.dev
-    command: sh -c "python manage.py start_bot"
-    depends_on:
-      - db
-      - web
-    env_file:
-      - ./.env
 
   db:
     image: postgres:13.0-alpine

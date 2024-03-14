@@ -1,11 +1,14 @@
 import json
-import logging
-import requests
-from django.conf import settings
-from typing import Union
-from aiohttp.client_exceptions import ClientResponseError
 
-logger = logging.getLogger(__name__)
+import requests
+from bot.bot_init import logger
+from django.conf import settings
+from ninja import schema
+
+
+class ClientBalance(schema.BaseModel):
+    bonus_balance: int
+    money_spent: int
 
 
 def add_bonus_points(
@@ -23,25 +26,25 @@ def add_bonus_points(
             }
         ],
     }
-    json_data = json.dumps(data)
     headers = {
         "apikey": settings.ENOTE_APIKEY,
         "Authorization": settings.ENOTE_BASIC_AUTH,
     }
+    response = requests.post(
+        url=f"{settings.ENOTE_API_URL}/bonus_points",
+        headers=headers,
+        data=json.dumps(data),
+    )
     try:
-        resp = requests.post(
-            url=f"{settings.ENOTE_API_URL}/bonus_points",
-            headers=headers,
-            data=json_data,
-        )
-        resp.raise_for_status()
-        return True
-    except ClientResponseError as error:
-        logger.error(error)
+        response.raise_for_status()
+    except Exception as e:
+        logger.exception(e)
         return False
 
+    return True
 
-def get_balance(client_enote_id, card_enote_id) -> Union[tuple, bool]:
+
+def get_balance(client_enote_id: str, card_enote_id: str) -> ClientBalance:
     query_params = {
         "client_enote_id": client_enote_id,
         "department_enote_id": settings.ENOTE_BALANCE_DEPARTMENT,
@@ -51,22 +54,25 @@ def get_balance(client_enote_id, card_enote_id) -> Union[tuple, bool]:
         "apikey": settings.ENOTE_APIKEY,
         "Authorization": settings.ENOTE_BASIC_AUTH,
     }
+
+    response = requests.get(
+        url=f"{settings.ENOTE_API_URL}/balance",
+        params=query_params,
+        headers=headers,
+    )
+    money_spent = 0
+    bonus_balance = 0
     try:
-        resp = requests.get(
-            url=f"{settings.ENOTE_API_URL}/balance",
-            params=query_params,
-            headers=headers,
-        )
-        resp.raise_for_status()
-        body = resp.json()
+        response.raise_for_status()
+        body = response.json()
         income_1 = body["totalClientIncome"][0]
         income_2 = body["totalClientIncome"][1]
         if income_1["paymentMethod"] == "BONUS":
-            money_balance = income_2["total"]
+            money_spent = income_2["total"]
         else:
-            money_balance = income_1["total"]
+            money_spent = income_1["total"]
         bonus_balance = body["discountCardsBalances"][0]["total"]
-        return (bonus_balance, money_balance)
-    except ClientResponseError as error:
-        logger.error(error)
-        return False
+    except Exception as e:
+        logger.exception(e)
+
+    return ClientBalance(bonus_balance=bonus_balance, money_spent=money_spent)

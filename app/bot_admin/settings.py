@@ -9,6 +9,8 @@ from celery.schedules import crontab
 load_dotenv()
 
 INSTALLED_APPS = [
+    "admin_interface",
+    "colorfield",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -106,7 +108,8 @@ EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_WEBHOOK = os.getenv("BOT_WEBHOOK")
 
 API_USERNAME = os.getenv("API_USERNAME")
 API_PASSWORD = os.getenv("API_PASSWORD")
@@ -128,37 +131,11 @@ CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_INDEX}"
 CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_RESULT_BACKEND = "django-db"
 
-USE_EASY_SMS = os.getenv("USE_EASY_SMS", False) == "True"
-EASY_LOGIN = os.getenv("EASY_LOGIN")
-EASY_PASSWORD = os.getenv("EASY_PASSWORD")
-EASY_ORIGINATOR = os.getenv("EASY_ORIGINATOR")
-EASY_API_URL = os.getenv("EASY_API_URL")
-
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "verbose": {
-            "format": "%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s",
-        },
-    },
-    "handlers": {
-        "file": {
-            "level": "DEBUG",
-            "class": "logging.handlers.TimedRotatingFileHandler",
-            "when": "D",
-            "interval": 1,
-            "backupCount": 3,
-            "filename": "logfile.log",
-            "formatter": "verbose",
-        },
-    },
-    "loggers": {
-        "root": {"level": "DEBUG", "handlers": ["file"]},
-    },
-}
-
+USE_EASYSMS = os.getenv("USE_EASYSMS", False) == "True"
+EASYSMS_LOGIN = os.getenv("EASYSMS_LOGIN")
+EASYSMS_PASSWORD = os.getenv("EASYSMS_PASSWORD")
+EASYSMS_ORIGINATOR = os.getenv("EASYSMS_ORIGINATOR")
+EASYSMS_URL = os.getenv("EASYSMS_URL")
 
 CELERY_BEAT_SCHEDULE = {
     "process_not_accrued_bonuses": {

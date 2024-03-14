@@ -51,7 +51,7 @@ class DiscountCard(models.Model):
         blank=True,
         null=True,
     )
-    deleted = models.BooleanField(default=False, verbose_name="Удален")
+    deleted = models.BooleanField(default=False, verbose_name="Удалена")
 
     class Meta:
         verbose_name = "Дисконтная карта"
@@ -59,19 +59,6 @@ class DiscountCard(models.Model):
 
     def __str__(self):
         return f"Дисконтная карта клиента {self.client}"
-
-
-class BonusTransaction(models.Model):
-    enote_id = models.CharField(max_length=150, unique=True, db_index=True)
-    sum = models.IntegerField()
-    discount_card = models.ForeignKey(
-        related_name="bonus_transactions", to=DiscountCard, on_delete=models.PROTECT
-    )
-    datetime = models.DateTimeField()
-
-    class Meta:
-        verbose_name = "Транзакция по бонусной карте"
-        verbose_name_plural = "Транзакции по бонусной карте"
 
     def __str__(self):
         return f"Транзакция на карту клиента {self.discount_card.client}"
@@ -96,11 +83,11 @@ class Program(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     is_active = models.BooleanField(default=False, verbose_name="Активна")
 
-    async def retrieve_status(self, money_spent):
-        return await self.statuses.filter(
+    def retrieve_status(self, money_spent):
+        return self.statuses.filter(
             Q(start_amount__lte=money_spent)
             & (Q(end_amount__gte=money_spent) | Q(end_amount__isnull=True))
-        ).afirst()
+        ).first()
 
     class Meta:
         constraints = [

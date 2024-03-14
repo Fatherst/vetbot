@@ -13,7 +13,7 @@ RUN apt-get update \
     && apt-get install -y gettext
 
 COPY requirements.txt requirements.txt
-COPY run_asgi.sh run_asgi.sh
+COPY entrypoint.sh entrypoint.sh
 
 RUN mkdir -p /opt/app/static/ \
     && mkdir -p /opt/app/media/ \
@@ -22,8 +22,8 @@ RUN mkdir -p /opt/app/static/ \
 
 COPY . .
 
-RUN sed -i 's/\r$//g' /opt/app/run_asgi.sh \
-    && chmod +x  /opt/app/run_asgi.sh
+RUN sed -i 's/\r$//g' /opt/app/entrypoint.sh \
+    && chmod +x  /opt/app/entrypoint.sh
 
 # Копирование конфигурационных файлов Nginx
 COPY .scratch /

@@ -14,4 +14,4 @@ python manage.py createsuperuser --no-input
 
 celery -A bot_admin worker --beat --scheduler django --loglevel=info --detach
 
-gunicorn --bind 0.0.0.0:8000 bot_admin.asgi -w 4 -k uvicorn.workers.UvicornWorker
+gunicorn bot_admin.wsgi:application --bind 0.0.0.0:8000
