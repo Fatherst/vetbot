@@ -1,18 +1,16 @@
 import random
-
 from admin_auth import keyboards
-#from admin_auth.models import Admin
+from admin_auth.models import Admin
 from bot.bot_init import bot
 from bot.states import AdminAuthStates
 from django.conf import settings
-f#rom django.contrib.auth.models import User
+from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from telebot import types
 
 
 @bot.message_handler(commands=["admin"])
-async def admin_command(message: types.Message):
-    return
+def admin_command(message: types.Message):
     bot.delete_state(user_id=message.chat.id)
     admin = Admin.objects.filter(tg_chat_id=message.from_user.id).first()
     if admin:
@@ -35,7 +33,6 @@ async def admin_command(message: types.Message):
 
 @bot.message_handler(state=AdminAuthStates.email)
 def handle_admin_email(message: types.Message):
-    return
     email = message.text
     user = User.objects.filter(email=email).first()
     if user:
@@ -45,7 +42,7 @@ def handle_admin_email(message: types.Message):
             " напишите его здесь"
         )
         bot.set_state(user_id=message.chat.id, state=AdminAuthStates.code)
-        bot.add_data(user_id=message.chat.id, user_id=user.id, code=code)
+        bot.add_data(user_id=message.chat.id, admin_id=user.id, code=code)
         send_mail(
             subject="Код",
             message=f"Ваш код {code}",
@@ -61,9 +58,8 @@ def handle_admin_email(message: types.Message):
 
 @bot.message_handler(state=AdminAuthStates.code)
 def handle_admin_email_code(message: types.Message):
-    return
     with bot.retrieve_data(user_id=message.chat.id) as data:
-        user_id = data["user_id"]
+        user_id = data["admin_id"]
         code = str(data["code"])
     if code == message.text:
         Admin.objects.create(user_id=user_id, tg_chat_id=message.from_user.id)

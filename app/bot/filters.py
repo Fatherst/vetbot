@@ -2,6 +2,7 @@ import re
 
 from telebot.custom_filters import SimpleCustomFilter
 from telebot import types
+from bot.classes import Phone
 
 
 class PhoneFilter(SimpleCustomFilter):
@@ -13,9 +14,6 @@ class PhoneFilter(SimpleCustomFilter):
         else:
             row_phone = message.contact.phone_number
 
-        phone = re.sub(r"\D", "", row_phone)
+        phone = Phone.format(row_phone)
 
-        ru_phone_mask = r"([78][0-9]{10})"
-        mask = re.compile(ru_phone_mask)
-
-        return bool(re.fullmatch(mask, phone))
+        return Phone.validate(phone)
