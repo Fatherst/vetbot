@@ -81,7 +81,6 @@ DATABASES = {
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "test")
 DEBUG = os.environ.get("DEBUG", False) == "True"
-AUTH_USER_MODEL = "admin_auth.Admin"
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -124,6 +123,8 @@ CATEGORY_ENOTE_ID = os.getenv("CATEGORY_ENOTE_ID")
 
 ENOTE_BALANCE_DEPARTMENT = os.getenv("ENOTE_BALANCE_DEPARTMENT")
 ENOTE_API_URL = os.getenv("ENOTE_API_URL")
+
+CSRF_TRUSTED_ORIGINS = [os.getenv("BOT_WEBHOOK")]
 
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = os.getenv("REDIS_PORT")

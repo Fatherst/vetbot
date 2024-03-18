@@ -10,7 +10,7 @@ def back_to_main_menu() -> InlineKeyboardMarkup:
     return markup
 
 
-appointments_factory = CallbackData('appointment_id', prefix='appointment')
+appointments_factory = CallbackData("appointment_id", prefix="appointment")
 
 
 def appointments(appointments: list) -> InlineKeyboardMarkup:
@@ -23,7 +23,7 @@ def appointments(appointments: list) -> InlineKeyboardMarkup:
                 text=f"{appointment_date} / {appointment_time}  📆",
                 callback_data=appointments_factory.new(
                     category_id=appointment.id,
-                )
+                ),
             )
         )
     markup.add(

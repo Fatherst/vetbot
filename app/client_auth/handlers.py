@@ -1,6 +1,6 @@
 import random
 import re
-
+from sentry_sdk import capture_message
 from bot.bot_init import bot, logger
 from bot.states import AuthStates
 from client_auth import keyboards
@@ -8,12 +8,7 @@ from client_auth.models import Client
 from django.conf import settings
 from integrations.easysms import methods as easysms
 from telebot import apihelper, types
-
-
-def format_phone(phone: str) -> str:
-    cleaned_phone = re.sub(r"\D", "", phone)
-    formatted_phone = f"7{cleaned_phone[1:]}"
-    return formatted_phone
+from bot.classes import Phone
 
 
 def send_old_client_greeting_message(client: Client, message: types.Message):
@@ -63,6 +58,7 @@ def process_start_command(message: types.Message):
 def send_sms_message(user_id: int, formatted_phone: str):
     code = random.randrange(1001, 9999)
     code_message = f"Твой код - {code}"
+    capture_message(code_message)
 
     try:
         easysms.send_message(code_message, formatted_phone)
@@ -98,7 +94,7 @@ def send_non_sms_message(user_id: int, formatted_phone: str):
 )
 def process_valid_phone(message: types.Message):
     phone = message.text if message.text else message.contact.phone_number
-    formatted_phone = format_phone(phone)
+    formatted_phone = Phone.format(phone)
 
     if settings.USE_EASYSMS:
         send_sms_message(message.chat.id, formatted_phone)

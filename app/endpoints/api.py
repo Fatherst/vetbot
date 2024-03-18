@@ -1,13 +1,13 @@
 import re
-
 from appointment import models as appointment_models
 from bonuses import models as bonus_models
-from bot.bot_init import logger
 from client_auth import models as client_models
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from endpoints import schemas
 from ninja import Router
+from bot.classes import Phone
+from bot.bot_init import logger
 
 
 client_router = Router()
@@ -22,7 +22,11 @@ async def create_or_update_client(enote_client: schemas.Client) -> schemas.Resul
         client = None
         for contact in contact_information:
             if contact.type == "PHONE_NUMBER":
-                phone = re.sub(r"\D", "", contact.value)
+                formatted_phone = Phone.format(contact.value)
+                if Phone.validate(formatted_phone):
+                    phone = formatted_phone
+                else:
+                    raise ValidationError(message=contact.value)
             elif contact.type == "EMAIL":
                 try:
                     validate_email(contact.value)
@@ -32,11 +36,13 @@ async def create_or_update_client(enote_client: schemas.Client) -> schemas.Resul
         ###Тут проверка на существование телефона, иначе будет ошибка при проверке __contains
         if phone:
             client = await client_models.Client.objects.filter(
-                phone_number__contains=phone[1:]
+                phone_number=phone
             ).afirst()
         if client and not client.enote_id:
             client.enote_id = enote_client.enote_id
             await client.asave()
+        elif client and client.enote_id:
+            logger.error(f"Клиент с неуникальным номером телефона{client.enote_id}")
         defaults = {
             "first_name": enote_client.first_name,
             "middle_name": enote_client.middle_name,
