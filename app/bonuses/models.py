@@ -60,8 +60,6 @@ class DiscountCard(models.Model):
     def __str__(self):
         return f"Дисконтная карта клиента {self.client}"
 
-    def __str__(self):
-        return f"Транзакция на карту клиента {self.discount_card.client}"
 
 
 class Program(models.Model):
