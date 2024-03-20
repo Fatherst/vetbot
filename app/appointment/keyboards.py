@@ -16,13 +16,12 @@ appointments_factory = CallbackData("appointment_id", prefix="appointment")
 def appointments(appointments: list) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=1)
     for appointment in appointments:
-        appointment_date = appointment.date_time.strftime("%d.%m.%Y")
-        appointment_time = appointment.date_time.strftime("%H:%M")
+        appointment_date_time = appointment.date_time.strftime("%d.%m.%Y / %H:%M  📆")
         markup.add(
             InlineKeyboardButton(
-                text=f"{appointment_date} / {appointment_time}  📆",
+                text=appointment_date_time,
                 callback_data=appointments_factory.new(
-                    category_id=appointment.id,
+                    appointment_id=appointment.id,
                 ),
             )
         )
@@ -32,15 +31,9 @@ def appointments(appointments: list) -> InlineKeyboardMarkup:
     return markup
 
 
-def manage_appointment(appointment_id: int) -> InlineKeyboardMarkup:
+def manage_appointment() -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
-        InlineKeyboardButton(
-            text="Отменить запись ❌", callback_data="cancel_appointment"
-        ),
-        InlineKeyboardButton(
-            text="Перенести запись 📅", callback_data="change_appointment"
-        ),
         InlineKeyboardButton(text="Назад", callback_data="appointments"),
     )
     return markup

@@ -148,6 +148,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "bonuses.tasks.process_patients_birthdays",
         "schedule": crontab(minute="0", hour="9"),
     },
+    "appointment_remind": {
+        "task": "appointment.tasks.send_appointment_notification",
+        "schedule": crontab(minute="*/1"),
+    },
 }
 
 

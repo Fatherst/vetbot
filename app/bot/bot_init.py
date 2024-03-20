@@ -2,7 +2,7 @@ import logging
 import time
 
 import telebot
-from bot.filters import PhoneFilter
+from bot.filters import PhoneFilter, AppointmentsCallbackFilter
 from django.conf import settings
 from telebot.custom_filters import StateFilter
 from telebot.storage import StateRedisStorage
@@ -35,6 +35,7 @@ class SingletonBot(telebot.TeleBot, metaclass=Singleton):
 
         self.add_custom_filter(StateFilter(self))
         self.add_custom_filter(PhoneFilter())
+        self.add_custom_filter(AppointmentsCallbackFilter())
 
 
 logger = telebot.logger
