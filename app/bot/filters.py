@@ -1,6 +1,6 @@
 import re
-
-from telebot.custom_filters import SimpleCustomFilter
+from telebot.custom_filters import SimpleCustomFilter, AdvancedCustomFilter
+from telebot.callback_data import CallbackDataFilter
 from telebot import types
 from bot.classes import Phone
 
@@ -17,3 +17,10 @@ class PhoneFilter(SimpleCustomFilter):
         phone = Phone.format(row_phone)
 
         return Phone.validate(phone)
+
+
+class AppointmentsCallbackFilter(AdvancedCustomFilter):
+    key = "config"
+
+    def check(self, call: types.CallbackQuery, config: CallbackDataFilter):
+        return config.check(query=call)

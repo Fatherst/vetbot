@@ -61,7 +61,6 @@ class DiscountCard(models.Model):
         return f"Дисконтная карта клиента {self.client}"
 
 
-
 class Program(models.Model):
     name = models.CharField(max_length=150, unique=True, verbose_name="Имя программы")
     description = models.TextField(

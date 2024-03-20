@@ -24,7 +24,6 @@ def main_menu(client: Client) -> InlineKeyboardMarkup:
 
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
-        InlineKeyboardButton(text="Записаться ✔️", callback_data="book"),
         InlineKeyboardButton(text="О клинике  🏥", callback_data="about"),
         InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
     )
