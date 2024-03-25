@@ -28,11 +28,13 @@ class AppointmentAdmin(admin.ModelAdmin):
         "id",
         "enote_id",
         "status",
+        "client",
         "patient",
         "doctor",
         "date_time",
         "deleted",
     )
+    autocomplete_fields = ("client",)
     search_fields = ["enote_id"]
 
 
