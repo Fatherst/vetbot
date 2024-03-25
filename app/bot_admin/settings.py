@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     "client_auth.apps.ClientBotConfig",
     "endpoints.apps.EndpointsConfig",
     "bonuses.apps.BonusesConfig",
+    "nps.apps.NpsConfig",
     "appointment.apps.AppointmentConfig",
     "django_celery_beat",
     "django_celery_results",
@@ -107,6 +108,8 @@ EMAIL_PORT = 587
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+FEEDBACK_RECIPIENT_EMAIL = os.getenv("FEEDBACK_RECIPIENT_EMAIL")
+
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 BOT_WEBHOOK = os.getenv("BOT_WEBHOOK")
@@ -148,9 +151,13 @@ CELERY_BEAT_SCHEDULE = {
         "task": "bonuses.tasks.process_patients_birthdays",
         "schedule": crontab(minute="0", hour="9"),
     },
-    "appointment_remind": {
+    "send_appointment_notification": {
         "task": "appointment.tasks.send_appointment_notification",
-        "schedule": crontab(minute="*/1"),
+        "schedule": crontab(hour="11"),
+    },
+    "send_nps": {
+        "task": "nps.tasks.send_nps",
+        "schedule": crontab(hour="10"),
     },
 }
 

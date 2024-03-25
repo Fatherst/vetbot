@@ -9,3 +9,8 @@ class AuthStates(StatesGroup):
 class AdminAuthStates(StatesGroup):
     email = State()
     code = State()
+
+
+class NpsStates(StatesGroup):
+    email = State()
+    screenshot = State()
