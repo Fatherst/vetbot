@@ -142,6 +142,11 @@ EASYSMS_PASSWORD = os.getenv("EASYSMS_PASSWORD")
 EASYSMS_ORIGINATOR = os.getenv("EASYSMS_ORIGINATOR")
 EASYSMS_URL = os.getenv("EASYSMS_URL")
 
+CLINIC_PHONE = os.getenv("CLINIC_PHONE", "+7 (4922) 49-47-82")
+CLINIC_URL = os.getenv("CLINIC_URL", "https://vetfriends.ru")
+CLINIC_ON_MAP_URL = os.getenv("CLINIC_ON_MAP_URL", "https://go.2gis.com/h3nrl")
+CLINIC_ADDRESS = os.getenv("CLINIC_ADDRESS", "Владимир, Студеная Гора 44а/2")
+
 CELERY_BEAT_SCHEDULE = {
     "process_not_accrued_bonuses": {
         "task": "bonuses.tasks.process_not_accrued_bonuses",

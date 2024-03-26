@@ -5,6 +5,7 @@ from bonuses.handlers import *
 from appointment.handlers import *
 from admin_auth.handlers import *
 from nps.handlers import *
+from clinic_info.handlers import *
 from django.http import HttpRequest, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
