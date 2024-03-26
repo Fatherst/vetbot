@@ -39,20 +39,3 @@ def appointments_menu(call: types.CallbackQuery):
         text=text,
         reply_markup=keyboards.appointments(appointments),
     )
-
-
-@bot.callback_query_handler(func=lambda c: c.data == "about_clinic")
-def about_clinic_callback(call: types.CallbackQuery):
-    text = (
-        "Круглосуточный ветеринарный центр Друзья - в режиме 24/7 мы готовы оказать "
-        "профессиональную ветеринарную помощь, без боли, основанную на точной диагностике 🍀\n\n"
-        "Мы всегда на связи: +7 (4922) 49-47-82\n"
-        "Наш сайт: https://vetfriends.ru"
-    )
-    bot.edit_message_text(
-        chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text=text,
-        reply_markup=keyboards.about_clinic_menu(),
-        disable_web_page_preview=True,
-    )
