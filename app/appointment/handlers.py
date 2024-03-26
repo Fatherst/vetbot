@@ -1,23 +1,29 @@
 from appointment import keyboards, models
+from appointment.text_generation import get_appointment_description
 from bot.bot_init import bot
 from client_auth.models import Client
 from django.utils import timezone
-from telebot import types
-from appointment.text_generation import get_appointment_description
+from telebot import apihelper, types
 
 
 @bot.callback_query_handler(func=None, config=keyboards.appointments_factory.filter())
 def manage_appointment(call: types.CallbackQuery):
+    try:
+        bot.delete_message(
+            chat_id=call.message.chat.id, message_id=call.message.message_id
+        )
+    except apihelper.ApiTelegramException:
+        pass
+
     callback_data: dict = keyboards.appointments_factory.parse(callback_data=call.data)
     appointment_id = int(callback_data["appointment_id"])
 
     appointment = models.Appointment.objects.get(id=appointment_id)
     msg = get_appointment_description(appointment, False)
-    bot.edit_message_text(
+    bot.send_message(
         chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
         text=msg,
-        reply_markup=keyboards.manage_appointment(),
+        reply_markup=keyboards.manage_appointment(appointment_id),
     )
 
 

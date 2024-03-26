@@ -1,5 +1,6 @@
 from bonuses.models import Program
 from client_auth.models import Client
+from django.conf import settings
 from telebot.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -24,6 +25,7 @@ def main_menu(client: Client) -> InlineKeyboardMarkup:
 
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
+        InlineKeyboardButton(text="Записаться ✔️", url=settings.CLINIC_MANAGER_TG_URL),
         InlineKeyboardButton(text="О клинике  🏥", callback_data="clinic_info"),
         InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
     )

@@ -1,5 +1,6 @@
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
+from django.conf import settings
 from telebot.callback_data import CallbackData
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def back_to_main_menu() -> InlineKeyboardMarkup:
@@ -15,15 +16,24 @@ appointments_factory = CallbackData("appointment_id", prefix="appointment")
 
 def appointments(appointments: list) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=1)
-    for appointment in appointments:
-        appointment_date_time = appointment.date_time.strftime("%d.%m.%Y / %H:%M  📆")
+    if appointments:
+        for appointment in appointments:
+            appointment_date_time = appointment.date_time.strftime(
+                "%d.%m.%Y / %H:%M  📆"
+            )
+            markup.add(
+                InlineKeyboardButton(
+                    text=appointment_date_time,
+                    callback_data=appointments_factory.new(
+                        appointment_id=appointment.id,
+                    ),
+                )
+            )
+    else:
         markup.add(
             InlineKeyboardButton(
-                text=appointment_date_time,
-                callback_data=appointments_factory.new(
-                    appointment_id=appointment.id,
-                ),
-            )
+                text="Записаться ✔️", url=settings.CLINIC_MANAGER_TG_URL
+            ),
         )
     markup.add(
         InlineKeyboardButton(text="Назад 🔙", callback_data="main_menu"),
@@ -31,9 +41,22 @@ def appointments(appointments: list) -> InlineKeyboardMarkup:
     return markup
 
 
-def manage_appointment() -> InlineKeyboardMarkup:
+def manage_appointment(
+    appointment_id: int, with_back_button: bool = True
+) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
-        InlineKeyboardButton(text="Назад", callback_data="appointments"),
+        InlineKeyboardButton(
+            text="Отменить запись ❌", url=settings.CLINIC_MANAGER_TG_URL
+        ),
+        InlineKeyboardButton(
+            text="Перенести запись 📅", url=settings.CLINIC_MANAGER_TG_URL
+        ),
+        InlineKeyboardButton(
+            text="Схема проезда 🗺️",
+            callback_data=f"clinic_address.appointment:{appointment_id}",
+        ),
     )
+    if with_back_button:
+        markup.add(InlineKeyboardButton(text="Назад", callback_data="appointments"))
     return markup

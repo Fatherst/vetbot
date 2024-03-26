@@ -23,7 +23,9 @@ def send_appointment_notification():
             bot.send_message(
                 chat_id=appointment.client.tg_chat_id,
                 text=msg,
-                reply_markup=keyboards.manage_appointment(),
+                reply_markup=keyboards.manage_appointment(
+                    appointment.id, with_back_button=False
+                ),
             )
         except Exception as err:
             logger.exception(err)

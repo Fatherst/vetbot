@@ -146,6 +146,7 @@ CLINIC_PHONE = os.getenv("CLINIC_PHONE", "+7 (4922) 49-47-82")
 CLINIC_URL = os.getenv("CLINIC_URL", "https://vetfriends.ru")
 CLINIC_ON_MAP_URL = os.getenv("CLINIC_ON_MAP_URL", "https://go.2gis.com/h3nrl")
 CLINIC_ADDRESS = os.getenv("CLINIC_ADDRESS", "Владимир, Студеная Гора 44а/2")
+CLINIC_MANAGER_TG_URL = os.getenv("CLINIC_MANAGER_TG_URL", "https://t.me/vetfriends")
 
 CELERY_BEAT_SCHEDULE = {
     "process_not_accrued_bonuses": {
