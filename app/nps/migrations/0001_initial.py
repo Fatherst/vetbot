@@ -13,69 +13,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="Review",
-            fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
-                (
-                    "screenshot",
-                    models.FileField(
-                        upload_to="review_screenshots/", verbose_name="Скриншот"
-                    ),
-                ),
-                (
-                    "status",
-                    models.CharField(
-                        choices=[
-                            ("UNCHECKED", "Не проверено"),
-                            ("APPROVED", "Скриншот проверен"),
-                            ("REJECTED", "Скриншот отклонён"),
-                        ],
-                        default="UNCHECKED",
-                        verbose_name="Статус проверки",
-                    ),
-                ),
-                (
-                    "resource",
-                    models.CharField(
-                        choices=[("GOOGLE", "Google"), ("YANDEX", "Yandex")],
-                        max_length=50,
-                        verbose_name="Источник отзыва",
-                    ),
-                ),
-                (
-                    "created_at",
-                    models.DateTimeField(
-                        auto_now_add=True, verbose_name="Дата создания"
-                    ),
-                ),
-                (
-                    "modified_at",
-                    models.DateTimeField(auto_now=True, verbose_name="Дата изменения"),
-                ),
-                (
-                    "client",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.PROTECT,
-                        related_name="reviews",
-                        to="client_auth.client",
-                        verbose_name="Клиент",
-                    ),
-                ),
-            ],
-            options={
-                "verbose_name": "Отзыв",
-                "verbose_name_plural": "Отзывы",
-            },
-        ),
-        migrations.CreateModel(
             name="Rating",
             fields=[
                 (
