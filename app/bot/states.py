@@ -14,3 +14,7 @@ class AdminAuthStates(StatesGroup):
 class NpsStates(StatesGroup):
     email = State()
     screenshot = State()
+
+
+class ClinicInfoStates(StatesGroup):
+    doctors = State()

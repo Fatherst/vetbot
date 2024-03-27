@@ -3,17 +3,27 @@ from client_auth.models import Patient, Client
 
 
 class Specialization(models.Model):
-    enote_id = models.CharField(
-        max_length=150,
-        verbose_name="ID в еноте",
-        db_index=True,
-        unique=True,
-    )
-    name = models.CharField(max_length=100, verbose_name="Название специализации")
+    name = models.CharField(max_length=100, verbose_name="Название", unique=True)
+    show_in_bot = models.BooleanField(default=True, verbose_name="Показывать в боте")
 
     class Meta:
         verbose_name = "Врачебная специализация"
         verbose_name_plural = "Врачебные специализации"
+
+    def __str__(self):
+        return self.name
+
+
+class Position(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Название", unique=True)
+    show_in_bot = models.BooleanField(default=True, verbose_name="Показывать в боте")
+
+    class Meta:
+        verbose_name = "Врачебная должность"
+        verbose_name_plural = "Врачебные должности"
+
+    def __str__(self):
+        return self.name
 
 
 class Doctor(models.Model):
@@ -28,23 +38,39 @@ class Doctor(models.Model):
     specializations = models.ManyToManyField(
         Specialization,
         related_name="doctors",
-        verbose_name="Специализация",
+        verbose_name="Специализации",
         blank=True,
     )
-    photo = models.ImageField(upload_to="doctors/", null=True, blank=True)
-    detail_info = models.TextField(blank=True, null=True, verbose_name="Описание врача")
+    positions = models.ManyToManyField(
+        Position,
+        related_name="doctors",
+        verbose_name="Должности",
+        blank=True,
+    )
+    photo = models.ImageField(
+        upload_to="doctors/",
+        null=True,
+        blank=True,
+        verbose_name="Фотография",
+        help_text="Размер фото не должен превышать 3 Мб",
+    )
+    detail_info = models.TextField(
+        blank=True, null=True, verbose_name="Описание для клиентов", max_length=700
+    )
     fired_date = models.DateField(null=True, blank=True, verbose_name="Дата увольнения")
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
-
-    def __str__(self):
-        full_name = f"{self.last_name} {self.first_name}"
-        if self.middle_name:
-            full_name += f" {self.middle_name}"
-        return full_name
+    show_in_bot = models.BooleanField(default=False, verbose_name="Показывать в боте")
 
     class Meta:
         verbose_name = "Врач"
         verbose_name_plural = "Врачи"
+
+    @property
+    def full_name(self) -> str:
+        return f"{self.last_name} {self.first_name}"
+
+    def __str__(self):
+        return self.full_name
 
 
 class Appointment(models.Model):

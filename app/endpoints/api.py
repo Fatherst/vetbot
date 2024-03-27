@@ -185,16 +185,6 @@ async def process_cards(request, cards: list[schemas.DiscountCard]) -> schemas.R
 async def create_or_update_doctor(doctor_enote: schemas.Doctor) -> schemas.Result:
     try:
         deleted = doctor_enote.state == "DELETED"
-        specializations = []
-        for specialization in doctor_enote.specialization:
-            (
-                spec,
-                created,
-            ) = await appointment_models.Specialization.objects.aupdate_or_create(
-                enote_id=specialization.enote_id,
-                defaults={"name": specialization.title},
-            )
-            specializations.append(spec)
         defaults = {
             "first_name": doctor_enote.first_name,
             "middle_name": doctor_enote.middle_name,
@@ -205,8 +195,6 @@ async def create_or_update_doctor(doctor_enote: schemas.Doctor) -> schemas.Resul
         doctor, created = await appointment_models.Doctor.objects.aupdate_or_create(
             enote_id=doctor_enote.enote_id, defaults=defaults
         )
-        if specializations:
-            await doctor.specializations.aset(specializations)
         return schemas.Result(
             enote_id=doctor_enote.enote_id,
             result=True,

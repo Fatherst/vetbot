@@ -1,28 +1,50 @@
 from django.contrib import admin
-from .models import Specialization, Doctor, Appointment, Invoice
+
+from appointment import models
 
 
-@admin.register(Doctor)
+@admin.register(models.Specialization)
+class SpecializationAdmin(admin.ModelAdmin):
+    list_display = ("name", "show_in_bot")
+    list_filter = ("show_in_bot",)
+    search_fields = ("name",)
+
+
+@admin.register(models.Position)
+class PositionAdmin(admin.ModelAdmin):
+    list_display = ("name", "show_in_bot")
+    list_filter = ("show_in_bot",)
+    search_fields = ("name",)
+
+
+@admin.register(models.Doctor)
 class DoctorAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
-        "enote_id",
-        "first_name",
-        "middle_name",
         "last_name",
+        "first_name",
         "get_specializations",
+        "get_positions",
         "photo",
-        "detail_info",
         "fired_date",
+        "show_in_bot",
         "deleted",
     )
-    search_fields = ["first_name"]
+    list_filter = ("deleted", "show_in_bot")
+    search_fields = ("last_name", "enote_id")
+    filter_horizontal = ("specializations", "positions")
 
     def get_specializations(self, obj):
-        return "\n".join([s.name for s in obj.specializations.all()])
+        return ", ".join([s.name for s in obj.specializations.all()])
+
+    get_specializations.short_description = "Специализации"
+
+    def get_positions(self, obj):
+        return ", ".join([s.name for s in obj.positions.all()])
+
+    get_positions.short_description = "Должности"
 
 
-@admin.register(Appointment)
+@admin.register(models.Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
     list_display = (
         "id",
@@ -38,17 +60,7 @@ class AppointmentAdmin(admin.ModelAdmin):
     search_fields = ["enote_id"]
 
 
-@admin.register(Specialization)
-class SpecializationAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "enote_id",
-        "name",
-    )
-    search_fields = ["enote_id"]
-
-
-@admin.register(Invoice)
+@admin.register(models.Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = ("id", "enote_id", "client", "date", "sum")
     list_display_links = ["enote_id"]
