@@ -38,10 +38,10 @@ stages:
     VALUES_FILENAME_WITH_ENV: final_values.yaml
     HELM_REPO: divlab-helm
     HELM_CHART: divlab-chart
-    HELM_CHART_VERSION: 1.1.0
+    HELM_CHART_VERSION: 1.2.0
     BUILD_IMAGE: '$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME'
   before_script:
-    - OVERRIDE_MERGED_VALUES_FILENAME=".helm/${ENV_NAME}/${SERVICE_NAME}/${VALUES_FILENAME}"
+    - OVERRIDE_MERGED_VALUES_FILENAME="ci-cd/${ENV_NAME}/${SERVICE_NAME}/${VALUES_FILENAME}"
     - envsubst <$OVERRIDE_MERGED_VALUES_FILENAME >$VALUES_FILENAME_WITH_ENV
     - helm repo add --username gitlab-ci-token
       --password "$CI_JOB_TOKEN"
@@ -111,7 +111,7 @@ review_bot:
       changes:
         paths:
           - $SERVICE_NAME/**/*
-          - .helm/*/$SERVICE_NAME/*
+          - ci-cd/*/$SERVICE_NAME/*
 
 review_db:
   extends:
@@ -138,8 +138,7 @@ review_db:
         ENVIRONMENT_NAME: 'review/$CI_COMMIT_REF_SLUG'
       changes:
         paths:
-          - $SERVICE_NAME/**/*
-          - .helm/*/$SERVICE_NAME/*
+          - ci-cd/*/$SERVICE_NAME/*
 
 stop_review:
   image:
