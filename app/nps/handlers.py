@@ -1,3 +1,7 @@
+import uuid
+from pathlib import Path
+
+from django.core.files.base import ContentFile
 from django.core.mail import send_mail
 from datetime import datetime, timedelta
 from django.conf import settings
@@ -112,3 +116,65 @@ def send_email(message: types.Message):
         text=f"<b>{greeting}</b>,\n\nспасибо за обратную связь, она поможет нам стать лучше!",
         reply_markup=main_menu(client),
     )
+
+
+@bot.callback_query_handler(func=lambda c: c.data.startswith("link"))
+def ask_about_screenshot(call: types.CallbackQuery):
+    bot.set_state(user_id=call.message.chat.id, state=NpsStates.screenshot)
+    review_sources = {
+        "link_yandex": {
+            "link": settings.YANDEX_REVIEW_URL,
+            "resource": "YANDEX",
+        },
+        "link_google": {
+            "link": settings.GOOGLE_REVIEW_URL,
+            "resource": "GOOGLE",
+        },
+    }
+    source = call.data
+    bot.add_data(
+        user_id=call.message.chat.id, resource=review_sources[source]["resource"]
+    )
+    text = (
+        f"<b><a href='{review_sources[source]['link']}'>Оставить отзыв </a></b>\n\nПожалуйста,  "
+        "сделайте скриншот Вашего отзыва и пришлите его сюда 📎"
+    )
+    bot.edit_message_text(
+        chat_id=call.message.chat.id, message_id=call.message.message_id, text=text
+    )
+
+
+def save_file(file_id: str) -> ContentFile:
+    file_info = bot.get_file(file_id)
+    file_path = file_info.file_path
+    downloaded_file = bot.download_file(file_path)
+    file_extension = Path(file_path).suffix
+    file_name = str(uuid.uuid4())
+    return ContentFile(
+        downloaded_file,
+        name=file_name + file_extension,
+    )
+
+
+@bot.message_handler(state=NpsStates.screenshot, content_types=["photo", "document"])
+def process_screenshot(message: types.Message):
+    client = Client.objects.get(tg_chat_id=message.chat.id)
+
+    with bot.retrieve_data(user_id=message.chat.id) as data:
+        resource = data["resource"]
+
+    if message.photo:
+        file_id = message.photo[-1].file_id
+    elif message.document:
+        file_id = message.document.file_id
+    file = save_file(file_id)
+
+    models.Review.objects.create(resource=resource, client=client, screenshot=file)
+
+    bot.delete_state(user_id=client.tg_chat_id)
+
+    text = (
+        f"<b>{get_greeting(client)}!</b>\n\nСпасибо, скоро мы проверим скриншот и начислим Вам "
+        "бонусы 💰"
+    )
+    bot.send_message(chat_id=message.chat.id, text=text, reply_markup=main_menu(client))
