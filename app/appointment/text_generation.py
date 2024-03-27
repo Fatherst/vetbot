@@ -3,12 +3,6 @@ from appointment import models
 from client_auth.models import Client
 
 
-def get_doctor_info(doctor: models.Doctor) -> str:
-    if doctor:
-        return f"{doctor.first_name} {doctor.last_name}"
-    return "Врач не назначен"
-
-
 def get_greeting(client: Client) -> str:
     if client.first_name:
         return f"{client.first_name}"
@@ -49,14 +43,16 @@ def format_date(date: datetime) -> str:
 def get_appointment_description(
     appointment: models.Appointment, is_notification: bool
 ) -> str:
-    doctor_info = get_doctor_info(appointment.doctor)
+    doctor_name = (
+        appointment.doctor.full_name if appointment.doctor else "Врач не назначен"
+    )
     greeting = get_greeting(appointment.client)
     appointment_date = format_date(appointment.date_time)
     appointment_time = appointment.date_time.strftime("%H:%M")
     msg_header = get_msg_header(greeting, appointment_date, is_notification)
     text = (
         f"{msg_header}<b>Время:</b> {appointment_time}\n<b>"
-        f"Ваш врач: </b>{doctor_info}\n"
+        f"Ваш врач: </b>{doctor_name}\n"
         "<b>Адрес:</b> Владимир, ул. Студеная Гора, 44А/2\n\n"
         "Пожалуйста, принесите с собой ваш паспорт и ветеринарный паспорт вашего питомца (при "
         "наличии). 🐶🐱\n\n"

@@ -43,6 +43,11 @@ cd add
 celery -A bot_admin worker --beat --scheduler django --loglevel=info --detach
 ```
 
+9. Запустите celery и celery beat:
+```
+celery -A bot_admin worker --beat --scheduler django --loglevel=info --detach
+```
+
 ## Как запустить локально через docker
 ```
 docker-compose -f docker-compose.dev.yml up -d --build
