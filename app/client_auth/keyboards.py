@@ -46,6 +46,6 @@ def main_menu(client: Client) -> InlineKeyboardMarkup:
 
     elif active_program_exists:
         markup.add(
-            InlineKeyboardButton(text="Программа лояльности 💰", callback_data="loyalty")
+            InlineKeyboardButton(text="Программа лояльности 🐱", callback_data="loyalty")
         )
     return markup
