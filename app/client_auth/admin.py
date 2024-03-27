@@ -32,7 +32,7 @@ class BlockedClientAdmin(admin.ModelAdmin):
 @admin.register(models.Patient)
 class PatientAdmin(admin.ModelAdmin):
     list_display = ("client", "name", "kind", "birth_date", "time_of_death")
-    search_fields = ("enote_id", "client", "name")
+    search_fields = ("enote_id", "client__last_name", "name")
     list_filter = (
         "deleted",
         "kind",
