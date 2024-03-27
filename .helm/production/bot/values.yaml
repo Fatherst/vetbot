@@ -67,7 +67,7 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: nginx
   hosts:
-    - host: bot.vetfriends.ru
+    - host: vetfriendsbot.hhw.ru
       http_anchor: "&http_rules"
       hosts_paths:
         paths:
