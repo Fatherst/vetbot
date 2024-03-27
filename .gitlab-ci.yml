@@ -41,7 +41,7 @@ stages:
     HELM_CHART_VERSION: 1.1.0
     BUILD_IMAGE: '$CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME'
   before_script:
-    - OVERRIDE_MERGED_VALUES_FILENAME="ci-cd/${ENV_NAME}/${SERVICE_NAME}/${VALUES_FILENAME}"
+    - OVERRIDE_MERGED_VALUES_FILENAME=".helm/${ENV_NAME}/${SERVICE_NAME}/${VALUES_FILENAME}"
     - envsubst <$OVERRIDE_MERGED_VALUES_FILENAME >$VALUES_FILENAME_WITH_ENV
     - helm repo add --username gitlab-ci-token
       --password "$CI_JOB_TOKEN"
@@ -101,7 +101,7 @@ review_bot:
       --install $SERVICE_NAME "$HELM_REPO/$HELM_CHART"
       --namespace "${CI_COMMIT_REF_SLUG}-vet-bot" --create-namespace
       --values "$VALUES_FILENAME_WITH_ENV"
-      --set-file secret.file=$APP_CONFIG_NEW
+      --set-file secret.file=$APP_CONFIG
       --version "$HELM_CHART_VERSION"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -111,7 +111,7 @@ review_bot:
       changes:
         paths:
           - $SERVICE_NAME/**/*
-          - ci-cd/*/$SERVICE_NAME/*
+          - .helm/*/$SERVICE_NAME/*
 
 review_db:
   extends:
@@ -125,12 +125,12 @@ review_db:
     url: https://$CI_MERGE_REQUEST_ID.vetbot.hhw.ru
     on_stop: stop_review
   script:
-    - VERSION=1.0.0
+    - VERSION=1.2.0
     - helm upgrade
       --install $SERVICE_NAME "$HELM_REPO/$HELM_CHART"
       --namespace "${CI_COMMIT_REF_SLUG}-vet-bot" --create-namespace
       --values "$VALUES_FILENAME_WITH_ENV"
-      --set-file secret.file=$DB_CONFIG_NEW
+      --set-file secret.file=$DB_CONFIG
       --version "$HELM_CHART_VERSION"
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
@@ -139,7 +139,7 @@ review_db:
       changes:
         paths:
           - $SERVICE_NAME/**/*
-          - ci-cd/*/$SERVICE_NAME/*
+          - .helm/*/$SERVICE_NAME/*
 
 stop_review:
   image:
@@ -170,21 +170,24 @@ stop_review:
         ENVIRONMENT_NAME: 'review/$CI_COMMIT_REF_SLUG'
 
 deploy:
-  stage: deploy
   extends:
     - .k8s
+  stage: deploy
+  variables:
+    ENV_NAME: "production"
+    SERVICE_NAME: 'bot'
   environment:
-    name: production
+    name: $ENVIRONMENT_NAME
   script:
-    - echo "DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1,[::1],vetbot.hhw.ru" >> .kubernetes/production/.env
-    - echo "WEBHOOK_URL=https://vetbot.hhw.ru" >> .kubernetes/production/.env
-    - echo "${APP_CONFIG}" >> .kubernetes/production/.env
-    - VERSION=1
-    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/**/*.yaml
-    - sed -i "s/<VERSION>/$VERSION/g" ./.kubernetes/common/bot/*.yaml
-    - sed -i "s/<TAG>/${CI_PIPELINE_ID}-${CI_COMMIT_SHORT_SHA}/g" ./.kubernetes/common/bot/*.yaml
-    - kubectl create namespace vetbot --dry-run=client --output="yaml" | kubectl apply -f -
-    - kubectl -n vetbot apply -k .kubernetes/production/
-  when: manual
+    - VERSION=1.1.1
+    - helm upgrade
+      --install $SERVICE_NAME "$HELM_REPO/$HELM_CHART"
+      --namespace "vet-bot-prod" --create-namespace
+      --values "$VALUES_FILENAME_WITH_ENV"
+      --set-file secret.file=$APP_CONFIG
+      --version "$HELM_CHART_VERSION"
   rules:
-    - if: '$CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      variables:
+        ENVIRONMENT_NAME: 'production'
+        BUILD_TAG_SHA: '$CI_PIPELINE_ID-$CI_COMMIT_SHORT_SHA-prod'

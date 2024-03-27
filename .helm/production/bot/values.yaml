@@ -1,0 +1,78 @@
+# Default значения
+
+appVersion: 1.0.0
+replicaCount: 1
+
+nameOverride: $SERVICE_NAME
+
+podAnnotations: {}
+
+pod:
+  containers:
+  - name: $SERVICE_NAME
+    image:
+      repository: $BUILD_IMAGE
+      pullPolicy: Always
+      tag: $BUILD_TAG_SHA
+    port: 80
+    resources:
+      limits:
+        cpu: "2"
+        memory: 2000Mi
+      requests:
+        cpu: "2"
+        memory: 2000Mi
+      readinessProbe:
+        path: "/health"
+        initialDelaySeconds: 15
+        periodSeconds: 5
+    volumeMounts:
+      - mountPath: /app/var
+        name: var-volume
+  - name: $SERVICE_NAME-redis
+    image:
+      repository: redis
+      pullPolicy: Always
+      tag: "7.2.4"
+    resources:
+      limits:
+        cpu: "0.5"
+        memory: 500Mi
+      requests:
+        cpu: "0.5"
+        memory: 500Mi
+
+volumes:
+  enabled: true
+  volume:
+  - name: var-volume
+    claimName: var-storage
+
+pvc:
+  enabled: true
+  volume:
+  - name: "var-storage"
+    storage: 2Gi
+
+service:
+  type: ClusterIP
+  TargetPort: 80
+  Port: 80
+
+pdb:
+  minAvailable: 1
+
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  hosts:
+    - host: bot.vetfriends.ru
+      http_anchor: "&http_rules"
+      hosts_paths:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: bot

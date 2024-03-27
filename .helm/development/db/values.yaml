@@ -5,6 +5,8 @@ replicaCount: 1
 
 nameOverride: $SERVICE_NAME
 
+kind: StatefulSet
+
 podAnnotations: {}
 
 pod:
