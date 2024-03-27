@@ -191,6 +191,10 @@ class BonusAccrual(models.Model):
             "REFERAL_GETTER",
             "Бонус за получение приглашения",
         )
+        REVIEW = (
+            "REVIEW",
+            "Бонус за отзыв",
+        )
         MANUAL = (
             "MANUAL",
             "Ручное начисление",

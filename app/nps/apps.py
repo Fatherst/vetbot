@@ -5,3 +5,6 @@ class NpsConfig(AppConfig):
     verbose_name = "NPS"
     default_auto_field = "django.db.models.BigAutoField"
     name = "nps"
+
+    def ready(self):
+        import nps.signals
