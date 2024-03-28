@@ -42,7 +42,7 @@ async def create_or_update_client(enote_client: schemas.Client) -> schemas.Resul
             client.enote_id = enote_client.enote_id
             await client.asave()
         elif client and client.enote_id:
-            logger.error(f"Клиент с неуникальным номером телефона{client.enote_id}")
+            logger.warning(f"Клиент с неуникальным номером телефона{client.enote_id}")
         defaults = {
             "first_name": enote_client.first_name,
             "middle_name": enote_client.middle_name,

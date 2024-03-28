@@ -39,7 +39,7 @@ class Client(models.Model):
         )
         if discount_cards.count() == 1:
             return discount_cards.first()
-        logger.error(
+        logger.warning(
             f"Возникла ошибка с клиентом {self.id}: Больше одной/нет карт "
             "для начисления бонусов"
         )
