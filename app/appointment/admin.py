@@ -47,17 +47,17 @@ class DoctorAdmin(admin.ModelAdmin):
 @admin.register(models.Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
     list_display = (
-        "id",
-        "enote_id",
-        "status",
         "client",
         "patient",
         "doctor",
+        "status",
+        "approved",
         "date_time",
         "deleted",
     )
-    autocomplete_fields = ("client",)
-    search_fields = ["enote_id"]
+    autocomplete_fields = ("client", "patient", "doctor")
+    search_fields = ("enote_id", "client__last_name", "doctor__last_name")
+    list_filter = ("approved", "deleted")
 
 
 @admin.register(models.Invoice)

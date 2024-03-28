@@ -1,6 +1,8 @@
 from datetime import datetime
+
 from appointment import models
 from client_auth.models import Client
+from django.conf import settings
 
 
 def get_greeting(client: Client) -> str:
@@ -52,8 +54,8 @@ def get_appointment_description(
     msg_header = get_msg_header(greeting, appointment_date, is_notification)
     text = (
         f"{msg_header}<b>Время:</b> {appointment_time}\n<b>"
-        f"Ваш врач: </b>{doctor_name}\n"
-        "<b>Адрес:</b> Владимир, ул. Студеная Гора, 44А/2\n\n"
+        f"Ваш врач:</b> {doctor_name}\n"
+        f"<b>Адрес:</b> {settings.CLINIC_ADDRESS}\n\n"
         "Пожалуйста, принесите с собой ваш паспорт и ветеринарный паспорт вашего питомца (при "
         "наличии). 🐶🐱\n\n"
     )

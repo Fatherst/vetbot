@@ -41,9 +41,7 @@ def appointments(appointments: list) -> InlineKeyboardMarkup:
     return markup
 
 
-def manage_appointment(
-    appointment_id: int, with_back_button: bool = True
-) -> InlineKeyboardMarkup:
+def manage_appointment(appointment_id: int) -> InlineKeyboardMarkup:
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
         InlineKeyboardButton(
@@ -56,7 +54,23 @@ def manage_appointment(
             text="Схема проезда 🗺️",
             callback_data=f"clinic_address.appointment:{appointment_id}",
         ),
+        InlineKeyboardButton(
+            text="Назад",
+            callback_data="appointments"
+        )
     )
-    if with_back_button:
-        markup.add(InlineKeyboardButton(text="Назад", callback_data="appointments"))
+    return markup
+
+
+def approve_appointment(appointment_id: int) -> InlineKeyboardMarkup:
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text="Подтвердить запись ✔️",
+            callback_data=f"approve_appointment:{appointment_id}",
+        ),
+        InlineKeyboardButton(
+            text="Перенести запись 📅", url=settings.CLINIC_MANAGER_TG_URL
+        )
+    )
     return markup

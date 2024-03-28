@@ -45,3 +45,30 @@ def appointments_menu(call: types.CallbackQuery):
         text=text,
         reply_markup=keyboards.appointments(appointments),
     )
+
+
+@bot.callback_query_handler(func=lambda c: c.data.startswith("approve_appointment"))
+def approve_appointment_callback(call: types.CallbackQuery):
+    appointment_id = int(call.data.split(":")[-1])
+
+    appointment = models.Appointment.objects.get(id=appointment_id)
+    client = appointment.client
+    appointment.approved = True
+    appointment.save()
+
+    greeting = f"<b>{client.first_name},</b> " if client.first_name else ""
+
+    text = (
+        f"{greeting}Ваш визит, запланированный на:\n\n"
+        f"<b>Дата:</b> {appointment.date_time.strftime('%d.%m.%Y')}\n"
+        f"<b>Время:</b> {appointment.date_time.strftime('%H:%M')}\n\n"
+        "<b>ПОДТВЕРЖДЕН</b>\n\n\n"
+        "Не забудьте воспользоваться Вашими бонусными баллами при оплате приема!\n\n"
+        "До встречи, ваши Друзья 💙"
+    )
+    bot.edit_message_text(
+        chat_id=call.message.chat.id,
+        message_id=call.message.message_id,
+        text=text,
+        reply_markup=keyboards.back_to_main_menu(),
+    )
