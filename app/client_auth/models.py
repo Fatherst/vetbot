@@ -25,7 +25,7 @@ class Client(models.Model):
     )
     email = models.EmailField(verbose_name="E-mail", null=True, blank=True)
     phone_number = models.CharField(max_length=12, verbose_name="Телефон", unique=True)
-    tg_chat_id = models.IntegerField(
+    tg_chat_id = models.BigIntegerField(
         null=True, blank=True, verbose_name="Telegram Id", unique=True
     )
     deleted = models.BooleanField(default=False, verbose_name="Удалён")
