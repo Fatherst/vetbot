@@ -8,6 +8,19 @@ from appointment.text_generation import get_greeting
 from nps.keyboards import feedback_buttons
 
 
+def generate_rejection_message(rejection_reason):
+    if rejection_reason == "WRONG_CLINIC":
+        text = (
+            "для начисления бонусов просим поделиться  "
+            "мнением о нашем ветеринарном центре Друзья ⭐️"
+        )
+    else:
+        text = (
+            "для начисления бонусов за отзыв просим прислать корректный скриншот 📲"
+        )
+    return text
+
+
 @receiver(post_save, sender=Review)
 def process_status_change(instance, **kwargs):
     if not instance.tracker.has_changed("status"):
@@ -28,12 +41,12 @@ def process_status_change(instance, **kwargs):
             reason="REVIEW",
         )
         reply_markup = None
-
     elif instance.status == "REJECTED":
         text = (
-            f"<b>{get_greeting(instance.client)}</b>, для начисления бонусов за отзыв просим прислать "
-            "корректный скриншот 📲\n\nПожалуйста, прикрепите скриншот отзыва, и мы начислим "
-            f"вам {active_program.review_bonus_amount} бонусных баллов 💰"
+            f"<b>{get_greeting(instance.client)}</b>, "
+            f"{generate_rejection_message(instance.rejection_reason)}\n\nПожалуйста, прикрепите  "
+            f"скриншот отзыва, и мы начислим вам {active_program.review_bonus_amount} "
+            "бонусных баллов 💰"
         )
         reply_markup = feedback_buttons()
     else:

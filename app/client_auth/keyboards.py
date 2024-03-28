@@ -24,28 +24,28 @@ def main_menu(client: Client) -> InlineKeyboardMarkup:
     client_with_enote_id = client.enote_id
 
     markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(
-        InlineKeyboardButton(text="Записаться ✔️", url=settings.CLINIC_MANAGER_TG_URL),
-        InlineKeyboardButton(text="О клинике  🏥", callback_data="clinic_info"),
-        InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
-    )
+
+    if active_program_exists and client_with_enote_id:
+        markup.add(
+            InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
+            InlineKeyboardButton(
+                text="Рекомендовать клинику 📢",
+                callback_data="recommend_from_menu",
+            ),
+        )
 
     if client_with_enote_id:
         markup.add(
             InlineKeyboardButton(text="Мои записи 📝", callback_data="appointments"),
         )
 
-    if active_program_exists and client_with_enote_id:
-        markup.add(
-            InlineKeyboardButton(
-                text="Рекомендовать клинику 📢",
-                callback_data="recommend_from_menu",
-            ),
-            InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
-        )
-
     elif active_program_exists:
         markup.add(
             InlineKeyboardButton(text="Программа лояльности 🐱", callback_data="loyalty")
         )
+    markup.add(
+        InlineKeyboardButton(text="Записаться ✔️", url=settings.CLINIC_MANAGER_TG_URL),
+        InlineKeyboardButton(text="О клинике  🏥", callback_data="clinic_info"),
+        InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
+    )
     return markup
