@@ -1,5 +1,4 @@
 from bonuses.models import BonusAccrual, Program
-from bot.bot_init import logger
 from bot_admin.celery import app
 from client_auth.models import Patient
 from django.utils import timezone
@@ -34,19 +33,23 @@ def process_not_accrued_bonuses():
 
 @app.task
 def process_patients_birthdays():
+    try:
+        active_program = Program.objects.get(is_active=True)
+    except Program.DoesNotExist:
+        return
+
     today = timezone.now().date()
     patients = Patient.objects.filter(
         birth_date__day=today.day,
         birth_date__month=today.month,
-        deleted=False,
         time_of_death=None,
-    )
-    try:
-        active_program = Program.objects.get(is_active=True)
-    except Program.DoesNotExist as error:
-        logger.error(error)
-    else:
-        for patient in patients:
+    ).exclude(deleted=True)
+
+    for patient in patients:
+        bonus_not_accrued_before = not BonusAccrual.objects.filter(
+            client=patient.client, reason="BIRTHDAY", created_at__year=today.year
+        ).exists()
+        if patient.client.with_discount_card and bonus_not_accrued_before:
             BonusAccrual.objects.create(
                 client=patient.client,
                 reason="BIRTHDAY",

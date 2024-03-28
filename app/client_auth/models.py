@@ -46,6 +46,12 @@ class Client(models.Model):
         return False
 
     @property
+    def with_discount_card(self):
+        return self.discount_cards.filter(
+            deleted=False, category__enote_id=settings.CATEGORY_ENOTE_ID
+        ).exists()
+
+    @property
     def balance(self) -> ClientBalance:
         if self.discount_card:
             return get_balance(self.enote_id, self.discount_card.enote_id)
@@ -56,23 +62,6 @@ class Client(models.Model):
         if self.first_name and self.last_name:
             full_name = f"{self.last_name} {self.first_name}"
             full_name += f" {self.middle_name}" if self.middle_name else ""
-            return full_name
-        return None
-
-    def __str__(self):
-        if self.full_name:
-            return self.full_name
-        else:
-            return f"Клиент {self.pk}"
-
-    @property
-    def full_name(self):
-        if self.first_name and self.last_name:
-            last_name_first_name = f"{self.last_name} {self.first_name}"
-            if self.middle_name:
-                full_name = f"{last_name_first_name} {self.middle_name}"
-            else:
-                full_name = f"{last_name_first_name}"
             return full_name
         return None
 

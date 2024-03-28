@@ -54,10 +54,7 @@ def manage_appointment(appointment_id: int) -> InlineKeyboardMarkup:
             text="Схема проезда 🗺️",
             callback_data=f"clinic_address.appointment:{appointment_id}",
         ),
-        InlineKeyboardButton(
-            text="Назад",
-            callback_data="appointments"
-        )
+        InlineKeyboardButton(text="Назад", callback_data="appointments"),
     )
     return markup
 
@@ -71,6 +68,9 @@ def approve_appointment(appointment_id: int) -> InlineKeyboardMarkup:
         ),
         InlineKeyboardButton(
             text="Перенести запись 📅", url=settings.CLINIC_MANAGER_TG_URL
-        )
+        ),
+        InlineKeyboardButton(
+            text="Отменить запись ❌", url=settings.CLINIC_MANAGER_TG_URL
+        ),
     )
     return markup
