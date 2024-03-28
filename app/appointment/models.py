@@ -144,6 +144,7 @@ class Appointment(models.Model):
         related_name="appointments",
     )
     date_time = models.DateTimeField(verbose_name="Время записи")
+    approved = models.BooleanField(default=False, verbose_name="Подтверждена")
     deleted = models.BooleanField(default=False, verbose_name="Пометить на удаление")
 
     class Meta:
@@ -151,7 +152,7 @@ class Appointment(models.Model):
         verbose_name_plural = "Записи на приём"
 
     def __str__(self):
-        return f"Запись на: {self.date_time}"
+        return f"Запись на прием от {self.date_time.strftime('%d.%m.%Y %H:%M')}"
 
 
 class Invoice(models.Model):

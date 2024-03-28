@@ -119,12 +119,16 @@ def generate_doctor_description(doctor: Doctor, client: Client) -> str:
         greeting = "Знакомьтесь!"
 
     positions = doctor.positions.filter(show_in_bot=True)
-    positions_description = ", ".join(
-        [position.name for position in positions]
-    ) if positions else "сотрудник ветеринарной клиники"
+    positions_description = (
+        ", ".join([position.name for position in positions])
+        if positions
+        else "сотрудник ветеринарной клиники"
+    )
 
     text = (
-        f"{greeting}\n\n" f"{doctor.full_name}, {positions_description}\n\n" f"{doctor.detail_info}"
+        f"{greeting}\n\n"
+        f"{doctor.full_name}, {positions_description}\n\n"
+        f"{doctor.detail_info}"
     )
 
     return text
