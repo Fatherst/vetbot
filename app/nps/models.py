@@ -37,6 +37,10 @@ class Review(models.Model):
             "Скриншот отклонён",
         )
 
+    class RejectionReasonChoices(models.TextChoices):
+        INCORRECT = ("INCORRECT", "Некорректный отзыв")
+        WRONG_CLINIC = ("WRONG_CLINIC", "Отзыв не о нашей клинике")
+
     class ResourceChoices(models.TextChoices):
         GOOGLE = (
             "GOOGLE",
@@ -57,6 +61,12 @@ class Review(models.Model):
         choices=StatusChoices.choices,
         default=StatusChoices.UNCHECKED,
         verbose_name="Статус проверки",
+    )
+    rejection_reason = models.CharField(
+        choices=RejectionReasonChoices.choices,
+        verbose_name="Причина отказа",
+        null=True,
+        blank=True,
     )
     resource = models.CharField(
         max_length=50, verbose_name="Источник отзыва", choices=ResourceChoices.choices

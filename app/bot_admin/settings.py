@@ -91,7 +91,6 @@ WSGI_APPLICATION = "bot_admin.wsgi.application"
 LANGUAGE_CODE = "ru-RU"
 TIME_ZONE = "Europe/Moscow"
 USE_I18N = True
-USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"

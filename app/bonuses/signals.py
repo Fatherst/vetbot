@@ -39,8 +39,8 @@ def send_notification(instance, **kwargs):
         else:
             text = (
                 f"<b>{name}</b>, Вам начислено {instance.amount} бонусных баллов\n\nВы можете "
-                f"использовать их для оплаты услуг в нашем Центре\n\n<b>{program.description}</b>\n\
-                n{reason_message}"
+                f"использовать их для оплаты услуг в нашем Центре\n\n<b>{program.description}</b>\n"
+                "\n{reason_message}"
             )
         bot.send_message(
             chat_id=client.tg_chat_id, text=text, reply_markup=keyboards.more_bonuses()
