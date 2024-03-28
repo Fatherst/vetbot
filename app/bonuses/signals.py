@@ -4,6 +4,7 @@ from bonuses.models import BonusAccrual, Recommendation, Program
 from bonuses.tasks import accrual_bonuses_by_enote
 from bot.bot_init import bot, logger
 from bonuses import keyboards
+from appointment.text_generation import get_greeting
 
 
 @receiver(post_save, sender=BonusAccrual)
@@ -16,7 +17,7 @@ def accrue_bonuses(created, instance, **kwargs):
 def send_notification(instance, **kwargs):
     if instance.accrued and instance.tracker.has_changed("accrued"):
         client = instance.client
-        name = client.full_name if client.full_name else "Уважаемый клиент"
+        greeting = get_greeting(client)
         program = Program.objects.filter(is_active=True).first()
         REASONS = {
             "REGISTRATION": "Бонус за подключение к боту ветеринарного центра <b>Друзья</b> 🐈!",
@@ -30,7 +31,7 @@ def send_notification(instance, **kwargs):
         reason_message = REASONS.get(instance.reason, DEFAULT_REASON)
         if instance.reason == "BIRTHDAY":
             text = (
-                f"<b>{name}</b>, поздравляем вашего друга с днем рождения и желаем еще многих "
+                f"<b>{greeting}</b>, поздравляем вашего друга с днем рождения и желаем еще многих "
                 "счастливых  и здоровых лет. Пусть он всегда будет полон энергии, "
                 f"любви и шалостей.\n\nВ честь праздника мы дарим вам {instance.amount} "
                 "бонусных баллов, которые  вы можете использовать для оплаты услуг в нашем "
@@ -38,7 +39,7 @@ def send_notification(instance, **kwargs):
             )
         else:
             text = (
-                f"<b>{name}</b>, Вам начислено {instance.amount} бонусных баллов\n\nВы можете "
+                f"<b>{greeting}</b>, Вам начислено {instance.amount} бонусных баллов\n\nВы можете "
                 f"использовать их для оплаты услуг в нашем Центре\n\n<b>{program.description}</b>\n"
                 f"\n{reason_message}"
             )
