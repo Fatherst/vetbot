@@ -31,6 +31,7 @@ class ProgramAdmin(admin.ModelAdmin):
         "review_bonus_amount",
         "is_active",
         "created_at",
+        "payment_percent",
     )
     search_fields = ("name",)
     list_filter = ("is_active",)

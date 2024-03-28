@@ -77,6 +77,9 @@ class Program(models.Model):
     birthday_bonus_amount = models.PositiveIntegerField(
         verbose_name="Бонус на день рождения"
     )
+    payment_percent = models.PositiveIntegerField(
+        verbose_name="Максимальный процент оплаты бонусами", default=20
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     is_active = models.BooleanField(default=False, verbose_name="Активна")
 

@@ -6,6 +6,7 @@ from bonuses.models import Program, Recommendation
 from bot.bot_init import bot
 from client_auth.models import Client
 from telebot import types
+from appointment.text_generation import get_greeting
 
 
 def create_program_description(program: Program) -> str:
@@ -35,7 +36,8 @@ def generate_statuses_description(program: Program) -> str:
             )
 
     new_client_description = (
-        "\n\nВы можете оплатить бонусами до <b>10%</b> стоимости любой услуги.\n\nКроме этого, "
+        f"\n\nВы можете оплатить бонусами до <b>{program.payment_percent}%</b> стоимости любой "
+        "услуги.\n\nКроме этого, "
         f"мы подарим вам <b>{program.new_client_bonus_amount}</b> бонусных "
         "баллов за каждого нового друга, которому Вы порекомендуете нашу Клинику.\n\n💙"
     )
@@ -48,21 +50,26 @@ def bonus_program(call: types.CallbackQuery):
     client = Client.objects.get(tg_chat_id=call.from_user.id)
 
     balance_info = client.balance
-    name = client.full_name if client.full_name else "Уважаемый клиент"
     balance_message = (
         f"Баланс Вашего бонусного счета: {balance_info.bonus_balance} "
         "бонусных баллов.\n\n"
     )
     status_message = ""
-
+    payment_message = (
+        f"Вы можете оплатить до <b>{program.payment_percent}%</b> от стоимости "
+        "услуг Клиники!\n\n"
+    )
     status = program.retrieve_status(balance_info.money_spent)
     if status:
         status_message = (
             f"на данный момент Ваш статус в программе лояльности:\n\n<b>{status.name}</b>"
-            f"\n\nЭто значит, что Вы получаете {status.cashback_amount}% бонусными "
+            f"\n\nЭто значит, что Вы получаете <b>{status.cashback_amount}%</b> бонусными "
             "баллами с потраченной в Клинике суммы!\n\n"
         )
-    text = f"<b>{name}</b>, {status_message}{balance_message}{program.description}"
+    text = (
+        f"<b>{get_greeting(client)}</b>, {status_message}{balance_message}{payment_message}"
+        f"<b>{program.description}</b>"
+    )
     bot.edit_message_text(
         chat_id=call.message.chat.id,
         message_id=call.message.message_id,
@@ -115,9 +122,8 @@ def get_promocode(call: types.CallbackQuery):
     else:
         reply_markup = keyboards.back_to_bonuses()
 
-    name = client.full_name if client.full_name else "Уважаемый клиент"
     text = (
-        f"<b>{name}</b>, благодарим Вас за доверие 💙\n\nМы начислим Вам "
+        f"<b>{get_greeting(client)}</b>, благодарим Вас за доверие 💙\n\nМы начислим Вам "
         f"{program.new_client_bonus_amount} бонусных баллов за рекомендацию 🔥\n\n"
         f"И начислим {program.new_client_bonus_amount} приветственных баллов Вашему другу 🍀\n\n"
         f"Для этого поделитесь с ним данным промокодом: {promocode}"

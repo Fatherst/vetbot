@@ -33,7 +33,11 @@ def appointments_menu(call: types.CallbackQuery):
     client = Client.objects.get(tg_chat_id=call.from_user.id)
     today = timezone.now()
     greeting = get_greeting(client)
-    appointments = client.appointments.filter(date_time__gte=today)
+    appointments = (
+        client.appointments.filter(date_time__gte=today)
+        .exclude(status="CLIENTS_REFUSAL")
+        .exclude(deleted=True)
+    )
     if appointments:
         text = (
             f"<b>{greeting}</b>, на данный момент у Вас есть запланированные приемы в нашей клинике "
