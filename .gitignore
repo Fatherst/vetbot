@@ -1,5 +1,10 @@
 .env
+!.kubernetes/*
 .venv/
 __pycache__/
 .idea/
 .DS_Store
+app/logfile*
+logfile*
+app/media
+app/static

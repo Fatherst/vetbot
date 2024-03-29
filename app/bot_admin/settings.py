@@ -1,11 +1,16 @@
 import os
 from pathlib import Path
-
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 from dotenv import load_dotenv
+from celery.schedules import crontab
+
 
 load_dotenv()
 
 INSTALLED_APPS = [
+    "admin_interface",
+    "colorfield",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -15,6 +20,11 @@ INSTALLED_APPS = [
     "admin_auth.apps.AdminDialogConfig",
     "client_auth.apps.ClientBotConfig",
     "endpoints.apps.EndpointsConfig",
+    "bonuses.apps.BonusesConfig",
+    "nps.apps.NpsConfig",
+    "appointment.apps.AppointmentConfig",
+    "django_celery_beat",
+    "django_celery_results",
 ]
 
 MIDDLEWARE = [
@@ -72,7 +82,6 @@ DATABASES = {
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "test")
 DEBUG = os.environ.get("DEBUG", False) == "True"
-AUTH_USER_MODEL = "admin_auth.Admin"
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -82,7 +91,6 @@ WSGI_APPLICATION = "bot_admin.wsgi.application"
 LANGUAGE_CODE = "ru-RU"
 TIME_ZONE = "Europe/Moscow"
 USE_I18N = True
-USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "static"
@@ -99,5 +107,75 @@ EMAIL_PORT = 587
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+FEEDBACK_RECIPIENT_EMAIL = os.getenv("FEEDBACK_RECIPIENT_EMAIL")
 
-BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
+GOOGLE_REVIEW_URL = os.getenv("GOOGLE_REVIEW_URL")
+YANDEX_REVIEW_URL = os.getenv("YANDEX_REVIEW_URL")
+
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_WEBHOOK = os.getenv("BOT_WEBHOOK")
+
+API_USERNAME = os.getenv("API_USERNAME")
+API_PASSWORD = os.getenv("API_PASSWORD")
+
+EXPORT_API_KEY = os.getenv("EXPORT_API_KEY")
+
+ENOTE_BASIC_AUTH = os.getenv("ENOTE_BASIC_AUTH")
+ENOTE_APIKEY = os.getenv("ENOTE_APIKEY")
+
+CATEGORY_ENOTE_ID = os.getenv("CATEGORY_ENOTE_ID")
+
+ENOTE_BALANCE_DEPARTMENT = os.getenv("ENOTE_BALANCE_DEPARTMENT")
+ENOTE_API_URL = os.getenv("ENOTE_API_URL")
+
+CSRF_TRUSTED_ORIGINS = [os.getenv("BOT_WEBHOOK")]
+
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_DB_INDEX = os.getenv("REDIS_DB_INDEX")
+CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB_INDEX}"
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_RESULT_BACKEND = "django-db"
+
+USE_EASYSMS = os.getenv("USE_EASYSMS", False) == "True"
+EASYSMS_LOGIN = os.getenv("EASYSMS_LOGIN")
+EASYSMS_PASSWORD = os.getenv("EASYSMS_PASSWORD")
+EASYSMS_ORIGINATOR = os.getenv("EASYSMS_ORIGINATOR")
+EASYSMS_URL = os.getenv("EASYSMS_URL")
+
+CLINIC_PHONE = os.getenv("CLINIC_PHONE", "+7 (4922) 49-47-82")
+CLINIC_URL = os.getenv("CLINIC_URL", "https://vetfriends.ru")
+CLINIC_ON_MAP_URL = os.getenv("CLINIC_ON_MAP_URL", "https://go.2gis.com/h3nrl")
+CLINIC_ADDRESS = os.getenv("CLINIC_ADDRESS", "Владимир, Студеная Гора 44а/2")
+CLINIC_MANAGER_TG_URL = os.getenv("CLINIC_MANAGER_TG_URL", "https://t.me/vetfriends")
+
+CELERY_BEAT_SCHEDULE = {
+    "process_not_accrued_bonuses": {
+        "task": "bonuses.tasks.process_not_accrued_bonuses",
+        "schedule": crontab(hour="*/4"),
+    },
+    "process_patients_birthdays": {
+        "task": "bonuses.tasks.process_patients_birthdays",
+        "schedule": crontab(minute="0", hour="9"),
+    },
+    "send_appointment_notification": {
+        "task": "appointment.tasks.send_appointment_notification",
+        "schedule": crontab(hour="11"),
+    },
+    "send_nps": {
+        "task": "nps.tasks.send_nps",
+        "schedule": crontab(hour="10"),
+    },
+}
+
+
+sentry_sdk.init(
+    dsn=os.getenv("SENTRY_DSN"),
+    integrations=[
+        DjangoIntegration(),
+    ],
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0,
+)

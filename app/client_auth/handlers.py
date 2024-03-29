@@ -1,131 +1,158 @@
-from aiogram import types
-from .keyboards import (
-    get_contact,
-    get_user_main_menu,
-)
-from .models import Client
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
-from aiogram import Router, F
-from aiogram.filters import Command, Filter
-import re
 import random
+from sentry_sdk import capture_message
+from bot.bot_init import bot, logger
+from bot.states import AuthStates
+from client_auth import keyboards
+from client_auth.models import Client
+from django.conf import settings
+from integrations.easysms import methods as easysms
+from telebot import apihelper, types
+from bot.classes import Phone
+from appointment.text_generation import get_greeting
 
 
-client_router = Router()
+def send_old_client_greeting_message(client: Client, message: types.Message):
+    if client.enote_id:
+        text = (
+            f"<b>{get_greeting(client)}</b>, вы успешного авторизованы в нашей бонусной системе! "
+            "Но у нас еще много всего интересного для вас 🐾\n\nВыберите, что вас интересует ⤵️"
+        )
+    else:
+        text = (
+            "Здравствуйте!\n\nМы не смогли вас найти\n\n😔Выберите, что вас интересует ⤵️\n\n"
+            "Прямо сейчас Вы можете:\n- Записаться на прием.\n- Узнать больше о нашем центре.\n- "
+            "Познакомиться с условиями программы лояльности.\n- Посмотреть состав нашей дружной "
+            "команды."
+        )
+    bot.send_message(
+        chat_id=message.chat.id, text=text, reply_markup=keyboards.main_menu(client)
+    )
 
 
-class PhoneFilter(Filter):
-    mask = r"(7[0-9]{10})"
+def send_new_client_greeting_message(message: types.Message):
+    text = (
+        "Добро пожаловать в ветеринарный центр <b>Друзья</b>! Для начала давайте познакомимся. Для "
+        "этого нажмите кнопку <b>Поделиться своим номером.</b>"
+    )
 
-    async def __call__(self, message: types.Message) -> bool:
-        row_phone_number = message.text
-        phone_number = re.sub(r"\D", "", row_phone_number)
-        phone_mask = re.compile(self.mask)
-        return re.fullmatch(phone_mask, phone_number)
-
-
-class PhoneStates(StatesGroup):
-    phone = State()
-    code = State()
+    bot.send_message(
+        chat_id=message.chat.id, text=text, reply_markup=keyboards.get_contact()
+    )
 
 
-@client_router.message(Command("start"))
-async def send_greeting(message: types.Message, state: FSMContext):
-    """
-    Проверка на то, зарегистрирован ли пользователь уже
-    """
-    await state.clear()
-    user_id = message.from_user.id
-    client = await Client.objects.filter(tg_chat_id=user_id).afirst()
-    if client:
-        if client.first_name:
-            greeting = f"{client.first_name}, приветствую"
+@bot.message_handler(commands=["start"])
+def process_start_command(message: types.Message):
+    bot.delete_state(user_id=message.chat.id)
+    try:
+        client = Client.objects.get(tg_chat_id=message.chat.id)
+    except Client.DoesNotExist:
+        send_new_client_greeting_message(message)
+        bot.set_state(user_id=message.chat.id, state=AuthStates.phone)
+    else:
+        send_old_client_greeting_message(client, message)
+
+
+def send_sms_message(user_id: int, formatted_phone: str):
+    code = random.randrange(1001, 9999)
+    code_message = f"Твой код - {code}"
+    capture_message(code_message)
+
+    try:
+        easysms.send_message(code_message, formatted_phone)
+        text = "Напишите код из 4-х цифр, который придет на ваш телефон."
+    except Exception as e:
+        logger.exception(e)
+        text = (
+            "Приветствую!\n\nПри попытке отправки кода произошла ошибка, "
+            "мы работаем над её устранением, попробуйте позже"
+        )
+    else:
+        bot.set_state(user_id=user_id, state=AuthStates.code)
+        bot.add_data(user_id=user_id, code=code, phone=formatted_phone)
+    bot.send_message(
+        chat_id=user_id, text=text, reply_markup=types.ReplyKeyboardRemove()
+    )
+
+
+def send_non_sms_message(user_id: int, formatted_phone: str):
+    code = 1
+    text = f"Авторизация по смс отключена, код {code}. Отправьте его"
+
+    bot.set_state(user_id=user_id, state=AuthStates.code)
+    bot.add_data(user_id=user_id, code=code, phone=formatted_phone)
+
+    bot.send_message(
+        chat_id=user_id, text=text, reply_markup=types.ReplyKeyboardRemove()
+    )
+
+
+@bot.message_handler(
+    state=AuthStates.phone, phone_is_valid=True, content_types=["text", "contact"]
+)
+def process_valid_phone(message: types.Message):
+    phone = message.text if message.text else message.contact.phone_number
+    formatted_phone = Phone.format(phone)
+
+    if settings.USE_EASYSMS:
+        send_sms_message(message.chat.id, formatted_phone)
+    else:
+        send_non_sms_message(message.chat.id, formatted_phone)
+
+
+@bot.message_handler(
+    state=AuthStates.phone, phone_is_valid=False, content_types=["text", "contact"]
+)
+def process_not_valid_phone(message: types.Message):
+    bot.send_message(
+        chat_id=message.chat.id,
+        text="Отправьте, пожалуйста, российский номер\nПопробуйте ещё раз или напишите /start",
+    )
+
+
+@bot.message_handler(state=AuthStates.code)
+def process_code(message: types.Message):
+    with bot.retrieve_data(user_id=message.chat.id) as data:
+        code = str(data["code"])
+        phone = data["phone"]
+    if code == message.text:
+        defaults = {
+            "tg_chat_id": message.chat.id,
+            "phone_number": phone,
+        }
+        client, created = Client.objects.update_or_create(
+            phone_number=phone, defaults=defaults
+        )
+        bot.delete_state(user_id=message.chat.id)
+        if client.enote_id:
+            text = (
+                f"<b>{get_greeting(client)}</b>,вы успешного авторизованы в нашей бонусной системе! "
+                "Но у нас еще много всего интересного для вас 🐾\n\nВыберите, что вас интересует ⤵️"
+            )
         else:
-            greeting = "Приветствую"
-        await message.answer(
-            text=f"<b>{greeting}</b>\n\nВыберите, что вас интересует ⤵",
-            reply_markup=get_user_main_menu(),
-        )
+            text = (
+                "Здравствуйте!\n\nМы не смогли вас найти 😔\n\nВыберите, что вас интересует "
+                "⤵️\n\n"
+                "Прямо сейчас Вы можете:\n- Записаться на прием.\n- Узнать больше о нашем центре.\n- "
+                "Познакомиться с условиями программы лояльности.\n- Посмотреть состав нашей дружной "
+                "команды."
+            )
+        reply_markup = keyboards.main_menu(client)
     else:
-        greeting = (
-            "Добро пожаловать в бота ветеринарного центра <b>Друзья</b> 🐈\n"
-            "Для начала мне нужно Вас идентифицировать в качестве клиента нашей клиники. "
-            "Для этого, пожалуйста,нажмите на кнопку чтобы отправить свой номер телефона,"
-            " указанный в Telegram, или напишите его вручную"
+        text = (
+            "Код неправильный, попробуйте ввести ещё раз, либо напишите /start, "
+            "чтобы начать сначала"
         )
-        await message.answer(
-            text=greeting,
-            reply_markup=get_contact(),
+        reply_markup = None
+
+    bot.send_message(chat_id=message.chat.id, text=text, reply_markup=reply_markup)
+
+
+@bot.callback_query_handler(func=lambda c: c.data == "main_menu")
+def process_main_menu_callback(call: types.CallbackQuery):
+    try:
+        bot.delete_message(
+            chat_id=call.message.chat.id, message_id=call.message.message_id
         )
-        await state.set_state(PhoneStates.phone)
-
-
-async def process_client_phone(
-    state: FSMContext, user_phone_number: str, message: types.Message
-):
-    """Проверку на то, есть ли пользователь я вообще убрал, теперь только проверка на черный список"""
-    black_list = []
-    client = await Client.objects.filter(phone_number=user_phone_number).afirst()
-    if client not in black_list:
-        # code = random.randrange(1001, 9999)
-        code = 1
-        await state.update_data(code=code)
-        await state.update_data(phone_number=user_phone_number)
-        await message.answer(
-            text="Приветствую!\n\n"
-            "Напишите код из 4-х цифр, который придёт на ваш телефон",
-            reply_markup=types.ReplyKeyboardRemove(),
-        )
-        await state.set_state(PhoneStates.code)
-    else:
-        await message.answer(
-            text="Здравствуйте! Благодарим за обращение. На данный момент услуга недоступна.",
-        )
-        await state.clear()
-
-
-@client_router.message(PhoneStates.phone, F.text, PhoneFilter())
-async def handle_correct_text_contact(message: types.Message, state: FSMContext):
-    phone_number = re.sub(r"\D", "", message.text)
-    await process_client_phone(
-        state=state,
-        user_phone_number=phone_number,
-        message=message,
-    )
-
-
-@client_router.message(PhoneStates.phone, F.text, lambda x: x != PhoneFilter())
-async def handle_wrong_text_contact(message: types.Message):
-    await message.reply(
-        text="Пришли,пожалуйста, российский номер\nПопробуй ещё раз или напиши /start"
-    )
-
-
-@client_router.message(PhoneStates.phone, F.content_type.in_({"contact"}))
-async def handle_contact(message: types.Message, state: FSMContext):
-    phone_number = message.contact.phone_number
-    phone_number = re.sub(r"\D", "", phone_number)
-    await process_client_phone(
-        state=state,
-        user_phone_number=phone_number,
-        message=message,
-    )
-
-
-@client_router.message(PhoneStates.code, F.text)
-async def handle_code(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    if str(data["code"]) == message.text:
-        await Client.objects.aupdate_or_create(
-            phone_number=data["phone_number"], tg_chat_id=message.from_user.id
-        )
-        await state.clear()
-        await message.answer(
-            text="Вы успешно авторизовались в клиентской части бота",
-            reply_markup=get_user_main_menu(),
-        )
-    else:
-        await message.answer(
-            text="Код неправильный, попробуй ввести ещё раз, либо напиши /start, чтобы начать сначала",
-        )
+    except apihelper.ApiTelegramException:
+        pass
+    process_start_command(call.message)

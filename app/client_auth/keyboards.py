@@ -1,61 +1,51 @@
-from aiogram.types import (
+from bonuses.models import Program
+from client_auth.models import Client
+from django.conf import settings
+from telebot.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    ReplyKeyboardMarkup,
     KeyboardButton,
+    ReplyKeyboardMarkup,
 )
 
 
-def get_contact():
-    buttons = [[KeyboardButton(text="Поделиться своим номером", request_contact=True)]]
-    contact_markup = ReplyKeyboardMarkup(
-        keyboard=buttons,
+def get_contact() -> ReplyKeyboardMarkup:
+    markup = ReplyKeyboardMarkup(
         resize_keyboard=True,
         one_time_keyboard=True,
         input_field_placeholder="Напишите здесь свой номер телефона",
     )
-    return contact_markup
+    markup.add(KeyboardButton(text="Поделиться своим номером", request_contact=True))
+    return markup
 
 
-def get_user_main_menu():
-    buttons = [
-        [
+def main_menu(client: Client) -> InlineKeyboardMarkup:
+    active_program_exists = Program.objects.filter(is_active=True).exists()
+    client_with_enote_id = client.enote_id
+
+    markup = InlineKeyboardMarkup(row_width=1)
+
+    if active_program_exists and client_with_enote_id:
+        markup.add(
             InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
-        ],
-        [
-            InlineKeyboardButton(text="Мои записи 📝", callback_data="appointments"),
-        ],
-        [
-            InlineKeyboardButton(text="Записаться ✔️", callback_data="book"),
-        ],
-        [
             InlineKeyboardButton(
-                text="Рекомендовать клинику 📢", callback_data="recommend"
+                text="Рекомендовать клинику 📢",
+                callback_data="recommend_from_menu",
             ),
-        ],
-        [
-            InlineKeyboardButton(text="О клинике  🛈", callback_data="about"),
-        ],
-        [
-            InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
-        ],
-    ]
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return inline_markup
+        )
 
-
-def get_new_appointment():
-    buttons = [
-        [
-            InlineKeyboardButton(text="Мои бонусы 💰", callback_data="bonuses"),
+    if client_with_enote_id:
+        markup.add(
             InlineKeyboardButton(text="Мои записи 📝", callback_data="appointments"),
-            InlineKeyboardButton(
-                text="Рекомендовать клинику 📢", callback_data="recommend"
-            ),
-            InlineKeyboardButton(text="О клинике  🛈", callback_data="about"),
-            InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
-            InlineKeyboardButton(text="Назад 🔙", callback_data="back"),
-        ]
-    ]
-    inline_markup = InlineKeyboardMarkup(inline_keyboard=buttons)
-    return inline_markup
+        )
+
+    elif active_program_exists:
+        markup.add(
+            InlineKeyboardButton(text="Программа лояльности 🐱", callback_data="loyalty")
+        )
+    markup.add(
+        InlineKeyboardButton(text="Записаться ✔️", url=settings.CLINIC_MANAGER_TG_URL),
+        InlineKeyboardButton(text="О клинике  🏥", callback_data="clinic_info"),
+        InlineKeyboardButton(text="Наши врачи 👩‍⚕️", callback_data="doctors"),
+    )
+    return markup

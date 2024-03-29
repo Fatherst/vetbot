@@ -21,22 +21,31 @@ docker run -d \
   -e POSTGRES_DB=divan \
   postgres:13 
 ```
-
-5. Примените миграции:
+5. Поднимите redis
+```
+docker run -d -p 6379:6379 redis
+```
+6. Примените миграции:
 ```
 python3 app/manage.py migrate
 ```
-6. Создайте супер пользователя:
+7. Создайте супер пользователя:
 ```
 python3 app/manage.py createsuperuser
 ```
-7. Запустите джанго:
+8. Запустите джанго:
 ```
 python3 app/manage.py runserver 8000
 ```
-8. Запустите бота (прописать в другом окне терминала):
+9.Запустите celery и celery beat:
 ```
-python3 app/manage.py start_bot
+cd add
+celery -A bot_admin worker --beat --scheduler django --loglevel=info --detach
+```
+
+9. Запустите celery и celery beat:
+```
+celery -A bot_admin worker --beat --scheduler django --loglevel=info --detach
 ```
 
 9. Запустите celery и celery beat:
