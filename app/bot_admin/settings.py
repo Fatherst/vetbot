@@ -160,11 +160,11 @@ CELERY_BEAT_SCHEDULE = {
     },
     "send_appointment_notification": {
         "task": "appointment.tasks.send_appointment_notification",
-        "schedule": crontab(hour="11"),
+        "schedule": crontab(hour="11", minute="0"),
     },
     "send_nps": {
         "task": "nps.tasks.send_nps",
-        "schedule": crontab(hour="10"),
+        "schedule": crontab(hour="10", minute="0"),
     },
 }
 
