@@ -17,10 +17,10 @@ pod:
     port: 80
     resources:
       limits:
-        cpu: "2"
+        cpu: "1"
         memory: 2000Mi
       requests:
-        cpu: "2"
+        cpu: "1"
         memory: 2000Mi
       readinessProbe:
         path: "/health"
