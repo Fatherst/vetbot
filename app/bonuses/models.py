@@ -135,7 +135,9 @@ class Status(models.Model):
                     "начальному значению статуса с нулевым конечным значением"
                 }
             )
-        overlaps = Status.objects.filter(program=self.program, end_amount__isnull=False)
+        overlaps = Status.objects.filter(
+            program=self.program, end_amount__isnull=False
+        ).exclude(pk=self.pk)
         if self.end_amount:
             overlaps = overlaps.exclude(start_amount__gte=self.end_amount).exclude(
                 end_amount__lte=self.start_amount

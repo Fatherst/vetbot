@@ -30,7 +30,7 @@ def process_status_change(instance, **kwargs):
     if instance.status == "APPROVED":
         text = (
             f"<b>{get_greeting(instance.client)}</b>, отзыв успешно проверен, "
-            f"{active_program.review_bonus_amount} бонусных баллов скоро будут начислены "
+            f"<b>{active_program.review_bonus_amount}</b> бонусных баллов скоро будут начислены "
             f"на ваш лицевой счет  💰\n\nДо новых встреч в ветеринарном центре Друзья 😻"
         )
         BonusAccrual.objects.create(
@@ -43,7 +43,7 @@ def process_status_change(instance, **kwargs):
         text = (
             f"<b>{get_greeting(instance.client)}</b>, "
             f"{generate_rejection_message(instance.rejection_reason)}\n\nПожалуйста, прикрепите  "
-            f"скриншот отзыва, и мы начислим вам {active_program.review_bonus_amount} "
+            f"скриншот отзыва, и мы начислим вам <b>{active_program.review_bonus_amount}</b> "
             "бонусных баллов 💰"
         )
         reply_markup = feedback_buttons()

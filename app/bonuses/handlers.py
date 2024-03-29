@@ -51,8 +51,8 @@ def bonus_program(call: types.CallbackQuery):
 
     balance_info = client.balance
     balance_message = (
-        f"Баланс Вашего бонусного счета: {balance_info.bonus_balance} "
-        "бонусных баллов.\n\n"
+        f"Баланс Вашего бонусного счета:<b> {balance_info.bonus_balance} "
+        "бонусных баллов.</b>\n\n"
     )
     status_message = ""
     payment_message = (
@@ -124,7 +124,7 @@ def get_promocode(call: types.CallbackQuery):
 
     text = (
         f"<b>{get_greeting(client)}</b>, благодарим Вас за доверие 💙\n\nМы начислим Вам "
-        f"{program.new_client_bonus_amount} бонусных баллов за рекомендацию 🔥\n\n"
+        f"<b>{program.new_client_bonus_amount}</b> бонусных баллов за рекомендацию 🔥\n\n"
         f"И начислим {program.new_client_bonus_amount} приветственных баллов Вашему другу 🍀\n\n"
         f"Для этого поделитесь с ним данным промокодом: {promocode}"
     )
