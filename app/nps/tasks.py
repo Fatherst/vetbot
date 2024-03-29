@@ -17,7 +17,9 @@ def send_nps():
             appointments__date_time__date=yesterday,
             appointments__patient__time_of_death=None,
         )
-        .exclude(tg_chat_id=None, deleted=True, appointments__deleted=True)
+        .exclude(tg_chat_id=None)
+        .exclude(deleted=True)
+        .exclude(appointments__deleted=True)
         .annotate(latest_appointment=Max("appointments__date_time"))
     )
     for client in clients_with_appointments:
