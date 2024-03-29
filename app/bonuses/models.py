@@ -125,9 +125,11 @@ class Status(models.Model):
     )
 
     def clean(self):
-        status_without_end = Status.objects.filter(
-            program=self.program, end_amount=None
-        ).first()
+        status_without_end = (
+            Status.objects.filter(program=self.program, end_amount=None)
+            .exclude(pk=self.pk)
+            .first()
+        )
         if status_without_end and self.start_amount >= status_without_end.start_amount:
             raise ValidationError(
                 {
