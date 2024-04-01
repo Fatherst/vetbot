@@ -10,12 +10,15 @@ from appointment.text_generation import get_appointment_description
 def send_appointment_notification():
     today = datetime.now().date()
     tomorrow = today + timedelta(days=1)
-    appointments = Appointment.objects.filter(
-        date_time__date=tomorrow,
-        status="PLANNED",
-    ).exclude(
-        deleted=True,
-        client__tg_chat_id=None,
+    appointments = (
+        Appointment.objects.filter(
+            date_time__date=tomorrow,
+            status="PLANNED",
+        )
+        .exclude(
+            deleted=True,
+        )
+        .exclude(client__tg_chat_id=None)
     )
     for appointment in appointments:
         msg = get_appointment_description(appointment, True)
