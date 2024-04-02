@@ -17,7 +17,14 @@ class ClientAdmin(admin.ModelAdmin):
         "phone_number",
         "tg_chat_id",
     )
-    search_fields = ("enote_id", "last_name", "phone_number", "email")
+    search_fields = (
+        "enote_id",
+        "last_name",
+        "phone_number",
+        "email",
+        "first_name",
+        "middle_name",
+    )
     list_filter = ("deleted", filters.WithTelegramIDFilter, filters.WithEnoteIDFilter)
     inlines = (PatientInline,)
 
