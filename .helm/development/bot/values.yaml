@@ -27,8 +27,8 @@ pod:
         initialDelaySeconds: 15
         periodSeconds: 5
     volumeMounts:
-      - mountPath: /app/var
-        name: var-volume
+      - mountPath: /opt/app/media
+        name: media-volume
   - name: $SERVICE_NAME-redis
     image:
       repository: redis
@@ -45,13 +45,13 @@ pod:
 volumes:
   enabled: true
   volume:
-  - name: var-volume
-    claimName: var-storage
+  - name: media-volume
+    claimName: media-storage
 
 pvc:
   enabled: true
   volume:
-  - name: "var-storage"
+  - name: "media-storage"
     storage: 2Gi
 
 service:

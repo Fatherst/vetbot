@@ -57,7 +57,12 @@ class BonusAccrualAdmin(admin.ModelAdmin):
         "modified_at",
     )
     autocomplete_fields = ("client",)
-    search_fields = ("client__enote_id", "client__last_name")
+    search_fields = (
+        "client__enote_id",
+        "client__last_name",
+        "client__first_name",
+        "client__middle_name",
+    )
     list_filter = ("accrued", "reason")
 
 

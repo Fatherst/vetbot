@@ -136,9 +136,11 @@ review_db:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       variables:
         ENVIRONMENT_NAME: 'review/$CI_COMMIT_REF_SLUG'
-      changes:
+      when: manual
+    - changes:
         paths:
           - .helm/*/$SERVICE_NAME/*
+
 
 stop_review:
   image:
