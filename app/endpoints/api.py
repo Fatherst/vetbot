@@ -59,7 +59,7 @@ async def create_or_update_client(enote_client: schemas.Client) -> schemas.Resul
             result=True,
         )
     except Exception as error:
-        logger.error(enote_client)
+        logger.warning(enote_client)
         return schemas.Result(
             enote_id=enote_client.enote_id, result=False, error_message=str(error)
         )
