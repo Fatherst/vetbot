@@ -7,7 +7,7 @@ from ninja import schema
 
 
 class ClientBalance(schema.BaseModel):
-    bonus_balance: int
+    bonus_balance: float
     money_spent: float
 
 
