@@ -40,6 +40,11 @@ def send_new_client_greeting_message(message: types.Message):
     )
 
 
+def send_message_to_blocked_user(message):
+    text = "Здравствуйте! Благодарим за обращение. На данный момент услуга недоступна."
+    bot.send_message(chat_id=message.chat.id, text=text)
+
+
 @bot.message_handler(commands=["start"])
 def process_start_command(message: types.Message):
     bot.delete_state(user_id=message.chat.id)

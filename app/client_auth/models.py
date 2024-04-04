@@ -99,7 +99,12 @@ class AnimalKind(models.Model):
 
 
 class BlockedClient(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.PROTECT, verbose_name="Клиент")
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.PROTECT,
+        verbose_name="Клиент",
+        related_name="in_blacklist",
+    )
     reason = models.TextField(blank=True, null=True, verbose_name="Причина")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
@@ -108,7 +113,7 @@ class BlockedClient(models.Model):
         verbose_name_plural = "Заблокированные клиенты"
 
     def __str__(self):
-        return self.client
+        return f"{self.client}"
 
 
 class Patient(models.Model):

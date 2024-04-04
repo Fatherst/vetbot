@@ -31,7 +31,11 @@ class ClientAdmin(admin.ModelAdmin):
 
 @admin.register(models.BlockedClient)
 class BlockedClientAdmin(admin.ModelAdmin):
-    list_display = ("client", "reason", "created_at")
+    list_display = (
+        "client",
+        "reason",
+        "created_at",
+    )
     autocomplete_fields = ("client",)
     search_fields = ("client__last_name", "client__phone_number", "client__id")
 
