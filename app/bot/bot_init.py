@@ -38,7 +38,7 @@ class SingletonBot(telebot.TeleBot, metaclass=Singleton):
         self.remove_webhook()
         time.sleep(0.5)
         self.set_webhook(url=f"{WEBHOOK_URL}/webhook")
-        self.setup_middleware(Middleware())
+        self.setup_middleware(Middleware(bot=self))
 
         self.add_custom_filter(StateFilter(self))
         self.add_custom_filter(PhoneFilter())
