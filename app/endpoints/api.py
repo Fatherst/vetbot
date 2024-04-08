@@ -13,38 +13,40 @@ from bot.bot_init import logger
 client_router = Router()
 
 
+async def process_contact_info(contact_information: list[schemas.ContactInformation]):
+    phone = None
+    email = None
+    for contact in contact_information:
+        if contact.type == "PHONE_NUMBER" and contact.channel == "SMS":
+            formatted_phone = Phone.format(contact.value)
+            if Phone.validate(formatted_phone):
+                phone = formatted_phone
+        elif contact.type == "EMAIL":
+            try:
+                validate_email(contact.value)
+                email = contact.value
+            except ValidationError:
+                pass
+    return phone, email
+
+
 async def create_or_update_client(enote_client: schemas.Client) -> schemas.Result:
     try:
         deleted = True if enote_client.state == "DELETED" else False
+
         contact_information = enote_client.contact_information
-        phone = None
-        email = None
-        client = None
-        for contact in contact_information:
-            if contact.type == "PHONE_NUMBER":
-                formatted_phone = Phone.format(contact.value)
-                if Phone.validate(formatted_phone):
-                    phone = formatted_phone
-                else:
-                    raise ValidationError(message=contact.value)
-            elif contact.type == "EMAIL":
-                try:
-                    validate_email(contact.value)
-                    email = contact.value
-                except ValidationError:
-                    pass
-        ###Тут проверка на существование телефона, иначе будет ошибка при проверке __contains
+        phone, email = await process_contact_info(contact_information)
         if phone:
             client = await client_models.Client.objects.filter(
                 phone_number=phone
             ).afirst()
-        if client and not client.enote_id:
+        else:
+            raise ValidationError(message=enote_client.enote_id)
+
+        if client and client.enote_id:
             client.enote_id = enote_client.enote_id
             await client.asave()
-        elif client and client.enote_id:
-            logger.warning(
-                f"Клиент с неуникальным номером телефона {client.enote_id} " f"{phone}"
-            )
+
         defaults = {
             "first_name": enote_client.first_name,
             "middle_name": enote_client.middle_name,
@@ -61,7 +63,7 @@ async def create_or_update_client(enote_client: schemas.Client) -> schemas.Resul
             result=True,
         )
     except Exception as error:
-        logger.warning(enote_client)
+        logger.exception(error, enote_client)
         return schemas.Result(
             enote_id=enote_client.enote_id, result=False, error_message=str(error)
         )
