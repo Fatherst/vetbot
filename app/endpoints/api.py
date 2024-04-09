@@ -43,7 +43,7 @@ async def create_or_update_client(enote_client: schemas.Client) -> schemas.Resul
         else:
             raise ValidationError(message=enote_client.enote_id)
 
-        if client and client.enote_id:
+        if client and not client.enote_id:
             client.enote_id = enote_client.enote_id
             await client.asave()
 
