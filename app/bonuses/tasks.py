@@ -26,7 +26,7 @@ def accrual_bonuses_by_enote(accrual_id):
 
 @app.task
 def process_not_accrued_bonuses():
-    accruals = BonusAccrual.objects.filter(accrued=False).exclude(client__in_blacklist__isnull=False)
+    accruals = BonusAccrual.objects.filter(accrued=False)
     for accrual in accruals:
         accrual_bonuses_by_enote.delay(accrual.id)
 

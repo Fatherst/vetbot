@@ -9,7 +9,7 @@ from appointment.text_generation import get_greeting
 
 @receiver(post_save, sender=BonusAccrual)
 def accrue_bonuses(created, instance, **kwargs):
-    if created and not instance.client.in_blacklist:
+    if created:
         accrual_bonuses_by_enote.delay(instance.id)
 
 
