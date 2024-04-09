@@ -34,7 +34,7 @@ def clinic_info_callback(call: types.CallbackQuery):
 def appointment_documents_callback(call: types.CallbackQuery):
     text = (
         "Пожалуйста, принесите с собой ваш паспорт и ветеринарный паспорт вашего питомца "
-        "(при наличии).\nМы работаем круглосуточно 24/7.\n\n"
+        "(при наличии).\nМы работаем круглосуточно 24/7 🕑\n\n"
         f"Мы всегда на связи: {settings.CLINIC_PHONE}"
     )
     bot.edit_message_text(
@@ -56,7 +56,7 @@ def clinic_address_callback(call: types.CallbackQuery):
         pass
 
     text = f"<b>Мы находимся по адресу:</b>\n{settings.CLINIC_ADDRESS}"
-    path_to_address_image = "clinic_info/imgs/clinic_address.png"
+    path_to_address_image = "clinic_info/imgs/clinic_address.jpg"
     with open(path_to_address_image, "rb") as address_img:
         bot.send_photo(
             chat_id=call.message.chat.id,

@@ -18,10 +18,10 @@ pod:
     resources:
       limits:
         cpu: "0.7"
-        memory: 2000Mi
+        memory: 1000Mi
       requests:
-        cpu: "0.7"
-        memory: 2000Mi
+        cpu: "0.5"
+        memory: 500Mi
       readinessProbe:
         path: "/health"
         initialDelaySeconds: 15
@@ -37,10 +37,10 @@ pod:
     resources:
       limits:
         cpu: "0.5"
-        memory: 500Mi
+        memory: 300Mi
       requests:
-        cpu: "0.5"
-        memory: 500Mi
+        cpu: "0.3"
+        memory: 200Mi
 
 volumes:
   enabled: true

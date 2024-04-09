@@ -56,7 +56,7 @@ def process_start_command(message: types.Message):
 
 def send_sms_message(user_id: int, formatted_phone: str):
     code = random.randrange(1001, 9999)
-    code_message = f"Твой код - {code}"
+    code_message = f"Ваш код - {code}"
     capture_message(code_message)
 
     try:
