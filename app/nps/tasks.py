@@ -20,6 +20,7 @@ def send_nps():
         .exclude(tg_chat_id=None)
         .exclude(deleted=True)
         .exclude(appointments__deleted=True)
+        .exclude(in_blacklist__isnull=False)
         .annotate(latest_appointment=Max("appointments__date_time"))
     )
     for client in clients_with_appointments:

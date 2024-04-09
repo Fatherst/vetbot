@@ -40,8 +40,6 @@ def send_new_client_greeting_message(message: types.Message):
     )
 
 
-
-
 @bot.message_handler(commands=["start"])
 def process_start_command(message: types.Message):
     bot.delete_state(user_id=message.chat.id)

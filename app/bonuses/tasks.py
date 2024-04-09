@@ -26,7 +26,7 @@ def accrual_bonuses_by_enote(accrual_id):
 
 @app.task
 def process_not_accrued_bonuses():
-    accruals = BonusAccrual.objects.filter(accrued=False)
+    accruals = BonusAccrual.objects.filter(accrued=False).exclude(client__in_blacklist__isnull=False)
     for accrual in accruals:
         accrual_bonuses_by_enote.delay(accrual.id)
 
@@ -39,11 +39,15 @@ def process_patients_birthdays():
         return
 
     today = timezone.now().date()
-    patients = Patient.objects.filter(
-        birth_date__day=today.day,
-        birth_date__month=today.month,
-        time_of_death=None,
-    ).exclude(deleted=True)
+    patients = (
+        not Patient.objects.filter(
+            birth_date__day=today.day,
+            birth_date__month=today.month,
+            time_of_death=None,
+        )
+        .exclude(deleted=True)
+        .exclude(client__in_blacklist__isnull=False)
+    )
 
     for patient in patients:
         bonus_not_accrued_before = not BonusAccrual.objects.filter(

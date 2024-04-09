@@ -18,6 +18,7 @@ def send_appointment_notification():
         .exclude(
             deleted=True,
         )
+        .exclude(client__in_blacklist__isnull=False)
         .exclude(client__tg_chat_id=None)
     )
     for appointment in appointments:
