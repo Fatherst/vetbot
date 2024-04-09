@@ -56,7 +56,7 @@ def clinic_address_callback(call: types.CallbackQuery):
         pass
 
     text = f"<b>Мы находимся по адресу:</b>\n{settings.CLINIC_ADDRESS}"
-    path_to_address_image = "clinic_info/imgs/clinic_address.png"
+    path_to_address_image = "clinic_info/imgs/clinic_address.jpg"
     with open(path_to_address_image, "rb") as address_img:
         bot.send_photo(
             chat_id=call.message.chat.id,
