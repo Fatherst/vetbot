@@ -232,6 +232,14 @@ class BonusAccrual(models.Model):
     def __str__(self):
         return f"Начисление клиенту: {self.client}"
 
+    def clean(self):
+        if self.reason == "MANUAL" and not self.comment:
+            raise ValidationError(
+                {
+                    "comment": "При ручном начислении комментарий не может быть пустым"
+                }
+            )
+
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
