@@ -1,15 +1,11 @@
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save, pre_save
 from bonuses.models import BonusAccrual, Recommendation, Program
 from bonuses.tasks import accrual_bonuses_by_enote
 from bot.bot_init import bot, logger
 from bonuses import keyboards
 from appointment.text_generation import get_greeting
-
-@receiver(pre_save, sender=BonusAccrual)
-def accrue_bonuses(created, instance, **kwargs):
-    if instance.client.in_blacklist:
-        pass
 
 @receiver(post_save, sender=BonusAccrual)
 def accrue_bonuses(created, instance, **kwargs):

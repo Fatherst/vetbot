@@ -40,7 +40,7 @@ def process_patients_birthdays():
 
     today = timezone.now().date()
     patients = (
-        not Patient.objects.filter(
+        Patient.objects.filter(
             birth_date__day=today.day,
             birth_date__month=today.month,
             time_of_death=None,

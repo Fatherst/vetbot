@@ -232,6 +232,14 @@ class BonusAccrual(models.Model):
     def __str__(self):
         return f"Начисление клиенту: {self.client}"
 
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        if self.client.in_blacklist.exists():
+            return
+        super(BonusAccrual, self).save()
+
+
 
 class Recommendation(models.Model):
     promocode = models.CharField(verbose_name="Промокод", unique=True)
