@@ -7,6 +7,7 @@ from bot.bot_init import bot, logger
 from bonuses import keyboards
 from appointment.text_generation import get_greeting
 
+
 @receiver(post_save, sender=BonusAccrual)
 def accrue_bonuses(created, instance, **kwargs):
     if created:

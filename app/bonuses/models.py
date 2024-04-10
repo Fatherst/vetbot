@@ -222,6 +222,12 @@ class BonusAccrual(models.Model):
     accrued = models.BooleanField(default=False, verbose_name="Начислено")
     created_at = models.DateTimeField(verbose_name="Дата создания", auto_now_add=True)
     modified_at = models.DateTimeField(verbose_name="Дата изменения", auto_now=True)
+    comment = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Комментарий при ручном начислении",
+        max_length=750,
+    )
 
     tracker = FieldTracker()
 
@@ -235,9 +241,7 @@ class BonusAccrual(models.Model):
     def clean(self):
         if self.reason == "MANUAL" and not self.comment:
             raise ValidationError(
-                {
-                    "comment": "При ручном начислении комментарий не может быть пустым"
-                }
+                {"comment": "При ручном начислении комментарий не может быть пустым"}
             )
 
     def save(
@@ -246,7 +250,6 @@ class BonusAccrual(models.Model):
         if self.client.in_blacklist.exists():
             return
         super(BonusAccrual, self).save()
-
 
 
 class Recommendation(models.Model):
