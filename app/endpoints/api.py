@@ -64,8 +64,6 @@ async def create_or_update_client(enote_client: schemas.Client) -> schemas.Resul
         )
     except Exception as error:
         logger.error(str(enote_client)+str(error))
-        # from sentry_sdk import capture_exception
-        # capture_exception(error)
         return schemas.Result(
             enote_id=enote_client.enote_id, result=False, error_message=str(error)
         )
