@@ -5,7 +5,7 @@ from django.utils import timezone
 from integrations.enote.methods import add_bonus_points
 
 
-@app.task
+@app.task(autoretry_for=(Exception,), retry_backoff=2)
 def accrual_bonuses_by_enote(accrual_id):
     accrual = BonusAccrual.objects.get(id=accrual_id)
 
